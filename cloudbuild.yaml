@@ -1,0 +1,76 @@
+steps:
+  # 1. Build da imagem Docker da aplicação Laravel
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'build-image'
+    args:
+      - 'build'
+      - '-t'
+      - '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY_NAME}/${_SERVICE_NAME}:$COMMIT_SHA'
+      - '-t'
+      - '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY_NAME}/${_SERVICE_NAME}:latest'
+      - '.'
+
+  # 2. Push da imagem Docker para o Artifact Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'push-image'
+    args:
+      - 'push'
+      - '--all-tags'
+      - '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY_NAME}/${_SERVICE_NAME}'
+
+  # 3. Execução de Migrações do Banco de Dados via Cloud Run Job
+  # (Executa isoladamente com acesso ao socket do Cloud SQL antes de atualizar o tráfego HTTP)
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    id: 'run-migrations'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        echo "Configurando e executando Job de migração no Cloud Run..."
+        gcloud run jobs deploy ${_SERVICE_NAME}-migrate \
+          --image=${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY_NAME}/${_SERVICE_NAME}:$COMMIT_SHA \
+          --region=${_REGION} \
+          --command=php \
+          --args=artisan,migrate,--force \
+          --set-cloudsql-instances=${_CLOUD_SQL_INSTANCE} \
+          --set-env-vars=DB_CONNECTION=mysql,DB_SOCKET=/cloudsql/${_CLOUD_SQL_INSTANCE},APP_ENV=production,LOG_CHANNEL=stderr \
+          --set-secrets=APP_KEY=${_APP_KEY_SECRET}:latest,DB_DATABASE=${_DB_DATABASE_SECRET}:latest,DB_USERNAME=${_DB_USERNAME_SECRET}:latest,DB_PASSWORD=${_DB_PASSWORD_SECRET}:latest \
+          || true
+        
+        gcloud run jobs execute ${_SERVICE_NAME}-migrate \
+          --region=${_REGION} \
+          --wait || echo "Aviso: Falha ao rodar migrations automaticamente via Job. Verifique permissões."
+
+  # 4. Deploy no Google Cloud Run Service
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    id: 'deploy-service'
+    entrypoint: 'gcloud'
+    args:
+      - 'run'
+      - 'deploy'
+      - '${_SERVICE_NAME}'
+      - '--image=${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY_NAME}/${_SERVICE_NAME}:$COMMIT_SHA'
+      - '--region=${_REGION}'
+      - '--platform=managed'
+      - '--allow-unauthenticated'
+      - '--port=8080'
+      - '--add-cloudsql-instances=${_CLOUD_SQL_INSTANCE}'
+      - '--set-env-vars=APP_ENV=production,APP_DEBUG=false,LOG_CHANNEL=stderr,DB_CONNECTION=mysql,DB_SOCKET=/cloudsql/${_CLOUD_SQL_INSTANCE}'
+      - '--set-secrets=APP_KEY=${_APP_KEY_SECRET}:latest,DB_DATABASE=${_DB_DATABASE_SECRET}:latest,DB_USERNAME=${_DB_USERNAME_SECRET}:latest,DB_PASSWORD=${_DB_PASSWORD_SECRET}:latest'
+
+images:
+  - '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY_NAME}/${_SERVICE_NAME}:$COMMIT_SHA'
+  - '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY_NAME}/${_SERVICE_NAME}:latest'
+
+substitutions:
+  _REGION: 'southamerica-east1'
+  _REPOSITORY_NAME: 'cifraly'
+  _SERVICE_NAME: 'cifraly-app'
+  _CLOUD_SQL_INSTANCE: 'SEU_PROJETO:southamerica-east1:SUA_INSTANCIA_SQL'
+  _APP_KEY_SECRET: 'cifraly-app-key'
+  _DB_DATABASE_SECRET: 'cifraly-db-name'
+  _DB_USERNAME_SECRET: 'cifraly-db-user'
+  _DB_PASSWORD_SECRET: 'cifraly-db-password'
+
+options:
+  logging: CLOUD_LOGGING_ONLY

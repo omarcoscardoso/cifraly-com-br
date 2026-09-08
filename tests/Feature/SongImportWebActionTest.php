@@ -31,7 +31,7 @@ class SongImportWebActionTest extends TestCase
         $this->organization = Organization::factory()->create(['slug' => 'igreja-central']);
         $this->user->organizations()->attach($this->organization);
 
-        Filament::setCurrentPanel(Filament::getPanel('admin'));
+        Filament::setCurrentPanel(Filament::getPanel('app'));
         Filament::setTenant($this->organization, isQuiet: true);
     }
 

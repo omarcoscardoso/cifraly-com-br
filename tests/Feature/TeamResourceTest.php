@@ -34,7 +34,7 @@ class TeamResourceTest extends TestCase
         $this->user->organizations()->attach($this->organization);
 
         $this->actingAs($this->user);
-        Filament::setCurrentPanel(Filament::getPanel('admin'));
+        Filament::setCurrentPanel(Filament::getPanel('app'));
         Filament::setTenant($this->organization, isQuiet: true);
     }
 
@@ -52,7 +52,7 @@ class TeamResourceTest extends TestCase
             'name' => 'Louvor Domingo Manhã',
         ]);
 
-        $response = $this->get('/admin/igreja-central/teams');
+        $response = $this->get('/app/igreja-central/teams');
 
         $response->assertStatus(200);
         $response->assertSee('Louvor Domingo Manhã');
@@ -227,7 +227,7 @@ class TeamResourceTest extends TestCase
             'name' => 'Equipe Outra Igreja',
         ]);
 
-        $response = $this->get("/admin/igreja-central/teams/{$otherTeam->id}/edit");
+        $response = $this->get("/app/igreja-central/teams/{$otherTeam->id}/edit");
         $response->assertStatus(404);
     }
 }

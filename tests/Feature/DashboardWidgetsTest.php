@@ -43,7 +43,7 @@ class DashboardWidgetsTest extends TestCase
         $this->user->organizations()->attach($this->organization, ['role' => Organization::ROLE_ADMIN]);
 
         $this->actingAs($this->user);
-        Filament::setCurrentPanel(Filament::getPanel('admin'));
+        Filament::setCurrentPanel(Filament::getPanel('app'));
         Filament::setTenant($this->organization, isQuiet: true);
     }
 
@@ -56,7 +56,7 @@ class DashboardWidgetsTest extends TestCase
 
     public function test_default_widgets_are_replaced_in_admin_panel(): void
     {
-        $panel = Filament::getPanel('admin');
+        $panel = Filament::getPanel('app');
         $widgets = $panel->getWidgets();
 
         $this->assertNotContains(AccountWidget::class, $widgets);
@@ -207,7 +207,7 @@ class DashboardWidgetsTest extends TestCase
 
     public function test_dashboard_page_renders_with_widgets(): void
     {
-        $response = $this->get('/admin/igreja-vida-nova');
+        $response = $this->get('/app/igreja-vida-nova');
         $response->assertSuccessful();
         $response->assertSee('Olá, Pastor João!');
         $response->assertSee('Igreja Vida Nova');

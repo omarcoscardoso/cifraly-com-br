@@ -32,7 +32,7 @@ class SongResourceTest extends TestCase
         $this->organization = Organization::factory()->create(['slug' => 'igreja-central']);
         $this->user->organizations()->attach($this->organization);
 
-        Filament::setCurrentPanel(Filament::getPanel('admin'));
+        Filament::setCurrentPanel(Filament::getPanel('app'));
         Filament::setTenant($this->organization, isQuiet: true);
     }
 
@@ -52,7 +52,7 @@ class SongResourceTest extends TestCase
             'original_key' => 'G',
         ]);
 
-        $response = $this->actingAs($this->user)->get('/admin/igreja-central/songs');
+        $response = $this->actingAs($this->user)->get('/app/igreja-central/songs');
 
         $response->assertStatus(200);
         $response->assertSee('Graça Maravilhosa');

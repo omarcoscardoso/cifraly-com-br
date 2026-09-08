@@ -31,14 +31,14 @@ class GoogleAuthController extends Controller
             /** @var \Laravel\Socialite\Two\User $googleUser */
             $googleUser = Socialite::driver('google')->user();
         } catch (Throwable) {
-            return redirect()->route('filament.admin.auth.login')
+            return redirect()->route('filament.app.auth.login')
                 ->with('error', 'Falha ao autenticar com o Google. Tente novamente.');
         }
 
         $email = $googleUser->getEmail();
 
         if (blank($email)) {
-            return redirect()->route('filament.admin.auth.login')
+            return redirect()->route('filament.app.auth.login')
                 ->with('error', 'Não foi possível obter o e-mail da sua conta Google.');
         }
 
@@ -75,13 +75,13 @@ class GoogleAuthController extends Controller
                 session()->forget('pending_invite_code');
                 request()->session()->regenerate();
 
-                return redirect("/admin/{$org->slug}");
+                return redirect("/app/{$org->slug}");
             }
             session()->forget('pending_invite_code');
         }
 
         request()->session()->regenerate();
 
-        return redirect()->intended('/admin');
+        return redirect()->intended('/app');
     }
 }

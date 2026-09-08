@@ -47,9 +47,9 @@ O **Cifraly** foi desenvolvido para solucionar os desafios de liderança, ensaio
 - **Interface Mobile-First**: O voluntário visualiza o evento, sua função, o setlist e pode:
   - **Confirmar Presença** instantaneamente.
   - **Recusar Presença** com preenchimento opcional de justificativa (com validação e proteção de caracteres).
-- **Notificações Integradas**:
-  - Envio de convites por **E-mail** com layout responsivo.
+- **Envio de Convites**:
   - Disparo direto para o **WhatsApp** com mensagem pronta e link formatado.
+  - Cópia com 1 clique do link direto de confirmação do voluntário.
 - **Rate Limiting**: Rotas públicas protegidas contra abusos e força bruta (`throttle:60,1`).
 
 ### 🎤 Modo Palco ao Vivo (Stage View)
@@ -176,7 +176,7 @@ O projeto está totalmente configurado para deploy contínuo no **Google Cloud R
 1. **Dockerfile Multi-stage Otimizado**:
    - Compilação dos assets com Vite / Tailwind CSS em Node 22 Alpine.
    - Imagem final enxuta em PHP 8.4-FPM Alpine com Nginx integrado e Opcache ativado.
-   - Tratamento dinâmico da variável `$PORT` injetada pelo Cloud Run via template Nginx (`docker/cloudrun/nginx.conf.template`).
+   - Tratamento dinâmico da variável `$PORT` injetada pelo Cloud Run via template Nginx (`.docker/cloudrun/nginx.conf.template`).
    - Entrypoint com geração de caches de produção (`config:cache`, `route:cache`, `view:cache`).
 
 2. **Pipeline Google Cloud Build (`cloudbuild.yaml`)**:

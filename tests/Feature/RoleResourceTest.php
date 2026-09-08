@@ -31,7 +31,7 @@ class RoleResourceTest extends TestCase
         $this->organization = Organization::factory()->create(['slug' => 'igreja-central']);
         $this->user->organizations()->attach($this->organization);
 
-        Filament::setCurrentPanel(Filament::getPanel('admin'));
+        Filament::setCurrentPanel(Filament::getPanel('app'));
         Filament::setTenant($this->organization, isQuiet: true);
     }
 
@@ -44,7 +44,7 @@ class RoleResourceTest extends TestCase
 
     public function test_can_render_role_list_page(): void
     {
-        $response = $this->actingAs($this->user)->get('/admin/igreja-central/roles');
+        $response = $this->actingAs($this->user)->get('/app/igreja-central/roles');
 
         $response->assertStatus(200);
         $response->assertSee('Violão');
@@ -144,7 +144,7 @@ class RoleResourceTest extends TestCase
             'name' => 'Role Outra Igreja',
         ]);
 
-        $response = $this->actingAs($this->user)->get("/admin/igreja-central/roles/{$otherRole->id}/edit");
+        $response = $this->actingAs($this->user)->get("/app/igreja-central/roles/{$otherRole->id}/edit");
         $response->assertStatus(404);
     }
 }

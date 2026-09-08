@@ -37,7 +37,7 @@ class GoogleAuthTest extends TestCase
 
         $response = $this->get(route('auth.google.callback'));
 
-        $response->assertRedirect('/admin');
+        $response->assertRedirect('/app');
 
         $this->assertDatabaseHas('users', [
             'email' => 'joao@cifraly.com.br',
@@ -71,7 +71,7 @@ class GoogleAuthTest extends TestCase
 
         $response = $this->get(route('auth.google.callback'));
 
-        $response->assertRedirect('/admin');
+        $response->assertRedirect('/app');
 
         $this->assertSame(1, User::where('email', 'membro@cifraly.com.br')->count());
         $this->assertSame('google-user-id-888', $existingUser->fresh()->google_id);
@@ -87,7 +87,7 @@ class GoogleAuthTest extends TestCase
 
         $response = $this->get(route('auth.google.callback'));
 
-        $response->assertRedirect(route('filament.admin.auth.login'));
+        $response->assertRedirect(route('filament.app.auth.login'));
         $response->assertSessionHas('error', 'Falha ao autenticar com o Google. Tente novamente.');
         $this->assertGuest();
     }

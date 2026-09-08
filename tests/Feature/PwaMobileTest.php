@@ -163,8 +163,8 @@ class PwaMobileTest extends TestCase
         $response->assertStatus(200);
         $response->assertSee('class="dark', false);
         $response->assertSee('bg-slate-950', false);
-        $response->assertSee('cifralyIconGrad', false);
-        $response->assertSee('cifralyArcGrad', false);
+        $response->assertSee('cifralyTextLyGrad', false);
+        $response->assertSee('cifraly-brand-root-mob', false);
     }
 
     public function test_filament_app_login_renders_cifraly_brand_logo_and_dark_mode(): void
@@ -172,7 +172,7 @@ class PwaMobileTest extends TestCase
         $response = $this->get('/app/login');
 
         $response->assertStatus(200);
-        $response->assertSee('cifralyIconGrad', false);
-        $response->assertSee('cifralyArcGrad', false);
+        $response->assertSee('cifralyTextLyGrad', false);
+        $response->assertSee('cifraly-brand-root-mob', false);
     }
 }

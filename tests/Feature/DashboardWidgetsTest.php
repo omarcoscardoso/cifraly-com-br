@@ -79,8 +79,8 @@ class DashboardWidgetsTest extends TestCase
             ->assertDontSee('Configurações')
             ->assertSee('Novo Evento')
             ->assertSee('Nova Cifra')
-            ->assertSee('Repertório')
-            ->assertSee('Equipes');
+            ->assertDontSee('Repertório')
+            ->assertDontSee('Equipes');
     }
 
     public function test_organization_stats_overview_widget_calculates_metrics(): void

@@ -2,8 +2,8 @@
 @php
     $attributes = ($attributes ?? new \Illuminate\View\ComponentAttributeBag())->merge(['class' => $class]);
 @endphp
-{{-- Mobile: Apenas a Tipografia Cifraly (sem o ícone quadrado) --}}
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 70" fill="none" style="overflow: visible;" {{ $attributes->merge(['class' => 'block md:hidden']) }}>
+{{-- Mobile: Apenas a Tipografia Cifraly + Slogan (sem o ícone quadrado) --}}
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 78" fill="none" style="overflow: visible;" {{ $attributes->merge(['class' => 'block md:hidden']) }}>
   <defs>
     <!-- Gradiente de Destaque para o sufixo "ly" Mobile -->
     <linearGradient id="cifralyTextLyGradMob" x1="0%" y1="0%" x2="100%" y2="0%">
@@ -15,13 +15,16 @@
       .cifraly-brand-root-mob { font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
       .cifraly-text-main-mob { font-weight: 800; font-size: 52px; fill: currentColor; letter-spacing: -0.04em; }
       .cifraly-text-suffix-mob { font-weight: 700; font-size: 52px; fill: #F59E0B; fill: url(#cifralyTextLyGradMob); letter-spacing: -0.04em; }
+      .cifraly-tagline-mob { font-weight: 500; font-size: 11px; fill: currentColor; opacity: 0.6; letter-spacing: 0.22em; text-transform: uppercase; }
     </style>
   </defs>
 
-  <g class="cifraly-brand-root-mob" transform="translate(0, 52)">
+  <g class="cifraly-brand-root-mob" transform="translate(0, 50)">
     <text class="cifraly-text-main-mob" x="0" y="0">Cifra<tspan class="cifraly-text-suffix-mob" fill="url(#cifralyTextLyGradMob)">ly</tspan></text>
     <!-- Ponto de afinação musical sobre a letra 'i' -->
-    <circle cx="46" cy="-35" r="6" fill="#F59E0B" />
+    <circle cx="42" cy="-36" r="5" fill="#F59E0B" />
+    <!-- Tagline / Slogan -->
+    <text class="cifraly-tagline-mob" x="2" y="20">Cifras &amp; Escalas</text>
   </g>
 </svg>
 
@@ -84,7 +87,7 @@
     <g transform="translate(118, 59)">
       <text class="cifraly-text-main" x="0" y="0">Cifra<tspan class="cifraly-text-suffix" fill="url(#cifralyTextLyGrad)">ly</tspan></text>
       <!-- Ponto de afinação musical sobre a letra 'i' -->
-      <circle cx="46" cy="-35" r="6" fill="#F59E0B" />
+      <circle cx="42" cy="-36" r="5" fill="#F59E0B" />
       <!-- Tagline / Slogan -->
       <text class="cifraly-tagline" x="2" y="22">Cifras &amp; Escalas</text>
     </g>

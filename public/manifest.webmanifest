@@ -1,0 +1,100 @@
+{
+  "id": "/?source=pwa",
+  "name": "Cifraly - Gestão Musical & Repertório",
+  "short_name": "Cifraly",
+  "description": "Plataforma móvel para gestão de ministérios de louvor, repertório de cifras e Modo Palco ao vivo com transposição.",
+  "start_url": "/app",
+  "scope": "/",
+  "display": "standalone",
+  "display_override": [
+    "window-controls-overlay",
+    "standalone",
+    "minimal-ui"
+  ],
+  "orientation": "any",
+  "theme_color": "#0f172a",
+  "background_color": "#0f172a",
+  "lang": "pt-BR",
+  "dir": "ltr",
+  "categories": [
+    "music",
+    "productivity",
+    "utilities"
+  ],
+  "icons": [
+    {
+      "src": "/icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-maskable-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/icons/icon-maskable-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Modo Palco",
+      "short_name": "Palco",
+      "description": "Acessar diretamente o Modo Palco para apresentações",
+      "url": "/app",
+      "icons": [
+        {
+          "src": "/icons/icon-192x192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Repertório de Cifras",
+      "short_name": "Cifras",
+      "description": "Consultar repertório e cifras do ministério",
+      "url": "/app",
+      "icons": [
+        {
+          "src": "/icons/icon-192x192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Eventos e Escalas",
+      "short_name": "Escalas",
+      "description": "Visualizar próximos cultos e escalas",
+      "url": "/app",
+      "icons": [
+        {
+          "src": "/icons/icon-192x192.png",
+          "sizes": "192x192"
+        }
+      ]
+    }
+  ],
+  "prefer_related_applications": false
+}

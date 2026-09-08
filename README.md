@@ -176,7 +176,7 @@ O projeto está totalmente configurado para deploy contínuo no **Google Cloud R
 1. **Dockerfile Multi-stage Otimizado**:
    - Compilação dos assets com Vite / Tailwind CSS em Node 22 Alpine.
    - Imagem final enxuta em PHP 8.4-FPM Alpine com Nginx integrado e Opcache ativado.
-   - Tratamento dinâmico da variável `$PORT` injetada pelo Cloud Run via template Nginx (`docker/cloudrun/nginx.conf.template`).
+   - Tratamento dinâmico da variável `$PORT` injetada pelo Cloud Run via template Nginx (`.docker/cloudrun/nginx.conf.template`).
    - Entrypoint com geração de caches de produção (`config:cache`, `route:cache`, `view:cache`).
 
 2. **Pipeline Google Cloud Build (`cloudbuild.yaml`)**:

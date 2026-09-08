@@ -19,7 +19,7 @@
     <header class="w-full border-b border-slate-800/80 bg-slate-950/80 backdrop-blur-md sticky top-0 z-40">
         <div class="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
             <a href="/" class="flex items-center gap-2 transition hover:opacity-90">
-                <x-brand-logo class="h-8 w-auto text-white" />
+                <x-brand-logo class="h-10 sm:h-11 w-auto text-white" />
             </a>
 
             <div class="flex items-center gap-3">

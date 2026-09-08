@@ -33,4 +33,19 @@
             padding-top: env(safe-area-inset-top, 0px) !important;
         }
     }
+
+    /* Brand Logo Sizing Enhancements */
+    .fi-logo svg {
+        height: 100% !important;
+        width: auto !important;
+    }
+    .fi-topbar .fi-logo,
+    .fi-sidebar-header .fi-logo {
+        height: 2.85rem !important;
+    }
+    .fi-simple-main .fi-logo,
+    .fi-simple-layout .fi-logo,
+    .fi-simple-header .fi-logo {
+        height: 3.75rem !important;
+    }
 </style>

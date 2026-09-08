@@ -7,6 +7,7 @@ use App\Filament\Pages\Tenancy\RegisterOrganization;
 use App\Filament\Widgets\OrganizationHeaderWidget;
 use App\Filament\Widgets\OrganizationStatsOverviewWidget;
 use App\Filament\Widgets\RecentSongsWidget;
+use App\Filament\Widgets\RosterConfirmationAlertWidget;
 use App\Filament\Widgets\UpcomingEventsWidget;
 use App\Models\Organization;
 use Filament\Enums\ThemeMode;
@@ -64,9 +65,10 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\Filament\Widgets')
             ->widgets([
+                RosterConfirmationAlertWidget::class,
                 OrganizationHeaderWidget::class,
-                OrganizationStatsOverviewWidget::class,
                 UpcomingEventsWidget::class,
+                OrganizationStatsOverviewWidget::class,
                 RecentSongsWidget::class,
             ])
             ->middleware([

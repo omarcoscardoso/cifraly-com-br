@@ -16,7 +16,7 @@ use Filament\Widgets\TableWidget;
 
 class UpcomingEventsWidget extends TableWidget
 {
-    protected static ?int $sort = 3;
+    protected static ?int $sort = 2;
 
     protected static ?string $heading = 'Próximos Eventos & Modo Palco';
 
@@ -30,6 +30,8 @@ class UpcomingEventsWidget extends TableWidget
     public function table(Table $table): Table
     {
         return $table
+            ->stackedOnMobile()
+            ->paginated(false)
             ->query(
                 Event::query()
                     ->where('organization_id', Filament::getTenant()?->id)
@@ -40,25 +42,25 @@ class UpcomingEventsWidget extends TableWidget
             ->columns([
                 TextColumn::make('title')
                     ->label('Evento')
-                    ->searchable()
                     ->weight('bold'),
 
                 TextColumn::make('team.name')
                     ->label('Equipe')
                     ->placeholder('Geral / Sem equipe')
                     ->badge()
-                    ->color('gray'),
+                    ->color('gray')
+                    ->visibleFrom('md'),
 
                 TextColumn::make('starts_at')
                     ->label('Data e Horário')
-                    ->dateTime('d/m/Y H:i')
-                    ->sortable(),
+                    ->dateTime('d/m/Y H:i'),
 
                 TextColumn::make('status')
                     ->label('Status')
                     ->badge()
                     ->formatStateUsing(fn (?string $state): string => Event::STATUS_OPTIONS[$state] ?? $state ?? '-')
-                    ->color(fn (?string $state): string => Event::STATUS_COLORS[$state] ?? 'gray'),
+                    ->color(fn (?string $state): string => Event::STATUS_COLORS[$state] ?? 'gray')
+                    ->visibleFrom('md'),
 
                 TextColumn::make('roster_summary')
                     ->label('Escala')
@@ -69,32 +71,23 @@ class UpcomingEventsWidget extends TableWidget
                         $confirmed = $record->rosters()->where('status', EventRoster::STATUS_CONFIRMED)->count();
 
                         return "{$confirmed}/{$total} confirmados";
-                    }),
+                    })
+                    ->visibleFrom('md'),
 
                 TextColumn::make('songs_summary')
                     ->label('Setlist')
                     ->badge()
                     ->color('primary')
-                    ->state(fn (Event $record): string => $record->eventSongs()->count().' músicas'),
-            ])
-            ->headerActions([
-                Action::make('createEvent')
-                    ->label('Novo Evento')
-                    ->icon(Heroicon::OutlinedPlus)
-                    ->color('primary')
-                    ->url(fn (): string => EventResource::getUrl('create')),
-
-                Action::make('viewAll')
-                    ->label('Ver Todos')
-                    ->icon(Heroicon::OutlinedCalendarDays)
-                    ->color('gray')
-                    ->url(fn (): string => EventResource::getUrl('index')),
+                    ->state(fn (Event $record): string => $record->eventSongs()->count().' músicas')
+                    ->visibleFrom('md'),
             ])
             ->recordActions([
                 Action::make('stageView')
                     ->label('Modo Palco')
                     ->icon(Heroicon::OutlinedPlayCircle)
                     ->color('warning')
+                    ->button()
+                    ->size('xs')
                     ->url(fn (Event $record): string => route('events.stage', [
                         'organization' => Filament::getTenant(),
                         'event' => $record,

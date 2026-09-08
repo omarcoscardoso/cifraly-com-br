@@ -19,7 +19,7 @@ use Filament\Widgets\StatsOverviewWidget\Stat;
 
 class OrganizationStatsOverviewWidget extends StatsOverviewWidget
 {
-    protected static ?int $sort = 2;
+    protected static ?int $sort = 3;
 
     protected ?string $pollingInterval = '30s';
 

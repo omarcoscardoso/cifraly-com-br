@@ -39,6 +39,7 @@ class SongsRelationManager extends RelationManager
     public function table(Table $table): Table
     {
         return $table
+            ->stackedOnMobile()
             ->columns([
                 TextColumn::make('order_index')
                     ->label('#')

@@ -48,12 +48,46 @@ class EditOrganizationProfile extends EditTenantProfile
                                 ->unique(Organization::class, 'slug', ignoreRecord: true),
                         ]),
 
-                        TextInput::make('invite_code')
-                            ->label('Código de Convite da Organização')
-                            ->disabled()
-                            ->dehydrated(false)
-                            ->extraInputAttributes(['style' => 'font-family: monospace; font-weight: bold; font-size: 1.1em; letter-spacing: 0.1em;'])
-                            ->helperText('Compartilhe este código com músicos e voluntários para que eles entrem na organização.'),
+                        Grid::make(['default' => 1, 'md' => 2])->schema([
+                            TextInput::make('invite_code')
+                                ->label('Código de Convite da Organização')
+                                ->disabled()
+                                ->dehydrated(false)
+                                ->extraInputAttributes(['style' => 'font-family: monospace; font-weight: bold; font-size: 1.1em; letter-spacing: 0.1em;'])
+                                ->helperText('Compartilhe este código com músicos e voluntários para entrarem no app.'),
+
+                            TextInput::make('invite_url')
+                                ->label('Link de Convite')
+                                ->formatStateUsing(function (): string {
+                                    /** @var Organization|null $tenant */
+                                    $tenant = Filament::getTenant();
+
+                                    return $tenant?->invite_code ? route('organization.join', ['code' => $tenant->invite_code]) : '';
+                                })
+                                ->disabled()
+                                ->dehydrated(false)
+                                ->suffixAction(
+                                    Action::make('copy_invite_url')
+                                        ->icon(Heroicon::OutlinedClipboardDocument)
+                                        ->tooltip('Copiar link de convite')
+                                        ->action(function (): void {
+                                            Notification::make()
+                                                ->title('Link copiado com sucesso!')
+                                                ->success()
+                                                ->send();
+                                        })
+                                        ->extraAttributes(function (): array {
+                                            /** @var Organization|null $tenant */
+                                            $tenant = Filament::getTenant();
+                                            $url = $tenant?->invite_code ? route('organization.join', ['code' => $tenant->invite_code]) : '';
+
+                                            return [
+                                                'x-on:click' => "navigator.clipboard.writeText('{$url}')",
+                                            ];
+                                        })
+                                )
+                                ->helperText('Envie este link direto para novos usuários entrarem com 1 clique.'),
+                        ]),
                     ]),
             ]);
     }
@@ -61,13 +95,35 @@ class EditOrganizationProfile extends EditTenantProfile
     protected function getHeaderActions(): array
     {
         return [
+            Action::make('copyInviteLink')
+                ->label('Copiar Link de Convite')
+                ->icon(Heroicon::OutlinedClipboardDocument)
+                ->color('primary')
+                ->action(function (): void {
+                    Notification::make()
+                        ->title('Link copiado com sucesso!')
+                        ->body('O link de convite foi copiado para a área de transferência.')
+                        ->success()
+                        ->send();
+                })
+                ->extraAttributes(function (): array {
+                    /** @var Organization|null $tenant */
+                    $tenant = Filament::getTenant();
+                    $url = $tenant?->invite_code ? route('organization.join', ['code' => $tenant->invite_code]) : '';
+
+                    return [
+                        'x-on:click' => "navigator.clipboard.writeText('{$url}')",
+                    ];
+                })
+                ->visible(fn (): bool => auth()->user()?->isOrgAdmin() ?? false),
+
             Action::make('regenerateInviteCode')
-                ->label('Regenerar Código de Convite')
+                ->label('Regenerar Código')
                 ->icon(Heroicon::OutlinedArrowPath)
                 ->color('warning')
                 ->requiresConfirmation()
                 ->modalHeading('Gerar Novo Código de Convite')
-                ->modalDescription('Tem certeza que deseja gerar um novo código de convite? O código anterior deixará de funcionar imediatamente.')
+                ->modalDescription('Tem certeza que deseja gerar um novo código de convite? O código e link anteriores deixarão de funcionar imediatamente.')
                 ->action(function (): void {
                     /** @var Organization $tenant */
                     $tenant = Filament::getTenant();

@@ -7,6 +7,7 @@ namespace Tests\Feature;
 use App\Filament\Widgets\OrganizationHeaderWidget;
 use App\Filament\Widgets\OrganizationStatsOverviewWidget;
 use App\Filament\Widgets\RecentSongsWidget;
+use App\Filament\Widgets\RosterConfirmationAlertWidget;
 use App\Filament\Widgets\UpcomingEventsWidget;
 use App\Models\Event;
 use App\Models\EventRoster;
@@ -62,6 +63,7 @@ class DashboardWidgetsTest extends TestCase
         $this->assertNotContains(AccountWidget::class, $widgets);
         $this->assertNotContains(FilamentInfoWidget::class, $widgets);
 
+        $this->assertContains(RosterConfirmationAlertWidget::class, $widgets);
         $this->assertContains(OrganizationHeaderWidget::class, $widgets);
         $this->assertContains(OrganizationStatsOverviewWidget::class, $widgets);
         $this->assertContains(UpcomingEventsWidget::class, $widgets);
@@ -72,13 +74,13 @@ class DashboardWidgetsTest extends TestCase
     {
         Livewire::test(OrganizationHeaderWidget::class)
             ->assertSuccessful()
-            ->assertSee('Pastor João')
-            ->assertSee('Igreja Vida Nova')
-            ->assertSee('VIDA2026')
+            ->assertDontSee('Olá, Pastor João!')
+            ->assertDontSee('VIDA2026')
+            ->assertDontSee('Configurações')
             ->assertSee('Novo Evento')
             ->assertSee('Nova Cifra')
-            ->assertSee('Repertório')
-            ->assertSee('Equipes');
+            ->assertDontSee('Repertório')
+            ->assertDontSee('Equipes');
     }
 
     public function test_organization_stats_overview_widget_calculates_metrics(): void
@@ -209,7 +211,107 @@ class DashboardWidgetsTest extends TestCase
     {
         $response = $this->get('/app/igreja-vida-nova');
         $response->assertSuccessful();
-        $response->assertSee('Olá, Pastor João!');
         $response->assertSee('Igreja Vida Nova');
+        $response->assertSee('Novo Evento');
+    }
+
+    public function test_roster_confirmation_alert_widget_renders_for_scheduled_user(): void
+    {
+        $event = Event::factory()->create([
+            'organization_id' => $this->organization->id,
+            'title' => 'Culto de Domingo',
+            'starts_at' => now()->addDays(2)->setTime(18, 0),
+            'status' => Event::STATUS_PUBLISHED,
+        ]);
+
+        $role = Role::factory()->create([
+            'organization_id' => $this->organization->id,
+            'name' => 'Guitarra Elétrica',
+        ]);
+
+        $roster = EventRoster::factory()->create([
+            'organization_id' => $this->organization->id,
+            'event_id' => $event->id,
+            'user_id' => $this->user->id,
+            'role_id' => $role->id,
+            'status' => EventRoster::STATUS_PENDING,
+        ]);
+
+        $this->assertTrue(RosterConfirmationAlertWidget::canView());
+
+        Livewire::test(RosterConfirmationAlertWidget::class)
+            ->assertSuccessful()
+            ->assertSee('Você tem 1 escala aguardando confirmação')
+            ->assertSee('Responder Escala')
+            ->call('openModal')
+            ->assertSee('Culto de Domingo')
+            ->assertSee('Guitarra Elétrica')
+            ->assertSee('Confirmar Presença')
+            ->assertSee('Não poderei ir');
+    }
+
+    public function test_user_can_confirm_attendance_from_dashboard_widget(): void
+    {
+        $event = Event::factory()->create([
+            'organization_id' => $this->organization->id,
+            'title' => 'Culto da Família',
+            'starts_at' => now()->addDays(1)->setTime(19, 30),
+            'status' => Event::STATUS_PUBLISHED,
+        ]);
+
+        $roster = EventRoster::factory()->create([
+            'organization_id' => $this->organization->id,
+            'event_id' => $event->id,
+            'user_id' => $this->user->id,
+            'status' => EventRoster::STATUS_PENDING,
+        ]);
+
+        Livewire::test(RosterConfirmationAlertWidget::class)
+            ->call('openModal')
+            ->call('confirmAttendance', $roster->id)
+            ->assertNotified('Presença confirmada!');
+
+        $this->assertEquals(EventRoster::STATUS_CONFIRMED, $roster->fresh()->status);
+        $this->assertNotNull($roster->fresh()->responded_at);
+
+        // Depois que o usuário confirmou, não há mais pendências e o card desaparece da tela inicial
+        $this->assertFalse(RosterConfirmationAlertWidget::canView());
+    }
+
+    public function test_user_can_decline_attendance_from_dashboard_widget(): void
+    {
+        $event = Event::factory()->create([
+            'organization_id' => $this->organization->id,
+            'title' => 'Ensaio Geral Banda',
+            'starts_at' => now()->addDays(3)->setTime(20, 0),
+            'status' => Event::STATUS_PUBLISHED,
+        ]);
+
+        $roster = EventRoster::factory()->create([
+            'organization_id' => $this->organization->id,
+            'event_id' => $event->id,
+            'user_id' => $this->user->id,
+            'status' => EventRoster::STATUS_PENDING,
+        ]);
+
+        Livewire::test(RosterConfirmationAlertWidget::class)
+            ->call('openModal')
+            ->call('startDecline', $roster->id)
+            ->set('declineReason', 'Viagem a trabalho')
+            ->call('submitDecline', $roster->id)
+            ->assertNotified('Ausência informada');
+
+        $this->assertEquals(EventRoster::STATUS_DECLINED, $roster->fresh()->status);
+        $this->assertEquals('Viagem a trabalho', $roster->fresh()->decline_reason);
+        $this->assertNotNull($roster->fresh()->responded_at);
+
+        // Depois que o usuário informou ausência, não há mais pendências e o card desaparece da tela inicial
+        $this->assertFalse(RosterConfirmationAlertWidget::canView());
+    }
+
+    public function test_roster_confirmation_widget_hidden_when_user_has_no_upcoming_roster(): void
+    {
+        // Without any roster, canView() should return false
+        $this->assertFalse(RosterConfirmationAlertWidget::canView());
     }
 }

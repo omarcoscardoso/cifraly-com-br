@@ -29,6 +29,7 @@ class RecentSongsWidget extends TableWidget
     public function table(Table $table): Table
     {
         return $table
+            ->stackedOnMobile()
             ->query(
                 Song::query()
                     ->where('organization_id', Filament::getTenant()?->id)

@@ -34,8 +34,8 @@ steps:
           --command=php \
           --args=artisan,migrate,--force \
           --set-cloudsql-instances=${_CLOUD_SQL_INSTANCE} \
-          --set-env-vars=DB_CONNECTION=mysql,DB_SOCKET=/cloudsql/${_CLOUD_SQL_INSTANCE},APP_ENV=production,LOG_CHANNEL=stderr \
-          --set-secrets=APP_KEY=${_APP_KEY_SECRET}:latest,DB_DATABASE=${_DB_DATABASE_SECRET}:latest,DB_USERNAME=${_DB_USERNAME_SECRET}:latest,DB_PASSWORD=${_DB_PASSWORD_SECRET}:latest \
+          --set-env-vars=DB_CONNECTION=mysql,APP_ENV=production,LOG_CHANNEL=stderr \
+          --set-secrets=APP_KEY=${_APP_KEY_SECRET}:latest,DB_SOCKET=${_CLOUD_SQL_INSTANCE},DB_DATABASE=${_DB_DATABASE_SECRET}:latest,DB_USERNAME=${_DB_USERNAME_SECRET}:latest,DB_PASSWORD=${_DB_PASSWORD_SECRET}:latest \
           || true
         
         gcloud run jobs execute ${_SERVICE_NAME}-migrate \
@@ -57,8 +57,8 @@ steps:
       - '--port=8080'
       - '--service-account=${_SERVICE_ACCOUNT}'
       - '--add-cloudsql-instances=${_CLOUD_SQL_INSTANCE}'
-      - '--set-env-vars=APP_ENV=production,APP_DEBUG=false,LOG_CHANNEL=stderr,DB_CONNECTION=mysql,DB_SOCKET=/cloudsql/${_CLOUD_SQL_INSTANCE},APP_URL=https://${_SERVICE_NAME}-543228203579.${_REGION}.run.app'
-      - '--set-secrets=APP_KEY=${_APP_KEY_SECRET}:latest,DB_DATABASE=${_DB_DATABASE_SECRET}:latest,DB_USERNAME=${_DB_USERNAME_SECRET}:latest,DB_PASSWORD=${_DB_PASSWORD_SECRET}:latest'
+      - '--set-env-vars=APP_ENV=production,APP_DEBUG=false,LOG_CHANNEL=stderr,DB_CONNECTION=mysql,APP_URL=https://cifraly.com.br'
+      - '--set-secrets=APP_KEY=${_APP_KEY_SECRET}:latest,DB_SOCKET=${_CLOUD_SQL_INSTANCE},DB_DATABASE=${_DB_DATABASE_SECRET}:latest,DB_USERNAME=${_DB_USERNAME_SECRET}:latest,DB_PASSWORD=${_DB_PASSWORD_SECRET}:latest,GOOGLE_CLIENT_ID=${_GOOGLE_CLIENT_ID_SECRET}:latest,GOOGLE_CLIENT_SECRET=${_GOOGLE_CLIENT_SECRET_SECRET}:latest,GOOGLE_REDIRECT_URI=${_GOOGLE_REDIRECT_URI_SECRET}:latest'
 
 images:
   - '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY_NAME}/${_SERVICE_NAME}:$BUILD_ID'
@@ -68,12 +68,15 @@ substitutions:
   _REGION: 'us-central1'
   _REPOSITORY_NAME: 'cifraly-com-br'
   _SERVICE_NAME: 'cifraly-com-br'
-  _CLOUD_SQL_INSTANCE: 'iprviamao-169920:us-central1:app-e-ticket'
+  _CLOUD_SQL_INSTANCE: 'cifraly-cloud-sql-instance'
   _APP_KEY_SECRET: 'cifraly-app-key'
   _DB_DATABASE_SECRET: 'cifraly-db-name'
   _DB_USERNAME_SECRET: 'cifraly-db-user'
   _DB_PASSWORD_SECRET: 'cifraly-db-password'
-  _SERVICE_ACCOUNT: 'cloud-build@cifraly-com-br.iam.gserviceaccount.com'
+  _GOOGLE_CLIENT_ID_SECRET: 'cifraly-google-client-id'
+  _GOOGLE_CLIENT_SECRET_SECRET: 'cifraly-google-client-secret'
+  _GOOGLE_REDIRECT_URI_SECRET: 'cifraly-google-redirect-uri'
+  _SERVICE_ACCOUNT: 'cifraly-service-account'
 
 options:
   logging: CLOUD_LOGGING_ONLY

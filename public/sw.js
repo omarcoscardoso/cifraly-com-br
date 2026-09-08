@@ -3,7 +3,7 @@
  * Focus: Mobile performance, offline resilience, and future extensible sync/push capabilities.
  */
 
-const CACHE_VERSION = 'cifraly-v1.0.0';
+const CACHE_VERSION = 'cifraly-v1.0.1';
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const RUNTIME_CACHE = `${CACHE_VERSION}-runtime`;
 const OFFLINE_FALLBACK_URL = '/offline.html';

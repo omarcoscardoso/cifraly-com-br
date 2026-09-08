@@ -9,6 +9,7 @@ use App\Filament\Widgets\OrganizationStatsOverviewWidget;
 use App\Filament\Widgets\RecentSongsWidget;
 use App\Filament\Widgets\UpcomingEventsWidget;
 use App\Models\Organization;
+use Filament\Enums\ThemeMode;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -34,12 +35,24 @@ class AdminPanelProvider extends PanelProvider
             ->id('app')
             ->path('app')
             ->login()
+            ->defaultThemeMode(ThemeMode::Dark)
+            ->brandLogo(fn () => view('components.brand-logo', ['class' => 'h-full w-auto text-white']))
+            ->brandLogoHeight('2.85rem')
+            ->favicon(asset('favicon.svg'))
             ->tenant(Organization::class, slugAttribute: 'slug')
             ->tenantRegistration(RegisterOrganization::class)
             ->tenantProfile(EditOrganizationProfile::class)
             ->renderHook(
                 PanelsRenderHook::AUTH_LOGIN_FORM_BEFORE,
                 fn () => view('filament.auth.google-button'),
+            )
+            ->renderHook(
+                PanelsRenderHook::HEAD_END,
+                fn () => view('pwa.meta'),
+            )
+            ->renderHook(
+                PanelsRenderHook::BODY_END,
+                fn () => view('pwa.scripts'),
             )
             ->colors([
                 'primary' => Color::Amber,

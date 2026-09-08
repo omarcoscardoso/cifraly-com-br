@@ -20,11 +20,11 @@ class TenantRegistrationTest extends TestCase
     {
         $user = User::factory()->create();
 
-        $response = $this->actingAs($user)->get('/admin');
+        $response = $this->actingAs($user)->get('/app');
 
-        $response->assertRedirect('/admin/new');
+        $response->assertRedirect('/app/new');
 
-        $registrationPageResponse = $this->actingAs($user)->get('/admin/new');
+        $registrationPageResponse = $this->actingAs($user)->get('/app/new');
         $registrationPageResponse->assertStatus(200);
         $registrationPageResponse->assertSee('Cadastrar Organização');
     }
@@ -33,7 +33,7 @@ class TenantRegistrationTest extends TestCase
     {
         $user = User::factory()->create();
 
-        Filament::setCurrentPanel(Filament::getPanel('admin'));
+        Filament::setCurrentPanel(Filament::getPanel('app'));
 
         Livewire::actingAs($user)
             ->test(RegisterOrganization::class)
@@ -44,7 +44,7 @@ class TenantRegistrationTest extends TestCase
             ])
             ->call('register')
             ->assertHasNoFormErrors()
-            ->assertRedirect('/admin/comunidade-da-fe');
+            ->assertRedirect('/app/comunidade-da-fe');
 
         $organization = Organization::where('slug', 'comunidade-da-fe')->first();
         $this->assertNotNull($organization);

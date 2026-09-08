@@ -23,7 +23,7 @@ class OrganizationOnboardingAndInviteTest extends TestCase
     {
         $user = User::factory()->create();
 
-        Filament::setCurrentPanel(Filament::getPanel('admin'));
+        Filament::setCurrentPanel(Filament::getPanel('app'));
 
         Livewire::actingAs($user)
             ->test(RegisterOrganization::class)
@@ -34,7 +34,7 @@ class OrganizationOnboardingAndInviteTest extends TestCase
             ])
             ->call('register')
             ->assertHasNoFormErrors()
-            ->assertRedirect('/admin/pib-central');
+            ->assertRedirect('/app/pib-central');
 
         $org = Organization::where('slug', 'pib-central')->first();
         $this->assertNotNull($org);
@@ -55,7 +55,7 @@ class OrganizationOnboardingAndInviteTest extends TestCase
 
         $newUser = User::factory()->create();
 
-        Filament::setCurrentPanel(Filament::getPanel('admin'));
+        Filament::setCurrentPanel(Filament::getPanel('app'));
 
         Livewire::actingAs($newUser)
             ->test(RegisterOrganization::class)
@@ -65,7 +65,7 @@ class OrganizationOnboardingAndInviteTest extends TestCase
             ])
             ->call('register')
             ->assertHasNoFormErrors()
-            ->assertRedirect('/admin/igreja-vida');
+            ->assertRedirect('/app/igreja-vida');
 
         $this->assertTrue($newUser->organizations->contains($existingOrg));
         $this->assertFalse($newUser->isOrgAdmin($existingOrg));
@@ -76,7 +76,7 @@ class OrganizationOnboardingAndInviteTest extends TestCase
     {
         $newUser = User::factory()->create();
 
-        Filament::setCurrentPanel(Filament::getPanel('admin'));
+        Filament::setCurrentPanel(Filament::getPanel('app'));
 
         Livewire::actingAs($newUser)
             ->test(RegisterOrganization::class)
@@ -98,7 +98,7 @@ class OrganizationOnboardingAndInviteTest extends TestCase
         $admin = User::factory()->create();
         $admin->organizations()->attach($org, ['role' => Organization::ROLE_ADMIN]);
 
-        $response = $this->actingAs($admin)->get('/admin/minha-igreja/profile');
+        $response = $this->actingAs($admin)->get('/app/minha-igreja/profile');
         $response->assertStatus(200);
         $response->assertSee('Configurações da Organização');
         $response->assertSee('MINHA123');
@@ -111,7 +111,7 @@ class OrganizationOnboardingAndInviteTest extends TestCase
         $member = User::factory()->create();
         $member->organizations()->attach($org, ['role' => Organization::ROLE_MEMBER]);
 
-        $response = $this->actingAs($member)->get('/admin/minha-igreja/profile');
+        $response = $this->actingAs($member)->get('/app/minha-igreja/profile');
         $response->assertStatus(404);
     }
 
@@ -125,7 +125,7 @@ class OrganizationOnboardingAndInviteTest extends TestCase
         $admin = User::factory()->create();
         $admin->organizations()->attach($org, ['role' => Organization::ROLE_ADMIN]);
 
-        Filament::setCurrentPanel(Filament::getPanel('admin'));
+        Filament::setCurrentPanel(Filament::getPanel('app'));
         Filament::setTenant($org, isQuiet: true);
 
         Livewire::actingAs($admin)
@@ -149,7 +149,7 @@ class OrganizationOnboardingAndInviteTest extends TestCase
 
         $response = $this->actingAs($user)->get('/join/DIRETO26');
 
-        $response->assertRedirect('/admin/igreja-direta');
+        $response->assertRedirect('/app/igreja-direta');
         $this->assertTrue($user->fresh()->organizations->contains($org));
         $this->assertSame(Organization::ROLE_MEMBER, $user->organizations()->where('organizations.id', $org->id)->first()->pivot->role);
     }
@@ -162,7 +162,7 @@ class OrganizationOnboardingAndInviteTest extends TestCase
 
         $response = $this->get('/join/GUEST123');
 
-        $response->assertRedirect('/admin/login');
+        $response->assertRedirect('/app/login');
         $this->assertSame('GUEST123', session('pending_invite_code'));
     }
 

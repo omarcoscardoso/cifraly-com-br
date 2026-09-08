@@ -1,3 +1,8 @@
+map $http_x_forwarded_proto $fastcgi_https {
+    default off;
+    https on;
+}
+
 server {
     listen ${PORT} default_server;
     listen [::]:${PORT} default_server;
@@ -28,6 +33,9 @@ server {
         fastcgi_pass 127.0.0.1:9000;
         fastcgi_param SCRIPT_FILENAME $realpath_root$fastcgi_script_name;
         include fastcgi_params;
+        fastcgi_param HTTPS $fastcgi_https;
+        fastcgi_param HTTP_X_FORWARDED_FOR $proxy_add_x_forwarded_for;
+        fastcgi_param HTTP_X_FORWARDED_PROTO $http_x_forwarded_proto;
         fastcgi_hide_header X-Powered-By;
         fastcgi_read_timeout 300;
     }

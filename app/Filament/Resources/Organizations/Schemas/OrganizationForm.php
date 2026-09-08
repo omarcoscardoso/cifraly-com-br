@@ -39,7 +39,7 @@ class OrganizationForm
                                 ->required()
                                 ->maxLength(255)
                                 ->unique(Organization::class, 'slug', ignoreRecord: true)
-                                ->helperText('Identificador exclusivo na URL do sistema (ex: /admin/pib-central/...).'),
+                                ->helperText('Identificador exclusivo na URL do sistema (ex: /app/pib-central/...).'),
                         ]),
                     ]),
             ]);

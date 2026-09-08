@@ -47,7 +47,7 @@ class OrganizationManagementTest extends TestCase
         ]);
         $this->regularUser->organizations()->attach($this->organization);
 
-        Filament::setCurrentPanel(Filament::getPanel('admin'));
+        Filament::setCurrentPanel(Filament::getPanel('app'));
         Filament::setTenant($this->organization, isQuiet: true);
     }
 
@@ -60,14 +60,14 @@ class OrganizationManagementTest extends TestCase
 
     public function test_regular_user_cannot_access_organizations_management(): void
     {
-        $response = $this->actingAs($this->regularUser)->get('/admin/igreja-central/organizations');
+        $response = $this->actingAs($this->regularUser)->get('/app/igreja-central/organizations');
 
         $response->assertStatus(403);
     }
 
     public function test_super_admin_can_access_organizations_management(): void
     {
-        $response = $this->actingAs($this->adminUser)->get('/admin/igreja-central/organizations');
+        $response = $this->actingAs($this->adminUser)->get('/app/igreja-central/organizations');
 
         $response->assertStatus(200);
         $response->assertSee('Igreja Central');

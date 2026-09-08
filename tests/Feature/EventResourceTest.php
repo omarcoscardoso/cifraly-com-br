@@ -41,7 +41,7 @@ class EventResourceTest extends TestCase
         $this->user->organizations()->attach($this->organization);
 
         $this->actingAs($this->user);
-        Filament::setCurrentPanel(Filament::getPanel('admin'));
+        Filament::setCurrentPanel(Filament::getPanel('app'));
         Filament::setTenant($this->organization, isQuiet: true);
     }
 
@@ -60,7 +60,7 @@ class EventResourceTest extends TestCase
             'starts_at' => now()->addDays(2),
         ]);
 
-        $response = $this->get('/admin/igreja-central/events');
+        $response = $this->get('/app/igreja-central/events');
 
         $response->assertStatus(200);
         $response->assertSee('Culto de Domingo - Manhã');
@@ -135,6 +135,55 @@ class EventResourceTest extends TestCase
         $this->assertSame(Event::STATUS_PUBLISHED, $event->fresh()->status);
     }
 
+    public function test_creating_event_with_team_automatically_adds_team_members_to_roster(): void
+    {
+        $team = Team::factory()->create([
+            'organization_id' => $this->organization->id,
+            'name' => 'Banda Principal',
+        ]);
+
+        $roleGuitar = Role::factory()->create([
+            'organization_id' => $this->organization->id,
+            'name' => 'Guitarrista',
+        ]);
+
+        $musician1 = User::factory()->create(['name' => 'Musico 1']);
+        $musician1->organizations()->attach($this->organization);
+        TeamMember::factory()->create([
+            'organization_id' => $this->organization->id,
+            'team_id' => $team->id,
+            'user_id' => $musician1->id,
+            'default_role_id' => $roleGuitar->id,
+        ]);
+
+        $musician2 = User::factory()->create(['name' => 'Musico 2']);
+        $musician2->organizations()->attach($this->organization);
+        TeamMember::factory()->create([
+            'organization_id' => $this->organization->id,
+            'team_id' => $team->id,
+            'user_id' => $musician2->id,
+            'default_role_id' => null,
+        ]);
+
+        Livewire::test(CreateEvent::class)
+            ->fillForm([
+                'title' => 'Culto com Equipe Automática',
+                'team_id' => $team->id,
+                'status' => Event::STATUS_PUBLISHED,
+                'starts_at' => '2026-11-15 19:00:00',
+            ])
+            ->call('create')
+            ->assertHasNoFormErrors();
+
+        $event = Event::where('title', 'Culto com Equipe Automática')->first();
+        $this->assertNotNull($event);
+
+        $rosters = $event->rosters;
+        $this->assertCount(2, $rosters);
+        $this->assertTrue($rosters->contains('user_id', $musician1->id));
+        $this->assertTrue($rosters->contains('user_id', $musician2->id));
+    }
+
     public function test_cannot_edit_event_from_another_organization(): void
     {
         $otherOrg = Organization::factory()->create(['slug' => 'outra-igreja']);
@@ -143,7 +192,7 @@ class EventResourceTest extends TestCase
             'title' => 'Evento Outra Igreja',
         ]);
 
-        $response = $this->get("/admin/igreja-central/events/{$otherEvent->id}/edit");
+        $response = $this->get("/app/igreja-central/events/{$otherEvent->id}/edit");
         $response->assertStatus(404);
     }
 

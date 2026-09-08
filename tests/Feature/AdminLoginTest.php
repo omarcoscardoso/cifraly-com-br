@@ -13,7 +13,7 @@ class AdminLoginTest extends TestCase
 
     public function test_admin_login_page_renders_successfully(): void
     {
-        $response = $this->get('/admin/login');
+        $response = $this->get('/app/login');
 
         $response->assertStatus(200);
         $response->assertSee('fi-sc-form');
@@ -22,7 +22,7 @@ class AdminLoginTest extends TestCase
 
     public function test_admin_login_page_renders_google_login_button(): void
     {
-        $response = $this->get('/admin/login');
+        $response = $this->get('/app/login');
 
         $response->assertStatus(200);
         $response->assertSee('Entrar com Google');
@@ -40,11 +40,11 @@ class AdminLoginTest extends TestCase
         $org = Organization::factory()->create(['slug' => 'minha-igreja']);
         $user->organizations()->attach($org);
 
-        $response = $this->actingAs($user)->get('/admin');
+        $response = $this->actingAs($user)->get('/app');
 
-        $response->assertRedirect('/admin/minha-igreja');
+        $response->assertRedirect('/app/minha-igreja');
 
-        $dashboardResponse = $this->actingAs($user)->get('/admin/minha-igreja');
+        $dashboardResponse = $this->actingAs($user)->get('/app/minha-igreja');
         $dashboardResponse->assertStatus(200);
     }
 }

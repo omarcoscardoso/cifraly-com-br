@@ -44,6 +44,7 @@ class EventForm
                                     return Team::where('organization_id', $tenant->id)->pluck('name', 'id')->toArray();
                                 })
                                 ->searchable()
+                                ->helperText('Ao selecionar uma equipe, todos os membros serão incluídos automaticamente na escala.')
                                 ->nullable(),
                         ]),
 

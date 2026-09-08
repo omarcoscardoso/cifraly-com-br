@@ -10,9 +10,9 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     return view('welcome');
-});
+})->name('home');
 
-Route::get('/login', fn () => redirect()->route('filament.admin.auth.login'))->name('login');
+Route::get('/login', fn () => redirect()->route('filament.app.auth.login'))->name('login');
 
 Route::get('/r/{token}', RosterConfirmation::class)
     ->middleware('throttle:60,1')
@@ -35,12 +35,12 @@ Route::get('/join/{code}', function (string $code) {
             auth()->id() => ['role' => Organization::ROLE_MEMBER],
         ]);
 
-        return redirect("/admin/{$organization->slug}");
+        return redirect("/app/{$organization->slug}");
     }
 
     session()->put('pending_invite_code', $code);
 
-    return redirect()->route('filament.admin.auth.login');
+    return redirect()->route('filament.app.auth.login');
 })->middleware('throttle:30,1')->name('organization.join');
 
 Route::middleware('web')->group(function (): void {

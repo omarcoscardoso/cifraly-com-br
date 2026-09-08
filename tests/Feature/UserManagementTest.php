@@ -44,7 +44,7 @@ class UserManagementTest extends TestCase
         ]);
         $this->regularUser->organizations()->attach($this->organization);
 
-        Filament::setCurrentPanel(Filament::getPanel('admin'));
+        Filament::setCurrentPanel(Filament::getPanel('app'));
         Filament::setTenant($this->organization, isQuiet: true);
     }
 
@@ -57,14 +57,14 @@ class UserManagementTest extends TestCase
 
     public function test_regular_user_cannot_access_user_management(): void
     {
-        $response = $this->actingAs($this->regularUser)->get('/admin/igreja-central/users');
+        $response = $this->actingAs($this->regularUser)->get('/app/igreja-central/users');
 
         $response->assertStatus(403);
     }
 
     public function test_super_admin_can_access_user_management(): void
     {
-        $response = $this->actingAs($this->adminUser)->get('/admin/igreja-central/users');
+        $response = $this->actingAs($this->adminUser)->get('/app/igreja-central/users');
 
         $response->assertStatus(200);
         $response->assertSee('Admin Geral');

@@ -27,7 +27,7 @@ class MultiTenancyTest extends TestCase
 
     public function test_admin_panel_has_organization_tenancy_configured(): void
     {
-        $panel = Filament::getPanel('admin');
+        $panel = Filament::getPanel('app');
 
         $this->assertTrue($panel->hasTenancy());
         $this->assertSame(Organization::class, $panel->getTenantModel());
@@ -46,7 +46,7 @@ class MultiTenancyTest extends TestCase
 
         $user->organizations()->attach($org1);
 
-        $panel = Filament::getPanel('admin');
+        $panel = Filament::getPanel('app');
 
         $this->assertTrue($user->canAccessPanel($panel));
         $this->assertTrue($user->canAccessTenant($org1));

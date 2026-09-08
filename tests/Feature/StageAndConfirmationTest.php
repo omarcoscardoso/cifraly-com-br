@@ -152,7 +152,7 @@ class StageAndConfirmationTest extends TestCase
 
         $response = $this->get("/app/{$this->organization->slug}/events/{$event->id}/stage");
 
-        $response->assertRedirect('/admin/login');
+        $response->assertRedirect('/app/login');
     }
 
     public function test_stage_view_renders_event_setlist_and_transposed_chords(): void

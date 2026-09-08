@@ -69,8 +69,8 @@ RUN composer install --no-dev --optimize-autoloader --no-interaction --no-progre
 
 # Configure Nginx template and entrypoint
 RUN mkdir -p /etc/nginx/templates
-COPY docker/cloudrun/nginx.conf.template /etc/nginx/templates/default.conf.template
-COPY docker/cloudrun/docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
+COPY .docker/cloudrun/nginx.conf.template /etc/nginx/templates/default.conf.template
+COPY .docker/cloudrun/docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
 # Set directory permissions for Laravel

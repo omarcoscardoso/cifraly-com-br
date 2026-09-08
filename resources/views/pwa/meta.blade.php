@@ -34,7 +34,10 @@
         }
     }
 
-    /* Brand Logo Sizing Enhancements */
+    /* Brand Logo Sizing & Display Enhancements */
+    .fi-topbar-start {
+        display: flex !important;
+    }
     .fi-logo svg {
         height: 100% !important;
         width: auto !important;

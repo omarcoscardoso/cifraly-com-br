@@ -2,7 +2,7 @@
 @php
     $attributes = ($attributes ?? new \Illuminate\View\ComponentAttributeBag())->merge(['class' => $class]);
 @endphp
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 340 100" fill="none" style="overflow: visible;" {{ $attributes }}>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 100" fill="none" style="overflow: visible;" {{ $attributes }}>
   <defs>
     <!-- Gradiente do Ícone: Âmbar Elétrico -> Índigo Profundo -->
     <linearGradient id="cifralyIconGrad" x1="0%" y1="0%" x2="100%" y2="100%">

@@ -47,9 +47,9 @@ O **Cifraly** foi desenvolvido para solucionar os desafios de liderança, ensaio
 - **Interface Mobile-First**: O voluntário visualiza o evento, sua função, o setlist e pode:
   - **Confirmar Presença** instantaneamente.
   - **Recusar Presença** com preenchimento opcional de justificativa (com validação e proteção de caracteres).
-- **Notificações Integradas**:
-  - Envio de convites por **E-mail** com layout responsivo.
+- **Envio de Convites**:
   - Disparo direto para o **WhatsApp** com mensagem pronta e link formatado.
+  - Cópia com 1 clique do link direto de confirmação do voluntário.
 - **Rate Limiting**: Rotas públicas protegidas contra abusos e força bruta (`throttle:60,1`).
 
 ### 🎤 Modo Palco ao Vivo (Stage View)

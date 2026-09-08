@@ -11,7 +11,6 @@ use App\Models\Role;
 use App\Models\Team;
 use App\Models\TeamMember;
 use App\Models\User;
-use App\Notifications\EventRosterInvitationNotification;
 use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\CreateAction;
@@ -305,31 +304,6 @@ class RostersRelationManager extends RelationManager
                                     : 'https://wa.me/?text='.urlencode($message);
                             }, shouldOpenInNewTab: true),
                     ]),
-
-                Action::make('sendEmailInvite')
-                    ->label('Enviar E-mail')
-                    ->icon(Heroicon::OutlinedEnvelope)
-                    ->color('info')
-                    ->requiresConfirmation()
-                    ->modalHeading('Enviar Convite de Escala por E-mail')
-                    ->modalDescription(fn (EventRoster $record): string => "Deseja enviar o e-mail de convocação de escala para {$record->user?->name} ({$record->user?->email})?")
-                    ->action(function (EventRoster $record): void {
-                        if (! $record->user?->email) {
-                            Notification::make()
-                                ->title('O voluntário não possui e-mail cadastrado.')
-                                ->warning()
-                                ->send();
-
-                            return;
-                        }
-
-                        $record->user->notify(new EventRosterInvitationNotification($record));
-
-                        Notification::make()
-                            ->title("Convite enviado com sucesso para {$record->user->email}!")
-                            ->success()
-                            ->send();
-                    }),
 
                 EditAction::make()
                     ->label('Editar')

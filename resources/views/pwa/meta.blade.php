@@ -38,14 +38,17 @@
     .fi-logo svg {
         height: 100% !important;
         width: auto !important;
+        overflow: visible !important;
     }
     .fi-topbar .fi-logo,
     .fi-sidebar-header .fi-logo {
         height: 2.85rem !important;
+        max-width: 100% !important;
     }
     .fi-simple-main .fi-logo,
     .fi-simple-layout .fi-logo,
     .fi-simple-header .fi-logo {
         height: 3.75rem !important;
+        max-width: 100% !important;
     }
 </style>

@@ -2,7 +2,7 @@
 @php
     $attributes = ($attributes ?? new \Illuminate\View\ComponentAttributeBag())->merge(['class' => $class]);
 @endphp
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 295 100" fill="none" {{ $attributes }}>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 340 100" fill="none" style="overflow: visible;" {{ $attributes }}>
   <defs>
     <!-- Gradiente do Ícone: Âmbar Elétrico -> Índigo Profundo -->
     <linearGradient id="cifralyIconGrad" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -26,7 +26,7 @@
     <style>
       .cifraly-brand-root { font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
       .cifraly-text-main { font-weight: 800; font-size: 52px; fill: currentColor; letter-spacing: -0.04em; }
-      .cifraly-text-suffix { font-weight: 700; font-size: 52px; fill: url(#cifralyTextLyGrad); letter-spacing: -0.04em; }
+      .cifraly-text-suffix { font-weight: 700; font-size: 52px; fill: #F59E0B; fill: url(#cifralyTextLyGrad); letter-spacing: -0.04em; }
       .cifraly-tagline { font-weight: 500; font-size: 11px; fill: currentColor; opacity: 0.6; letter-spacing: 0.22em; text-transform: uppercase; }
     </style>
   </defs>
@@ -58,9 +58,9 @@
 
     <!-- TIPOGRAFIA E SLOGAN -->
     <g transform="translate(118, 59)">
-      <text class="cifraly-text-main" x="0" y="0">Cifra<tspan class="cifraly-text-suffix">ly</tspan></text>
+      <text class="cifraly-text-main" x="0" y="0">Cifra<tspan class="cifraly-text-suffix" fill="url(#cifralyTextLyGrad)">ly</tspan></text>
       <!-- Ponto de afinação musical sobre a letra 'i' -->
-      <circle cx="160" cy="-35" r="6" fill="#F59E0B" />
+      <circle cx="46" cy="-35" r="6" fill="#F59E0B" />
       <!-- Tagline / Slogan -->
       <text class="cifraly-tagline" x="2" y="22">Cifras &amp; Escalas</text>
     </g>

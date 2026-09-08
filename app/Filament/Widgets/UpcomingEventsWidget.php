@@ -31,6 +31,7 @@ class UpcomingEventsWidget extends TableWidget
     {
         return $table
             ->stackedOnMobile()
+            ->paginated(false)
             ->query(
                 Event::query()
                     ->where('organization_id', Filament::getTenant()?->id)
@@ -41,7 +42,6 @@ class UpcomingEventsWidget extends TableWidget
             ->columns([
                 TextColumn::make('title')
                     ->label('Evento')
-                    ->searchable()
                     ->weight('bold'),
 
                 TextColumn::make('team.name')
@@ -53,8 +53,7 @@ class UpcomingEventsWidget extends TableWidget
 
                 TextColumn::make('starts_at')
                     ->label('Data e Horário')
-                    ->dateTime('d/m/Y H:i')
-                    ->sortable(),
+                    ->dateTime('d/m/Y H:i'),
 
                 TextColumn::make('status')
                     ->label('Status')
@@ -81,19 +80,6 @@ class UpcomingEventsWidget extends TableWidget
                     ->color('primary')
                     ->state(fn (Event $record): string => $record->eventSongs()->count().' músicas')
                     ->visibleFrom('md'),
-            ])
-            ->headerActions([
-                Action::make('createEvent')
-                    ->label('Novo Evento')
-                    ->icon(Heroicon::OutlinedPlus)
-                    ->color('primary')
-                    ->url(fn (): string => EventResource::getUrl('create')),
-
-                Action::make('viewAll')
-                    ->label('Ver Todos')
-                    ->icon(Heroicon::OutlinedCalendarDays)
-                    ->color('gray')
-                    ->url(fn (): string => EventResource::getUrl('index')),
             ])
             ->recordActions([
                 Action::make('stageView')

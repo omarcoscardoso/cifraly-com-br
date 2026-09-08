@@ -187,4 +187,31 @@ class OrganizationOnboardingAndInviteTest extends TestCase
 
         $this->assertSame(Organization::ROLE_ADMIN, $org->users()->where('users.id', $member->id)->first()->pivot->role);
     }
+
+    public function test_edit_organization_profile_displays_invite_code_and_copy_link(): void
+    {
+        $org = Organization::factory()->create([
+            'name' => 'Comunidade Viva',
+            'slug' => 'comunidade-viva',
+            'invite_code' => 'VIVA2026',
+        ]);
+
+        $admin = User::factory()->create();
+        $admin->organizations()->attach($org, ['role' => Organization::ROLE_ADMIN]);
+
+        Filament::setCurrentPanel(Filament::getPanel('app'));
+        Filament::setTenant($org, isQuiet: true);
+
+        Livewire::actingAs($admin)
+            ->test(EditOrganizationProfile::class)
+            ->assertSuccessful()
+            ->assertActionExists('copyInviteLink')
+            ->assertActionExists('regenerateInviteCode')
+            ->assertSchemaStateSet([
+                'invite_code' => 'VIVA2026',
+                'invite_url' => route('organization.join', ['code' => 'VIVA2026']),
+            ]);
+
+        Filament::setTenant(null);
+    }
 }

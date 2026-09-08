@@ -30,6 +30,7 @@ class UpcomingEventsWidget extends TableWidget
     public function table(Table $table): Table
     {
         return $table
+            ->stackedOnMobile()
             ->query(
                 Event::query()
                     ->where('organization_id', Filament::getTenant()?->id)

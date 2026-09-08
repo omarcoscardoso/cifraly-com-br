@@ -16,6 +16,7 @@ class TeamsTable
     public static function configure(Table $table): Table
     {
         return $table
+            ->stackedOnMobile()
             ->columns([
                 TextColumn::make('name')
                     ->label('Equipe')

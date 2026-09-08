@@ -42,6 +42,7 @@ class RostersRelationManager extends RelationManager
     public function table(Table $table): Table
     {
         return $table
+            ->stackedOnMobile()
             ->columns([
                 TextColumn::make('user.name')
                     ->label('Membro')

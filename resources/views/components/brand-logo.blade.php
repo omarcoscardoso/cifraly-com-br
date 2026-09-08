@@ -2,7 +2,31 @@
 @php
     $attributes = ($attributes ?? new \Illuminate\View\ComponentAttributeBag())->merge(['class' => $class]);
 @endphp
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 100" fill="none" style="overflow: visible;" {{ $attributes }}>
+{{-- Mobile: Apenas a Tipografia Cifraly (sem o ícone quadrado) --}}
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 70" fill="none" style="overflow: visible;" {{ $attributes->merge(['class' => 'block md:hidden']) }}>
+  <defs>
+    <!-- Gradiente de Destaque para o sufixo "ly" Mobile -->
+    <linearGradient id="cifralyTextLyGradMob" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#F59E0B" />
+      <stop offset="100%" stop-color="#FB923C" />
+    </linearGradient>
+
+    <style>
+      .cifraly-brand-root-mob { font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+      .cifraly-text-main-mob { font-weight: 800; font-size: 52px; fill: currentColor; letter-spacing: -0.04em; }
+      .cifraly-text-suffix-mob { font-weight: 700; font-size: 52px; fill: #F59E0B; fill: url(#cifralyTextLyGradMob); letter-spacing: -0.04em; }
+    </style>
+  </defs>
+
+  <g class="cifraly-brand-root-mob" transform="translate(0, 52)">
+    <text class="cifraly-text-main-mob" x="0" y="0">Cifra<tspan class="cifraly-text-suffix-mob" fill="url(#cifralyTextLyGradMob)">ly</tspan></text>
+    <!-- Ponto de afinação musical sobre a letra 'i' -->
+    <circle cx="46" cy="-35" r="6" fill="#F59E0B" />
+  </g>
+</svg>
+
+{{-- Desktop / Telas Médias e Grandes: Ícone Completo + Tipografia + Slogan --}}
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 100" fill="none" style="overflow: visible;" {{ $attributes->merge(['class' => 'hidden md:block']) }}>
   <defs>
     <!-- Gradiente do Ícone: Âmbar Elétrico -> Índigo Profundo -->
     <linearGradient id="cifralyIconGrad" x1="0%" y1="0%" x2="100%" y2="100%">

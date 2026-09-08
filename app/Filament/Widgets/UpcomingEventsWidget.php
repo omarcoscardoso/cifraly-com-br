@@ -16,7 +16,7 @@ use Filament\Widgets\TableWidget;
 
 class UpcomingEventsWidget extends TableWidget
 {
-    protected static ?int $sort = 3;
+    protected static ?int $sort = 2;
 
     protected static ?string $heading = 'Próximos Eventos & Modo Palco';
 

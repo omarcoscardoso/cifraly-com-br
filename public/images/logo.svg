@@ -56,7 +56,7 @@
     <g transform="translate(118, 59)">
       <text class="cifraly-text-main" x="0" y="0">Cifra<tspan class="cifraly-text-suffix" fill="url(#cifralyTextLyGrad)">ly</tspan></text>
       <!-- Ponto de afinação musical sobre a letra 'i' -->
-      <circle cx="46" cy="-35" r="6" fill="#F59E0B" />
+      <circle cx="42" cy="-36" r="5" fill="#F59E0B" />
       <!-- Tagline / Slogan -->
       <text class="cifraly-tagline" x="2" y="22">Cifras &amp; Escalas</text>
     </g>

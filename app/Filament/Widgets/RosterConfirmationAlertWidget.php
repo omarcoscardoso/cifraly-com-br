@@ -120,6 +120,7 @@ class RosterConfirmationAlertWidget extends Widget
         // Se não houver mais escalas pendentes, fecha o modal automaticamente
         if ($this->getPendingRosters()->isEmpty()) {
             $this->showModal = false;
+            $this->dispatch('close-modal', id: 'roster-confirmation-modal');
         }
     }
 
@@ -164,6 +165,7 @@ class RosterConfirmationAlertWidget extends Widget
         // Se não houver mais escalas pendentes, fecha o modal automaticamente
         if ($this->getPendingRosters()->isEmpty()) {
             $this->showModal = false;
+            $this->dispatch('close-modal', id: 'roster-confirmation-modal');
         }
     }
 

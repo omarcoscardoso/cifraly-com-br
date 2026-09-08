@@ -67,8 +67,8 @@ class AdminPanelProvider extends PanelProvider
             ->widgets([
                 RosterConfirmationAlertWidget::class,
                 OrganizationHeaderWidget::class,
-                OrganizationStatsOverviewWidget::class,
                 UpcomingEventsWidget::class,
+                OrganizationStatsOverviewWidget::class,
                 RecentSongsWidget::class,
             ])
             ->middleware([

@@ -2,7 +2,7 @@
 @php
     $attributes = ($attributes ?? new \Illuminate\View\ComponentAttributeBag())->merge(['class' => $class]);
 @endphp
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 100" fill="none" {{ $attributes }}>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 295 100" fill="none" {{ $attributes }}>
   <defs>
     <!-- Gradiente do Ícone: Âmbar Elétrico -> Índigo Profundo -->
     <linearGradient id="cifralyIconGrad" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -60,7 +60,7 @@
     <g transform="translate(118, 59)">
       <text class="cifraly-text-main" x="0" y="0">Cifra<tspan class="cifraly-text-suffix">ly</tspan></text>
       <!-- Ponto de afinação musical sobre a letra 'i' -->
-      <circle cx="188" cy="-38" r="6" fill="#F59E0B" />
+      <circle cx="160" cy="-35" r="6" fill="#F59E0B" />
       <!-- Tagline / Slogan -->
       <text class="cifraly-tagline" x="2" y="22">Cifras &amp; Escalas</text>
     </g>

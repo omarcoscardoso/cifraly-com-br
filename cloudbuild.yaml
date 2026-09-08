@@ -57,7 +57,7 @@ steps:
       - '--port=8080'
       - '--service-account=${_SERVICE_ACCOUNT}'
       - '--add-cloudsql-instances=${_CLOUD_SQL_INSTANCE}'
-      - '--set-env-vars=APP_ENV=production,APP_DEBUG=false,LOG_CHANNEL=stderr,DB_CONNECTION=mysql,APP_URL=https://cifraly.com.br'
+      - '--set-env-vars=APP_NAME=Cifraly,APP_ENV=production,APP_DEBUG=false,LOG_CHANNEL=stderr,DB_CONNECTION=mysql,APP_URL=https://cifraly.com.br'
       - '--set-secrets=APP_KEY=${_APP_KEY_SECRET}:latest,DB_SOCKET=${_CLOUD_SQL_INSTANCE},DB_DATABASE=${_DB_DATABASE_SECRET}:latest,DB_USERNAME=${_DB_USERNAME_SECRET}:latest,DB_PASSWORD=${_DB_PASSWORD_SECRET}:latest,GOOGLE_CLIENT_ID=${_GOOGLE_CLIENT_ID_SECRET}:latest,GOOGLE_CLIENT_SECRET=${_GOOGLE_CLIENT_SECRET_SECRET}:latest,GOOGLE_REDIRECT_URI=${_GOOGLE_REDIRECT_URI_SECRET}:latest'
 
 images:

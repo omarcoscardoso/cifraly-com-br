@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Filament\Widgets;
 
-use App\Filament\Pages\Tenancy\EditOrganizationProfile;
 use App\Filament\Resources\Events\EventResource;
 use App\Filament\Resources\Songs\SongResource;
 use App\Filament\Resources\Teams\TeamResource;
@@ -72,16 +71,5 @@ class OrganizationHeaderWidget extends Widget
     public function getTeamsUrl(): string
     {
         return TeamResource::getUrl('index');
-    }
-
-    public function getSettingsUrl(): ?string
-    {
-        $org = $this->getOrganization();
-
-        if ($org && $this->getUser()?->isOrgAdmin($org)) {
-            return EditOrganizationProfile::getUrl();
-        }
-
-        return null;
     }
 }

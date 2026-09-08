@@ -30,7 +30,7 @@ class UpcomingEventsWidget extends TableWidget
     public function table(Table $table): Table
     {
         return $table
-            ->stackedOnMobile()
+            ->stackedOnMobile(false)
             ->query(
                 Event::query()
                     ->where('organization_id', Filament::getTenant()?->id)
@@ -48,7 +48,8 @@ class UpcomingEventsWidget extends TableWidget
                     ->label('Equipe')
                     ->placeholder('Geral / Sem equipe')
                     ->badge()
-                    ->color('gray'),
+                    ->color('gray')
+                    ->visibleFrom('md'),
 
                 TextColumn::make('starts_at')
                     ->label('Data e Horário')
@@ -59,7 +60,8 @@ class UpcomingEventsWidget extends TableWidget
                     ->label('Status')
                     ->badge()
                     ->formatStateUsing(fn (?string $state): string => Event::STATUS_OPTIONS[$state] ?? $state ?? '-')
-                    ->color(fn (?string $state): string => Event::STATUS_COLORS[$state] ?? 'gray'),
+                    ->color(fn (?string $state): string => Event::STATUS_COLORS[$state] ?? 'gray')
+                    ->visibleFrom('md'),
 
                 TextColumn::make('roster_summary')
                     ->label('Escala')
@@ -70,13 +72,15 @@ class UpcomingEventsWidget extends TableWidget
                         $confirmed = $record->rosters()->where('status', EventRoster::STATUS_CONFIRMED)->count();
 
                         return "{$confirmed}/{$total} confirmados";
-                    }),
+                    })
+                    ->visibleFrom('md'),
 
                 TextColumn::make('songs_summary')
                     ->label('Setlist')
                     ->badge()
                     ->color('primary')
-                    ->state(fn (Event $record): string => $record->eventSongs()->count().' músicas'),
+                    ->state(fn (Event $record): string => $record->eventSongs()->count().' músicas')
+                    ->visibleFrom('md'),
             ])
             ->headerActions([
                 Action::make('createEvent')
@@ -96,6 +100,8 @@ class UpcomingEventsWidget extends TableWidget
                     ->label('Modo Palco')
                     ->icon(Heroicon::OutlinedPlayCircle)
                     ->color('warning')
+                    ->button()
+                    ->size('xs')
                     ->url(fn (Event $record): string => route('events.stage', [
                         'organization' => Filament::getTenant(),
                         'event' => $record,

@@ -23,11 +23,11 @@ class RosterConfirmationAlertWidget extends Widget
 
     protected string $view = 'filament.widgets.roster-confirmation-alert-widget';
 
-    public ?int $selectedRosterId = null;
+    public bool $showModal = false;
+
+    public ?int $decliningRosterId = null;
 
     public string $declineReason = '';
-
-    public bool $showDeclineModal = false;
 
     public static function canView(): bool
     {
@@ -38,10 +38,11 @@ class RosterConfirmationAlertWidget extends Widget
             return false;
         }
 
-        // Verifica se o usuário tem alguma escala em eventos futuros ou de hoje
+        // O card/notificação só é visível se o usuário possuir escalas PENDENTES em eventos futuros
         return EventRoster::query()
             ->where('user_id', $user->id)
             ->where('organization_id', $tenant->id)
+            ->where('status', EventRoster::STATUS_PENDING)
             ->whereHas('event', function ($query): void {
                 $query->where('status', '!=', Event::STATUS_CANCELED)
                     ->where('starts_at', '>=', now()->subHours(6));
@@ -52,7 +53,7 @@ class RosterConfirmationAlertWidget extends Widget
     /**
      * @return Collection<int, EventRoster>
      */
-    public function getRosters(): Collection
+    public function getPendingRosters(): Collection
     {
         $user = Filament::auth()->user();
         $tenant = Filament::getTenant();
@@ -64,6 +65,7 @@ class RosterConfirmationAlertWidget extends Widget
         return EventRoster::with(['event.team', 'role', 'event.eventSongs'])
             ->where('user_id', $user->id)
             ->where('organization_id', $tenant->id)
+            ->where('status', EventRoster::STATUS_PENDING)
             ->whereHas('event', function ($query): void {
                 $query->where('status', '!=', Event::STATUS_CANCELED)
                     ->where('starts_at', '>=', now()->subHours(6));
@@ -71,6 +73,20 @@ class RosterConfirmationAlertWidget extends Widget
             ->get()
             ->sortBy('event.starts_at')
             ->values();
+    }
+
+    public function openModal(): void
+    {
+        $this->showModal = true;
+        $this->decliningRosterId = null;
+        $this->declineReason = '';
+    }
+
+    public function closeModal(): void
+    {
+        $this->showModal = false;
+        $this->decliningRosterId = null;
+        $this->declineReason = '';
     }
 
     public function confirmAttendance(int $rosterId): void
@@ -97,38 +113,34 @@ class RosterConfirmationAlertWidget extends Widget
             ->body("Sua presença no evento '{$roster->event->title}' foi confirmada com sucesso.")
             ->success()
             ->send();
+
+        $this->decliningRosterId = null;
+        $this->declineReason = '';
+
+        // Se não houver mais escalas pendentes, fecha o modal automaticamente
+        if ($this->getPendingRosters()->isEmpty()) {
+            $this->showModal = false;
+        }
     }
 
-    public function openDeclineModal(int $rosterId): void
+    public function startDecline(int $rosterId): void
+    {
+        $this->decliningRosterId = $rosterId;
+        $this->declineReason = '';
+    }
+
+    public function cancelDecline(): void
+    {
+        $this->decliningRosterId = null;
+        $this->declineReason = '';
+    }
+
+    public function submitDecline(int $rosterId): void
     {
         $roster = $this->findAuthorizedRoster($rosterId);
 
         if (! $roster) {
-            return;
-        }
-
-        $this->selectedRosterId = $rosterId;
-        $this->declineReason = (string) ($roster->decline_reason ?? '');
-        $this->showDeclineModal = true;
-    }
-
-    public function closeDeclineModal(): void
-    {
-        $this->showDeclineModal = false;
-        $this->selectedRosterId = null;
-        $this->declineReason = '';
-    }
-
-    public function submitDecline(): void
-    {
-        if (! $this->selectedRosterId) {
-            return;
-        }
-
-        $roster = $this->findAuthorizedRoster($this->selectedRosterId);
-
-        if (! $roster) {
-            $this->closeDeclineModal();
+            $this->cancelDecline();
 
             return;
         }
@@ -141,13 +153,18 @@ class RosterConfirmationAlertWidget extends Widget
             'decline_reason' => $reason,
         ]);
 
-        $this->closeDeclineModal();
+        $this->cancelDecline();
 
         Notification::make()
             ->title('Ausência informada')
             ->body("Sua falta no evento '{$roster->event->title}' foi registrada.")
             ->warning()
             ->send();
+
+        // Se não houver mais escalas pendentes, fecha o modal automaticamente
+        if ($this->getPendingRosters()->isEmpty()) {
+            $this->showModal = false;
+        }
     }
 
     protected function findAuthorizedRoster(int $rosterId): ?EventRoster

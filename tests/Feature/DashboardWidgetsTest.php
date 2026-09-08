@@ -76,11 +76,11 @@ class DashboardWidgetsTest extends TestCase
             ->assertSuccessful()
             ->assertDontSee('Olá, Pastor João!')
             ->assertDontSee('VIDA2026')
+            ->assertDontSee('Configurações')
             ->assertSee('Novo Evento')
             ->assertSee('Nova Cifra')
             ->assertSee('Repertório')
-            ->assertSee('Equipes')
-            ->assertSee('Configurações');
+            ->assertSee('Equipes');
     }
 
     public function test_organization_stats_overview_widget_calculates_metrics(): void
@@ -241,11 +241,13 @@ class DashboardWidgetsTest extends TestCase
 
         Livewire::test(RosterConfirmationAlertWidget::class)
             ->assertSuccessful()
-            ->assertSee('Suas Escalas')
+            ->assertSee('Você tem 1 escala aguardando confirmação')
+            ->assertSee('Responder Escala')
+            ->call('openModal')
             ->assertSee('Culto de Domingo')
             ->assertSee('Guitarra Elétrica')
             ->assertSee('Confirmar Presença')
-            ->assertSee('Informar Falta');
+            ->assertSee('Não poderei ir');
     }
 
     public function test_user_can_confirm_attendance_from_dashboard_widget(): void
@@ -265,11 +267,15 @@ class DashboardWidgetsTest extends TestCase
         ]);
 
         Livewire::test(RosterConfirmationAlertWidget::class)
+            ->call('openModal')
             ->call('confirmAttendance', $roster->id)
             ->assertNotified('Presença confirmada!');
 
         $this->assertEquals(EventRoster::STATUS_CONFIRMED, $roster->fresh()->status);
         $this->assertNotNull($roster->fresh()->responded_at);
+
+        // Depois que o usuário confirmou, não há mais pendências e o card desaparece da tela inicial
+        $this->assertFalse(RosterConfirmationAlertWidget::canView());
     }
 
     public function test_user_can_decline_attendance_from_dashboard_widget(): void
@@ -289,14 +295,18 @@ class DashboardWidgetsTest extends TestCase
         ]);
 
         Livewire::test(RosterConfirmationAlertWidget::class)
-            ->call('openDeclineModal', $roster->id)
+            ->call('openModal')
+            ->call('startDecline', $roster->id)
             ->set('declineReason', 'Viagem a trabalho')
-            ->call('submitDecline')
+            ->call('submitDecline', $roster->id)
             ->assertNotified('Ausência informada');
 
         $this->assertEquals(EventRoster::STATUS_DECLINED, $roster->fresh()->status);
         $this->assertEquals('Viagem a trabalho', $roster->fresh()->decline_reason);
         $this->assertNotNull($roster->fresh()->responded_at);
+
+        // Depois que o usuário informou ausência, não há mais pendências e o card desaparece da tela inicial
+        $this->assertFalse(RosterConfirmationAlertWidget::canView());
     }
 
     public function test_roster_confirmation_widget_hidden_when_user_has_no_upcoming_roster(): void

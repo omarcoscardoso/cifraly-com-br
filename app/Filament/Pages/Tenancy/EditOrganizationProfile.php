@@ -51,9 +51,12 @@ class EditOrganizationProfile extends EditTenantProfile
                         Grid::make(['default' => 1, 'md' => 2])->schema([
                             TextInput::make('invite_code')
                                 ->label('Código de Convite da Organização')
-                                ->disabled()
+                                ->readOnly()
                                 ->dehydrated(false)
-                                ->extraInputAttributes(['style' => 'font-family: monospace; font-weight: bold; font-size: 1.1em; letter-spacing: 0.1em;'])
+                                ->extraInputAttributes([
+                                    'onclick' => 'this.select()',
+                                    'style' => 'font-family: monospace; font-weight: bold; font-size: 1.1em; letter-spacing: 0.1em; cursor: pointer;',
+                                ])
                                 ->helperText('Compartilhe este código com músicos e voluntários para entrarem no app.'),
 
                             TextInput::make('invite_url')
@@ -64,26 +67,29 @@ class EditOrganizationProfile extends EditTenantProfile
 
                                     return $tenant?->invite_code ? route('organization.join', ['code' => $tenant->invite_code]) : '';
                                 })
-                                ->disabled()
+                                ->readOnly()
                                 ->dehydrated(false)
+                                ->extraInputAttributes([
+                                    'onclick' => 'this.select()',
+                                    'style' => 'cursor: pointer;',
+                                ])
                                 ->suffixAction(
                                     Action::make('copy_invite_url')
                                         ->icon(Heroicon::OutlinedClipboardDocument)
                                         ->tooltip('Copiar link de convite')
-                                        ->action(function (): void {
-                                            Notification::make()
-                                                ->title('Link copiado com sucesso!')
-                                                ->success()
-                                                ->send();
-                                        })
-                                        ->extraAttributes(function (): array {
+                                        ->alpineClickHandler(function (): string {
                                             /** @var Organization|null $tenant */
                                             $tenant = Filament::getTenant();
                                             $url = $tenant?->invite_code ? route('organization.join', ['code' => $tenant->invite_code]) : '';
 
-                                            return [
-                                                'x-on:click' => "navigator.clipboard.writeText('{$url}')",
-                                            ];
+                                            return "window.CifralyCopyText ? window.CifralyCopyText('{$url}', 'Link copiado com sucesso!', 'O link de convite foi copiado para a área de transferência.') : navigator.clipboard.writeText('{$url}')";
+                                        })
+                                        ->action(function (): void {
+                                            Notification::make()
+                                                ->title('Link copiado com sucesso!')
+                                                ->body('O link de convite foi copiado para a área de transferência.')
+                                                ->success()
+                                                ->send();
                                         })
                                 )
                                 ->helperText('Envie este link direto para novos usuários entrarem com 1 clique.'),
@@ -99,21 +105,19 @@ class EditOrganizationProfile extends EditTenantProfile
                 ->label('Copiar Link de Convite')
                 ->icon(Heroicon::OutlinedClipboardDocument)
                 ->color('primary')
+                ->alpineClickHandler(function (): string {
+                    /** @var Organization|null $tenant */
+                    $tenant = Filament::getTenant();
+                    $url = $tenant?->invite_code ? route('organization.join', ['code' => $tenant->invite_code]) : '';
+
+                    return "window.CifralyCopyText ? window.CifralyCopyText('{$url}', 'Link copiado com sucesso!', 'O link de convite foi copiado para a área de transferência.') : navigator.clipboard.writeText('{$url}')";
+                })
                 ->action(function (): void {
                     Notification::make()
                         ->title('Link copiado com sucesso!')
                         ->body('O link de convite foi copiado para a área de transferência.')
                         ->success()
                         ->send();
-                })
-                ->extraAttributes(function (): array {
-                    /** @var Organization|null $tenant */
-                    $tenant = Filament::getTenant();
-                    $url = $tenant?->invite_code ? route('organization.join', ['code' => $tenant->invite_code]) : '';
-
-                    return [
-                        'x-on:click' => "navigator.clipboard.writeText('{$url}')",
-                    ];
                 })
                 ->visible(fn (): bool => auth()->user()?->isOrgAdmin() ?? false),
 

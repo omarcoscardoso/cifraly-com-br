@@ -115,6 +115,24 @@ class GenericHtmlDriver implements ChordScraperDriverInterface
             }
         }
 
+        $capoFret = null;
+        if (preg_match('/(?:\\\\\"capo\\\\\"|\"capo\"):\s*(\d+)/i', $html, $capoMatch)) {
+            $parsedCapo = (int) $capoMatch[1];
+            if ($parsedCapo >= 1 && $parsedCapo <= 12) {
+                $capoFret = $parsedCapo;
+            }
+        } elseif (preg_match('/(?:id=["\']cifra_capo["\']|id=["\']capo["\'])[^>]*>.*?(\d+)[ªº°a]?\s*casa/si', $html, $capoMatch)) {
+            $parsedCapo = (int) $capoMatch[1];
+            if ($parsedCapo >= 1 && $parsedCapo <= 12) {
+                $capoFret = $parsedCapo;
+            }
+        } elseif (preg_match('/(?:capotraste|capo)\s*(?:na|:)?\s*(\d+)[ªº°a]?\s*(?:casa)?/i', $html.' '.$rawChords, $capoMatch)) {
+            $parsedCapo = (int) $capoMatch[1];
+            if ($parsedCapo >= 1 && $parsedCapo <= 12) {
+                $capoFret = $parsedCapo;
+            }
+        }
+
         $chordPro = $this->converter->convert($rawChords);
 
         return new ScrapedChordData(
@@ -125,6 +143,7 @@ class GenericHtmlDriver implements ChordScraperDriverInterface
             chordProContent: $chordPro,
             bpm: $bpm,
             timeSignature: $timeSignature,
+            capoFret: $capoFret,
             sourceUrl: $url ?: null,
         );
     }

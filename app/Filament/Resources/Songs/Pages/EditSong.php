@@ -27,6 +27,9 @@ class EditSong extends EditRecord
 
         if ($defaultVersion) {
             $data['chordpro_content'] = $defaultVersion->chordpro_content;
+            if (! isset($data['capo_fret']) && $defaultVersion->capo_fret !== null) {
+                $data['capo_fret'] = $defaultVersion->capo_fret;
+            }
         }
 
         return $data;
@@ -41,12 +44,14 @@ class EditSong extends EditRecord
             $defaultVersion->update([
                 'base_key' => $this->record->original_key ?? 'C',
                 'chordpro_content' => $chordproContent,
+                'capo_fret' => $this->record->capo_fret,
             ]);
         } else {
             $this->record->versions()->create([
                 'label' => 'Padrão',
                 'base_key' => $this->record->original_key ?? 'C',
                 'chordpro_content' => $chordproContent,
+                'capo_fret' => $this->record->capo_fret,
                 'is_default' => true,
             ]);
         }

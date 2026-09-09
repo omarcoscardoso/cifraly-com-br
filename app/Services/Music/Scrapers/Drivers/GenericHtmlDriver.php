@@ -79,6 +79,42 @@ class GenericHtmlDriver implements ChordScraperDriverInterface
             $key = $this->transposer->normalizeKey($tomMatch[1]);
         }
 
+        $bpm = null;
+        if (preg_match('/(?:\\\\\"bpm\\\\\"|\"bpm\"):\s*(\d+)/i', $html, $bpmMatch)) {
+            $parsedBpm = (int) $bpmMatch[1];
+            if ($parsedBpm >= 30 && $parsedBpm <= 300) {
+                $bpm = $parsedBpm;
+            }
+        } elseif (preg_match('/(?:bpm|tempo|andamento):\s*(\d+)/i', $html.' '.$rawChords, $bpmMatch)) {
+            $parsedBpm = (int) $bpmMatch[1];
+            if ($parsedBpm >= 30 && $parsedBpm <= 300) {
+                $bpm = $parsedBpm;
+            }
+        }
+
+        $timeSignature = null;
+        if (preg_match('/(?:\\\\\"timeSignature\\\\\"|\"timeSignature\"):\s*\[([^\]]+)\]/i', $html, $tsMatch)) {
+            preg_match_all('/[0-9]+/', $tsMatch[1], $beats);
+            if (! empty($beats[0])) {
+                $maxBeat = max(array_map('intval', $beats[0]));
+                $timeSignature = match ($maxBeat) {
+                    4 => '4/4',
+                    3 => '3/4',
+                    2 => '2/4',
+                    6 => '6/8',
+                    12 => '12/8',
+                    default => null,
+                };
+            }
+        }
+
+        if (! $timeSignature && preg_match('/(?:compasso|fórmula de compasso|meter|time signature):\s*(\d+\/\d+)/i', $html.' '.$rawChords, $tsMatch)) {
+            $candidate = trim($tsMatch[1]);
+            if (in_array($candidate, ['4/4', '3/4', '2/4', '6/8', '12/8'], true)) {
+                $timeSignature = $candidate;
+            }
+        }
+
         $chordPro = $this->converter->convert($rawChords);
 
         return new ScrapedChordData(
@@ -87,6 +123,8 @@ class GenericHtmlDriver implements ChordScraperDriverInterface
             originalKey: $key,
             rawChords: $rawChords,
             chordProContent: $chordPro,
+            bpm: $bpm,
+            timeSignature: $timeSignature,
             sourceUrl: $url ?: null,
         );
     }

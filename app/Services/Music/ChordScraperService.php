@@ -39,7 +39,7 @@ class ChordScraperService
     /**
      * Download and extract chord content from a URL.
      *
-     * @return array{title: string, artist: string, original_key: string, raw_chords: string, chordpro_content: string}
+     * @return array{title: string, artist: string, original_key: string, raw_chords: string, chordpro_content: string, bpm: ?int, time_signature: ?string, source_url: ?string}
      */
     public function importFromUrl(string $url): array
     {
@@ -49,7 +49,7 @@ class ChordScraperService
     /**
      * Parse HTML and extract metadata and chords.
      *
-     * @return array{title: string, artist: string, original_key: string, raw_chords: string, chordpro_content: string}
+     * @return array{title: string, artist: string, original_key: string, raw_chords: string, chordpro_content: string, bpm: ?int, time_signature: ?string, source_url: ?string}
      */
     public function parseHtmlContent(string $html, string $url = ''): array
     {

@@ -125,6 +125,14 @@ class ImportChordFromWebAction
                         'chordpro_content' => $imported['chordpro_content'] ?: ($currentData['chordpro_content'] ?? ''),
                     ];
 
+                    if (! empty($imported['bpm'])) {
+                        $fillData['bpm'] = $imported['bpm'];
+                    }
+
+                    if (! empty($imported['time_signature'])) {
+                        $fillData['time_signature'] = $imported['time_signature'];
+                    }
+
                     if ($livewire && method_exists($livewire, 'form')) {
                         $livewire->form->fill($fillData);
                     }
@@ -133,9 +141,18 @@ class ImportChordFromWebAction
                         $livewire->data = array_merge($livewire->data, $fillData);
                     }
 
+                    $details = ["Tom: {$imported['original_key']}"];
+                    if (! empty($imported['bpm'])) {
+                        $details[] = "BPM: {$imported['bpm']}";
+                    }
+                    if (! empty($imported['time_signature'])) {
+                        $details[] = "Compasso: {$imported['time_signature']}";
+                    }
+                    $detailsStr = implode(' | ', $details);
+
                     Notification::make()
                         ->title('Cifra importada com sucesso!')
-                        ->body("Música: {$imported['title']} - {$imported['artist']} (Tom: {$imported['original_key']})")
+                        ->body("Música: {$imported['title']} - {$imported['artist']} ({$detailsStr})")
                         ->success()
                         ->send();
                 } catch (Throwable $e) {

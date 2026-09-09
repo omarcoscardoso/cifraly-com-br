@@ -214,6 +214,9 @@ HTML, 200),
         <span><p>Am</p></span>
         <button aria-label="Aumentar tom"></button>
     </div>
+    <script>
+        self.__next_f.push([1,"\"timeSignature\":[\"1\",\"x\",\"x\",\"x\",\"2\",\"x\",\"x\",\"x\",\"3\",\"x\",\"x\",\"x\",\"4\",\"x\",\"x\",\"x\"],\"bpm\":70"]);
+    </script>
     <pre>
 [Intro] Am  F  C  G
 
@@ -238,6 +241,8 @@ HTML, 200),
                 'title' => 'Lugar Secreto',
                 'artist' => 'Gabriela Rocha',
                 'original_key' => 'Am',
+                'bpm' => 70,
+                'time_signature' => '4/4',
             ]);
     }
 }

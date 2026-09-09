@@ -53,6 +53,39 @@ HTML;
         $this->assertStringContainsString("C             G\nTu és tudo o que eu mais quero", $result['chordpro_content']);
     }
 
+    public function test_parses_cifraclub_modern_bento_layout_with_minor_key(): void
+    {
+        $html = <<<'HTML'
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Lugar Secreto - Gabriela Rocha - Cifra Club</title>
+</head>
+<body>
+    <div class="bentoCardContent" id="key">
+        <p>Tom</p>
+        <button aria-label="Diminuir tom"></button>
+        <span><p>Am</p></span>
+        <button aria-label="Aumentar tom"></button>
+    </div>
+    <pre>
+[Intro] Am  F  C  G
+
+Am            F
+Tu és tudo o que eu mais quero
+    </pre>
+</body>
+</html>
+HTML;
+
+        $result = $this->scraper->parseHtmlContent($html, 'https://www.cifraclub.com.br/gabriela-rocha/lugar-secreto/');
+
+        $this->assertSame('Lugar Secreto', $result['title']);
+        $this->assertSame('Gabriela Rocha', $result['artist']);
+        $this->assertSame('Am', $result['original_key']);
+        $this->assertStringContainsString('[Intro] Am  F  C  G', $result['chordpro_content']);
+    }
+
     public function test_parses_cifras_html_correctly(): void
     {
         $html = <<<'HTML'

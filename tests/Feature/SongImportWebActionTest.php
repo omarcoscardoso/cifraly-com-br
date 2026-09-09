@@ -199,4 +199,45 @@ HTML, 200),
                 'original_key' => 'D',
             ]);
     }
+
+    public function test_can_import_minor_key_from_modern_cifraclub_layout_into_create_song_form(): void
+    {
+        Http::fake([
+            'https://www.cifraclub.com.br/gabriela-rocha/lugar-secreto/' => Http::response(<<<'HTML'
+<!DOCTYPE html>
+<html>
+<head><title>Lugar Secreto - Gabriela Rocha - Cifra Club</title></head>
+<body>
+    <div class="bentoCardContent" id="key">
+        <p>Tom</p>
+        <button aria-label="Diminuir tom"></button>
+        <span><p>Am</p></span>
+        <button aria-label="Aumentar tom"></button>
+    </div>
+    <pre>
+[Intro] Am  F  C  G
+
+Am            F
+Tu és tudo o que eu mais quero
+    </pre>
+</body>
+</html>
+HTML, 200),
+        ]);
+
+        Livewire::actingAs($this->user)
+            ->test(CreateSong::class)
+            ->mountAction('searchWebChord')
+            ->setActionData([
+                'search_query' => 'https://www.cifraclub.com.br/gabriela-rocha/lugar-secreto/',
+                'selected_url' => 'https://www.cifraclub.com.br/gabriela-rocha/lugar-secreto/',
+            ])
+            ->callMountedAction()
+            ->assertHasNoActionErrors()
+            ->assertFormSet([
+                'title' => 'Lugar Secreto',
+                'artist' => 'Gabriela Rocha',
+                'original_key' => 'Am',
+            ]);
+    }
 }

@@ -321,4 +321,48 @@ class StageAndConfirmationTest extends TestCase
             ->call('decline')
             ->assertHasErrors(['declineReason' => 'max']);
     }
+
+    public function test_stage_view_renders_critical_chord_styling_and_section_badges(): void
+    {
+        $event = Event::factory()->create([
+            'organization_id' => $this->organization->id,
+            'title' => 'Culto de Domingo',
+        ]);
+
+        $song = Song::factory()->create([
+            'organization_id' => $this->organization->id,
+            'title' => 'Vim Para Adorar-te',
+            'original_key' => 'E',
+        ]);
+
+        $version = SongVersion::factory()->create([
+            'song_id' => $song->id,
+            'label' => 'Versão Padrão',
+            'base_key' => 'E',
+            'chordpro_content' => "[Intro]\nE   B   C#m   A\n\n[Verso 1]\nE              B\nLuz do mundo desceste à terra\nC#m            A\nPra que eu pudesse te ver",
+            'is_default' => true,
+        ]);
+
+        EventSong::factory()->create([
+            'organization_id' => $this->organization->id,
+            'event_id' => $event->id,
+            'song_id' => $song->id,
+            'song_version_id' => $version->id,
+            'target_key' => 'E',
+            'order_index' => 1,
+        ]);
+
+        Livewire::actingAs($this->user)
+            ->test(StageView::class, [
+                'organization' => $this->organization,
+                'event' => $event,
+            ])
+            ->assertSeeHtml('stage-section-badge')
+            ->assertSeeHtml('stage-chord-line')
+            ->assertSeeHtml('stage-lyric-line')
+            ->assertSeeHtml('white-space: pre;')
+            ->assertSeeHtml('stage-chord text-amber-400')
+            ->assertSee('[Intro]')
+            ->assertSee('[Verso 1]');
+    }
 }

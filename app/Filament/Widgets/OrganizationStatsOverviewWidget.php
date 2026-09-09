@@ -94,24 +94,28 @@ class OrganizationStatsOverviewWidget extends StatsOverviewWidget
                 ->description($nextEventDescription)
                 ->descriptionIcon(Heroicon::OutlinedCalendarDays)
                 ->color('primary')
+                ->extraAttributes(['class' => 'cifraly-stat-card'])
                 ->url(EventResource::getUrl('index')),
 
             Stat::make('Músicas no Repertório', (string) $songsCount)
                 ->description('Cifras e arranjos prontos')
                 ->descriptionIcon(Heroicon::OutlinedMusicalNote)
                 ->color('success')
+                ->extraAttributes(['class' => 'cifraly-stat-card'])
                 ->url(SongResource::getUrl('index')),
 
             Stat::make('Voluntários & Equipes', "{$membersCount} Membros")
                 ->description("{$teamsCount} ".($teamsCount === 1 ? 'equipe cadastrada' : 'equipes cadastradas'))
                 ->descriptionIcon(Heroicon::OutlinedUserGroup)
                 ->color('info')
+                ->extraAttributes(['class' => 'cifraly-stat-card'])
                 ->url(TeamResource::getUrl('index')),
 
             Stat::make('Presença em Escalas', $rosterValue)
                 ->description($rosterDesc)
                 ->descriptionIcon(Heroicon::OutlinedCheckCircle)
                 ->color($rosterColor)
+                ->extraAttributes(['class' => 'cifraly-stat-card'])
                 ->url(EventResource::getUrl('index')),
         ];
     }

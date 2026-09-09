@@ -54,4 +54,21 @@
         height: 3.75rem !important;
         max-width: 100% !important;
     }
+
+    /* Responsividade dos contadores nos cards de estatísticas (Dashboard) para tablets e celulares */
+    @media (max-width: 1023px) {
+        .fi-wi-stats-overview-stat .fi-wi-stats-overview-stat-value,
+        .cifraly-stat-card .fi-wi-stats-overview-stat-value {
+            font-size: 1.5rem !important;
+            line-height: 2rem !important;
+        }
+    }
+
+    @media (max-width: 639px) {
+        .fi-wi-stats-overview-stat .fi-wi-stats-overview-stat-value,
+        .cifraly-stat-card .fi-wi-stats-overview-stat-value {
+            font-size: 1.35rem !important;
+            line-height: 1.75rem !important;
+        }
+    }
 </style>

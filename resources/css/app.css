@@ -121,3 +121,25 @@ button, a, input, select, textarea {
     color: #fde68a !important;
 }
 
+/* ==========================================================================
+   Responsividade dos Contadores de Estatísticas (Dashboard)
+   Diminui a fonte dos valores em telas pequenas (tablets e celulares).
+   ========================================================================== */
+
+@media (max-width: 1023px) {
+    .fi-wi-stats-overview-stat .fi-wi-stats-overview-stat-value,
+    .cifraly-stat-card .fi-wi-stats-overview-stat-value {
+        font-size: 1.5rem !important;
+        line-height: 2rem !important;
+    }
+}
+
+@media (max-width: 639px) {
+    .fi-wi-stats-overview-stat .fi-wi-stats-overview-stat-value,
+    .cifraly-stat-card .fi-wi-stats-overview-stat-value {
+        font-size: 1.35rem !important;
+        line-height: 1.75rem !important;
+    }
+}
+
+

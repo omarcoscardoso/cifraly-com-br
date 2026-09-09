@@ -123,7 +123,8 @@ class DashboardWidgetsTest extends TestCase
             ->assertSee('Voluntários & Equipes')
             ->assertSee('Presença em Escalas')
             ->assertSee('5')
-            ->assertSee('100%');
+            ->assertSee('100%')
+            ->assertSeeHtml('cifraly-stat-card');
     }
 
     public function test_upcoming_events_widget_displays_events_and_stage_link(): void

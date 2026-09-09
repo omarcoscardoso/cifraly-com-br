@@ -78,6 +78,81 @@
             if (b) b.style.display = 'none';
         }
     })();
+
+    // Helper universal para cópia de texto com feedback via Filament Notification
+    window.CifralyCopyText = function (text, title, body) {
+        title = title || 'Link copiado com sucesso!';
+        body = body || 'O link de convite foi copiado para a área de transferência.';
+
+        function notify(isSuccess) {
+            var t = isSuccess ? title : 'Atenção';
+            var b = isSuccess ? body : 'Não foi possível copiar automaticamente. Selecione e copie manualmente.';
+            var color = isSuccess ? 'success' : 'warning';
+
+            if (typeof FilamentNotification !== 'undefined') {
+                var notif = new FilamentNotification().title(t).body(b);
+                if (isSuccess) {
+                    notif.success();
+                } else {
+                    notif.warning();
+                }
+                notif.send();
+            } else {
+                window.dispatchEvent(new CustomEvent('notificationSent', {
+                    detail: {
+                        notification: {
+                            id: (Date.now() + Math.random()).toString(),
+                            title: t,
+                            body: b,
+                            color: color,
+                            duration: 5000
+                        }
+                    }
+                }));
+            }
+        }
+
+        function fallbackCopy(val) {
+            var textArea = document.createElement('textarea');
+            textArea.value = val;
+            textArea.style.position = 'fixed';
+            textArea.style.top = '-9999px';
+            textArea.style.left = '-9999px';
+            textArea.setAttribute('readonly', '');
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            textArea.setSelectionRange(0, 99999);
+
+            var successful = false;
+            try {
+                successful = document.execCommand('copy');
+            } catch (err) {
+                console.warn('[Cifraly] execCommand falhou:', err);
+            }
+            document.body.removeChild(textArea);
+
+            if (successful) {
+                notify(true);
+            } else {
+                notify(false);
+                prompt('Copie o link manualmente:', val);
+            }
+        }
+
+        if (navigator.clipboard && window.isSecureContext) {
+            navigator.clipboard.writeText(text)
+                .then(function () {
+                    notify(true);
+                })
+                .catch(function (err) {
+                    console.warn('[Cifraly] navigator.clipboard falhou, utilizando fallback:', err);
+                    fallbackCopy(text);
+                });
+        } else {
+            fallbackCopy(text);
+        }
+    };
 </script>
 
 <!-- Mobile Install Banner (Bottom Sheet style) -->

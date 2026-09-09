@@ -44,23 +44,23 @@ class UpcomingEventsWidget extends TableWidget
                     ->label('Evento')
                     ->weight('bold'),
 
-                TextColumn::make('team.name')
-                    ->label('Equipe')
-                    ->placeholder('Geral / Sem equipe')
-                    ->badge()
-                    ->color('gray')
-                    ->visibleFrom('md'),
+                // TextColumn::make('team.name')
+                //     ->label('Equipe')
+                //     ->placeholder('Geral / Sem equipe')
+                //     ->badge()
+                //     ->color('gray')
+                //     ->visibleFrom('md'),
 
                 TextColumn::make('starts_at')
-                    ->label('Data e Horário')
-                    ->dateTime('d/m/Y H:i'),
+                    ->label('Data')
+                    ->dateTime('d/m/Y'),
 
-                TextColumn::make('status')
-                    ->label('Status')
-                    ->badge()
-                    ->formatStateUsing(fn (?string $state): string => Event::STATUS_OPTIONS[$state] ?? $state ?? '-')
-                    ->color(fn (?string $state): string => Event::STATUS_COLORS[$state] ?? 'gray')
-                    ->visibleFrom('md'),
+                // TextColumn::make('status')
+                //     ->label('Status')
+                //     ->badge()
+                //     ->formatStateUsing(fn (?string $state): string => Event::STATUS_OPTIONS[$state] ?? $state ?? '-')
+                //     ->color(fn (?string $state): string => Event::STATUS_COLORS[$state] ?? 'gray')
+                //     ->visibleFrom('md'),
 
                 TextColumn::make('roster_summary')
                     ->label('Escala')

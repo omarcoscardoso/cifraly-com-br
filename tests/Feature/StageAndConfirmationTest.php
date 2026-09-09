@@ -365,4 +365,22 @@ class StageAndConfirmationTest extends TestCase
             ->assertSee('[Intro]')
             ->assertSee('[Verso 1]');
     }
+
+    public function test_stage_view_exit_button_links_to_application_home_dashboard(): void
+    {
+        $event = Event::factory()->create([
+            'organization_id' => $this->organization->id,
+            'title' => 'Culto de Adoração',
+        ]);
+
+        $dashboardUrl = route('filament.app.pages.dashboard', ['tenant' => $this->organization]);
+
+        Livewire::actingAs($this->user)
+            ->test(StageView::class, [
+                'organization' => $this->organization,
+                'event' => $event,
+            ])
+            ->assertSeeHtml('href="'.$dashboardUrl.'"')
+            ->assertDontSeeHtml('/events/'.$event->id.'/edit');
+    }
 }

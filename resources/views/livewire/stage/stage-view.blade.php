@@ -187,7 +187,7 @@
 
             <!-- Exit Button -->
             <a
-                href="/app/{{ $organization->slug }}/events/{{ $event->id }}/edit"
+                href="{{ route('filament.app.pages.dashboard', ['tenant' => $organization]) }}"
                 class="p-2 rounded-xl bg-slate-900 border border-slate-800 hover:bg-rose-950/40 hover:border-rose-900 text-slate-400 hover:text-rose-400 transition cursor-pointer"
                 title="Sair do Modo Palco"
             >

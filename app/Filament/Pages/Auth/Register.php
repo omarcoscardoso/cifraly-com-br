@@ -6,7 +6,9 @@ namespace App\Filament\Pages\Auth;
 
 use App\Models\Organization;
 use App\Models\User;
+use Filament\Auth\Http\Responses\Contracts\RegistrationResponse;
 use Filament\Auth\Pages\Register as BaseRegister;
+use Filament\Facades\Filament;
 use Illuminate\Contracts\Support\Htmlable;
 use Illuminate\Database\Eloquent\Model;
 use SensitiveParameter;
@@ -21,6 +23,20 @@ class Register extends BaseRegister
     public function getHeading(): string|Htmlable|null
     {
         return 'Criar sua conta';
+    }
+
+    /**
+     * Efetua o registro e garante a persistência da autenticação via remember cookie.
+     */
+    public function register(): ?RegistrationResponse
+    {
+        $response = parent::register();
+
+        if ($response && ($user = Filament::auth()->user())) {
+            Filament::auth()->login($user, remember: true);
+        }
+
+        return $response;
     }
 
     /**

@@ -189,20 +189,21 @@ class StageView extends Component
     private function formatForStageHtml(string $text, ChordTransposerService $service): HtmlString
     {
         $normalized = str_replace(["\r\n", "\r"], "\n", $text);
+        $normalized = str_replace("\t", '    ', $normalized);
         $lines = explode("\n", $normalized);
         $htmlLines = [];
 
         foreach ($lines as $line) {
             // Check if section header or bracketed tag: e.g. [Intro] or [Refrão]
             if (preg_match('/^\[(intro|verso|verse|refrão|refrao|chorus|ponte|bridge|solo|final|outro|tag|interlúdio|interlude)[^\]]*\]/i', trim($line))) {
-                $htmlLines[] = '<div class="font-bold text-cyan-400 bg-cyan-950/40 border-l-2 border-cyan-400 px-3 py-1 my-2 rounded-r tracking-wider text-[0.9em] inline-block">'.e($line).'</div>';
+                $htmlLines[] = '<div class="stage-section-badge font-bold text-cyan-400 bg-cyan-950/40 border-l-2 border-cyan-400 px-3 py-1 my-2 rounded-r tracking-wider text-[0.9em] inline-block">'.e($line).'</div>';
 
                 continue;
             }
 
             // Standalone section bracket e.g. [Parte 1]
             if (preg_match('/^\[[^\]]+\]$/', trim($line))) {
-                $htmlLines[] = '<div class="font-bold text-amber-500/80 tracking-wider text-[0.85em] my-1 uppercase">'.e($line).'</div>';
+                $htmlLines[] = '<div class="stage-section-tag font-bold text-amber-500/80 tracking-wider text-[0.85em] my-1 uppercase">'.e($line).'</div>';
 
                 continue;
             }
@@ -215,19 +216,19 @@ class StageView extends Component
                 $formatted = preg_replace_callback('/\S+/', function (array $m) use ($service): string {
                     $token = $m[0];
                     if ($service->isValidChord(htmlspecialchars_decode($token))) {
-                        return '<span class="text-amber-400 font-bold">'.$token.'</span>';
+                        return '<span class="stage-chord text-amber-400 font-bold">'.$token.'</span>';
                     }
 
-                    return '<span class="text-amber-200">'.$token.'</span>';
+                    return '<span class="stage-chord-token text-amber-200">'.$token.'</span>';
                 }, $escaped);
 
-                $htmlLines[] = '<div class="leading-tight font-bold whitespace-pre">'.$formatted.'</div>';
+                $htmlLines[] = '<div class="stage-chord-line leading-tight font-bold whitespace-pre" style="white-space: pre;">'.$formatted.'</div>';
 
                 continue;
             }
 
             // Lyric or other text line
-            $htmlLines[] = '<div class="text-slate-200 leading-snug whitespace-pre mb-2">'.e($line).'</div>';
+            $htmlLines[] = '<div class="stage-lyric-line text-slate-200 leading-snug whitespace-pre mb-2" style="white-space: pre;">'.e($line).'</div>';
         }
 
         return new HtmlString(implode("\n", $htmlLines));

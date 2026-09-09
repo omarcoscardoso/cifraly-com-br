@@ -64,3 +64,82 @@ html {
 button, a, input, select, textarea {
     touch-action: manipulation;
 }
+
+/* ==========================================================================
+   Modo Palco (Stage View) & Cifras
+   Garante alinhamento estrito monospace, preservação de whitespace e cores.
+   ========================================================================== */
+
+.stage-chord-line {
+    white-space: pre !important;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace !important;
+    line-height: 1.25 !important;
+    font-weight: 700 !important;
+    letter-spacing: normal !important;
+    word-spacing: normal !important;
+}
+
+.stage-lyric-line {
+    white-space: pre !important;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace !important;
+    line-height: 1.375 !important;
+    margin-bottom: 0.5rem !important;
+    color: #e2e8f0 !important;
+    letter-spacing: normal !important;
+    word-spacing: normal !important;
+}
+
+.stage-section-badge {
+    font-weight: 700 !important;
+    color: #22d3ee !important;
+    background-color: rgba(8, 51, 68, 0.4) !important;
+    border-left: 2px solid #22d3ee !important;
+    padding: 0.25rem 0.75rem !important;
+    margin: 0.5rem 0 !important;
+    border-top-right-radius: 0.25rem !important;
+    border-bottom-right-radius: 0.25rem !important;
+    letter-spacing: 0.05em !important;
+    font-size: 0.9em !important;
+    display: inline-block !important;
+}
+
+.stage-section-tag {
+    font-weight: 700 !important;
+    color: rgba(245, 158, 11, 0.8) !important;
+    letter-spacing: 0.05em !important;
+    font-size: 0.85em !important;
+    margin: 0.25rem 0 !important;
+    text-transform: uppercase !important;
+}
+
+.stage-chord {
+    color: #fbbf24 !important;
+    font-weight: 700 !important;
+}
+
+.stage-chord-token {
+    color: #fde68a !important;
+}
+
+/* ==========================================================================
+   Responsividade dos Contadores de Estatísticas (Dashboard)
+   Diminui a fonte dos valores em telas pequenas (tablets e celulares).
+   ========================================================================== */
+
+@media (max-width: 1023px) {
+    .fi-wi-stats-overview-stat .fi-wi-stats-overview-stat-value,
+    .cifraly-stat-card .fi-wi-stats-overview-stat-value {
+        font-size: 1.5rem !important;
+        line-height: 2rem !important;
+    }
+}
+
+@media (max-width: 639px) {
+    .fi-wi-stats-overview-stat .fi-wi-stats-overview-stat-value,
+    .cifraly-stat-card .fi-wi-stats-overview-stat-value {
+        font-size: 1.35rem !important;
+        line-height: 1.75rem !important;
+    }
+}
+
+

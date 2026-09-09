@@ -9,10 +9,20 @@ use App\Models\Organization;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
+    if (auth()->check()) {
+        return redirect('/app');
+    }
+
     return view('welcome');
 })->name('home');
 
-Route::get('/login', fn () => redirect()->route('filament.app.auth.login'))->name('login');
+Route::get('/login', function () {
+    if (auth()->check()) {
+        return redirect('/app');
+    }
+
+    return redirect()->route('filament.app.auth.login');
+})->name('login');
 
 Route::get('/r/{token}', RosterConfirmation::class)
     ->middleware('throttle:60,1')

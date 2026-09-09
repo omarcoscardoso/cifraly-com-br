@@ -9,6 +9,7 @@ WORKDIR /app
 
 COPY package*.json vite.config.js ./
 COPY resources/ ./resources/
+COPY app/ ./app/
 
 RUN npm ci --ignore-scripts || npm install --ignore-scripts
 RUN npm run build

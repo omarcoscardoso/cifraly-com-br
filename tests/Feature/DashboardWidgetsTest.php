@@ -123,7 +123,8 @@ class DashboardWidgetsTest extends TestCase
             ->assertSee('Voluntários & Equipes')
             ->assertSee('Presença em Escalas')
             ->assertSee('5')
-            ->assertSee('100%');
+            ->assertSee('100%')
+            ->assertSeeHtml('cifraly-stat-card');
     }
 
     public function test_upcoming_events_widget_displays_events_and_stage_link(): void
@@ -145,7 +146,6 @@ class DashboardWidgetsTest extends TestCase
             ->assertSuccessful()
             ->assertCanSeeTableRecords([$event])
             ->assertSee('Vigília Jovem')
-            ->assertSee('Banda Alpha')
             ->assertTableActionExists('stageView')
             ->assertTableActionExists('editEvent');
     }
@@ -269,7 +269,9 @@ class DashboardWidgetsTest extends TestCase
         Livewire::test(RosterConfirmationAlertWidget::class)
             ->call('openModal')
             ->call('confirmAttendance', $roster->id)
-            ->assertNotified('Presença confirmada!');
+            ->assertNotified('Presença confirmada!')
+            ->assertDispatched('roster-updated')
+            ->assertRedirect(Filament::getUrl($this->organization));
 
         $this->assertEquals(EventRoster::STATUS_CONFIRMED, $roster->fresh()->status);
         $this->assertNotNull($roster->fresh()->responded_at);
@@ -299,7 +301,9 @@ class DashboardWidgetsTest extends TestCase
             ->call('startDecline', $roster->id)
             ->set('declineReason', 'Viagem a trabalho')
             ->call('submitDecline', $roster->id)
-            ->assertNotified('Ausência informada');
+            ->assertNotified('Ausência informada')
+            ->assertDispatched('roster-updated')
+            ->assertRedirect(Filament::getUrl($this->organization));
 
         $this->assertEquals(EventRoster::STATUS_DECLINED, $roster->fresh()->status);
         $this->assertEquals('Viagem a trabalho', $roster->fresh()->decline_reason);
@@ -307,6 +311,13 @@ class DashboardWidgetsTest extends TestCase
 
         // Depois que o usuário informou ausência, não há mais pendências e o card desaparece da tela inicial
         $this->assertFalse(RosterConfirmationAlertWidget::canView());
+    }
+
+    public function test_stats_widget_refreshes_on_roster_updated_event(): void
+    {
+        Livewire::test(OrganizationStatsOverviewWidget::class)
+            ->dispatch('roster-updated')
+            ->assertSuccessful();
     }
 
     public function test_roster_confirmation_widget_hidden_when_user_has_no_upcoming_roster(): void

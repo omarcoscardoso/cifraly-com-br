@@ -10,8 +10,9 @@
 @endphp
 
 <x-filament-widgets::widget class="fi-wi-roster-confirmation-alert">
-    {{-- Card Específico e Organizado para Notificação da Convocação --}}
-    <x-filament::section
+    @if ($pendingCount > 0)
+        {{-- Card Específico e Organizado para Notificação da Convocação --}}
+        <x-filament::section
         icon="heroicon-o-bell-alert"
         icon-color="warning"
     >
@@ -168,4 +169,5 @@
             @endif
         </div>
     </x-filament::modal>
+    @endif
 </x-filament-widgets::widget>

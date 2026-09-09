@@ -117,10 +117,18 @@ class RosterConfirmationAlertWidget extends Widget
         $this->decliningRosterId = null;
         $this->declineReason = '';
 
-        // Se não houver mais escalas pendentes, fecha o modal automaticamente
+        // Notifica outros componentes Livewire do dashboard sobre a atualização da escala
+        $this->dispatch('roster-updated');
+
+        // Se não houver mais escalas pendentes, fecha o modal e atualiza o dashboard via SPA Navigate
         if ($this->getPendingRosters()->isEmpty()) {
             $this->showModal = false;
             $this->dispatch('close-modal', id: 'roster-confirmation-modal');
+
+            $tenant = Filament::getTenant();
+            $targetUrl = $tenant ? Filament::getUrl($tenant) : Filament::getUrl();
+
+            $this->redirect($targetUrl, navigate: true);
         }
     }
 
@@ -162,10 +170,18 @@ class RosterConfirmationAlertWidget extends Widget
             ->warning()
             ->send();
 
-        // Se não houver mais escalas pendentes, fecha o modal automaticamente
+        // Notifica outros componentes Livewire do dashboard sobre a atualização da escala
+        $this->dispatch('roster-updated');
+
+        // Se não houver mais escalas pendentes, fecha o modal e atualiza o dashboard via SPA Navigate
         if ($this->getPendingRosters()->isEmpty()) {
             $this->showModal = false;
             $this->dispatch('close-modal', id: 'roster-confirmation-modal');
+
+            $tenant = Filament::getTenant();
+            $targetUrl = $tenant ? Filament::getUrl($tenant) : Filament::getUrl();
+
+            $this->redirect($targetUrl, navigate: true);
         }
     }
 

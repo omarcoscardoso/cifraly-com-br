@@ -16,6 +16,7 @@ use Filament\Facades\Filament;
 use Filament\Support\Icons\Heroicon;
 use Filament\Widgets\StatsOverviewWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
+use Livewire\Attributes\On;
 
 class OrganizationStatsOverviewWidget extends StatsOverviewWidget
 {
@@ -28,6 +29,12 @@ class OrganizationStatsOverviewWidget extends StatsOverviewWidget
     public static function canView(): bool
     {
         return Filament::auth()->check() && Filament::getTenant() !== null;
+    }
+
+    #[On('roster-updated')]
+    public function updateStats(): void
+    {
+        // Re-renderiza o componente reativamente quando uma escala for confirmada ou recusada
     }
 
     protected function getStats(): array

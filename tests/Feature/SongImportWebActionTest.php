@@ -214,6 +214,9 @@ HTML, 200),
         <span><p>Am</p></span>
         <button aria-label="Aumentar tom"></button>
     </div>
+    <script>
+        self.__next_f.push([1,"\"timeSignature\":[\"1\",\"x\",\"x\",\"x\",\"2\",\"x\",\"x\",\"x\",\"3\",\"x\",\"x\",\"x\",\"4\",\"x\",\"x\",\"x\"],\"bpm\":70"]);
+    </script>
     <pre>
 [Intro] Am  F  C  G
 
@@ -238,6 +241,62 @@ HTML, 200),
                 'title' => 'Lugar Secreto',
                 'artist' => 'Gabriela Rocha',
                 'original_key' => 'Am',
+                'bpm' => 70,
+                'time_signature' => '4/4',
+            ]);
+    }
+
+    public function test_can_import_capo_fret_and_youtube_url_into_create_song_form(): void
+    {
+        config(['services.youtube.key' => 'test-youtube-api-key']);
+
+        Http::fake([
+            'https://www.cifraclub.com.br/ana-nobrega/oceanos/' => Http::response(<<<'HTML'
+<!DOCTYPE html>
+<html>
+<head><title>Oceanos - Ana Nóbrega - Cifra Club</title></head>
+<body>
+    <span id="cifra_tom">Tom: <a>D</a></span>
+    <span id="cifra_capo">Capotraste na <b>2ª</b> casa</span>
+    <script>
+        self.__next_f.push([1,"\"capo\":2,\"bpm\":64,\"timeSignature\":[\"1\",\"x\",\"x\",\"x\",\"2\",\"x\",\"x\",\"x\",\"3\",\"x\",\"x\",\"x\",\"4\",\"x\",\"x\",\"x\"]"]);
+    </script>
+    <pre>
+[Intro] Bm  A/C#  D
+Bm            A/C#
+Tua voz me chama
+    </pre>
+</body>
+</html>
+HTML, 200),
+            'https://www.googleapis.com/youtube/v3/search*' => Http::response([
+                'items' => [
+                    [
+                        'id' => [
+                            'videoId' => 'oceanos123',
+                        ],
+                    ],
+                ],
+            ], 200),
+        ]);
+
+        Livewire::actingAs($this->user)
+            ->test(CreateSong::class)
+            ->mountAction('searchWebChord')
+            ->setActionData([
+                'search_query' => 'https://www.cifraclub.com.br/ana-nobrega/oceanos/',
+                'selected_url' => 'https://www.cifraclub.com.br/ana-nobrega/oceanos/',
+            ])
+            ->callMountedAction()
+            ->assertHasNoActionErrors()
+            ->assertFormSet([
+                'title' => 'Oceanos',
+                'artist' => 'Ana Nóbrega',
+                'original_key' => 'D',
+                'bpm' => 64,
+                'time_signature' => '4/4',
+                'capo_fret' => 2,
+                'youtube_url' => 'https://www.youtube.com/watch?v=oceanos123',
             ]);
     }
 }

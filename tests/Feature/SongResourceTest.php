@@ -191,4 +191,29 @@ class SongResourceTest extends TestCase
             ->assertCanSeeTableRecords([$songInG])
             ->assertCanNotSeeTableRecords([$songInC]);
     }
+
+    public function test_can_create_song_with_capo_fret(): void
+    {
+        Livewire::actingAs($this->user)
+            ->test(CreateSong::class)
+            ->fillForm([
+                'title' => 'Oceanos',
+                'artist' => 'Ana Nóbrega',
+                'original_key' => 'D',
+                'capo_fret' => 2,
+                'bpm' => 64,
+                'time_signature' => '4/4',
+                'chordpro_content' => '[Intro] Bm  A/C#  D',
+            ])
+            ->call('create')
+            ->assertHasNoFormErrors();
+
+        $song = Song::where('title', 'Oceanos')->first();
+        $this->assertNotNull($song);
+        $this->assertSame(2, $song->capo_fret);
+
+        $version = $song->defaultVersion;
+        $this->assertNotNull($version);
+        $this->assertSame(2, $version->capo_fret);
+    }
 }

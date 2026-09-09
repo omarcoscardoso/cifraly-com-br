@@ -27,6 +27,7 @@ class Song extends Model
         'title',
         'artist',
         'original_key',
+        'capo_fret',
         'bpm',
         'time_signature',
         'spotify_url',
@@ -41,6 +42,7 @@ class Song extends Model
     protected function casts(): array
     {
         return [
+            'capo_fret' => 'integer',
             'bpm' => 'integer',
         ];
     }

@@ -243,6 +243,12 @@
                         </div>
 
                         <div class="flex items-center gap-2 shrink-0">
+                            @php
+                                $itemCapo = $eventSong->capo_fret ?? $eventSong->songVersion?->capo_fret ?? $eventSong->song?->capo_fret;
+                            @endphp
+                            @if ($itemCapo)
+                                <span class="text-[10px] px-1.5 py-0.5 rounded bg-indigo-950/80 text-indigo-400 border border-indigo-800/60 font-mono hidden sm:inline">Capo {{ $itemCapo }}</span>
+                            @endif
                             @if ($eventSong->song?->bpm)
                                 <span class="text-[11px] text-slate-400 font-mono hidden sm:inline">{{ $eventSong->song->bpm }}</span>
                             @endif
@@ -294,6 +300,16 @@
                     </div>
 
                     <div class="flex items-center gap-3 text-xs sm:text-sm font-medium">
+                        @php
+                            $capoFret = $selectedEventSong->capo_fret ?? $selectedEventSong->songVersion?->capo_fret ?? $selectedEventSong->song?->capo_fret;
+                        @endphp
+                        @if ($capoFret)
+                            <div class="flex items-center gap-1.5 bg-indigo-500/15 border border-indigo-500/30 px-2.5 py-1 rounded-xl text-indigo-300">
+                                <span class="text-indigo-400 text-xs font-semibold">🎸 Capo:</span>
+                                <span class="font-black text-white font-mono">{{ $capoFret }}ª casa</span>
+                            </div>
+                        @endif
+
                         @if ($selectedEventSong->song->bpm)
                             <div class="flex items-center gap-1.5 bg-slate-900 border border-slate-800 px-2.5 py-1 rounded-xl">
                                 <span class="text-slate-400 text-xs">BPM</span>

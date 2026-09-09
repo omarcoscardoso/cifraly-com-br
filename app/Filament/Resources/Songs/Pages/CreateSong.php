@@ -27,6 +27,7 @@ class CreateSong extends CreateRecord
             'label' => 'Padrão',
             'base_key' => $this->record->original_key ?? 'C',
             'chordpro_content' => $chordproContent,
+            'capo_fret' => $this->record->capo_fret,
             'is_default' => true,
         ]);
     }

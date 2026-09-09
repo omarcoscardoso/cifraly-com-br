@@ -68,6 +68,9 @@ HTML;
         <span><p>Am</p></span>
         <button aria-label="Aumentar tom"></button>
     </div>
+    <script>
+        self.__next_f.push([1,"\"timeSignature\":[\"1\",\"x\",\"x\",\"x\",\"2\",\"x\",\"x\",\"x\",\"3\",\"x\",\"x\",\"x\",\"4\",\"x\",\"x\",\"x\"],\"bpm\":70"]);
+    </script>
     <pre>
 [Intro] Am  F  C  G
 
@@ -83,7 +86,43 @@ HTML;
         $this->assertSame('Lugar Secreto', $result['title']);
         $this->assertSame('Gabriela Rocha', $result['artist']);
         $this->assertSame('Am', $result['original_key']);
+        $this->assertSame(70, $result['bpm']);
+        $this->assertSame('4/4', $result['time_signature']);
         $this->assertStringContainsString('[Intro] Am  F  C  G', $result['chordpro_content']);
+    }
+
+    public function test_parses_cifraclub_with_capo_fret(): void
+    {
+        $html = <<<'HTML'
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Oceanos - Ana Nóbrega - Cifra Club</title>
+</head>
+<body>
+    <span id="cifra_tom">Tom: <a>D</a></span>
+    <span id="cifra_capo">Capotraste na <b>2ª</b> casa</span>
+    <script>
+        self.__next_f.push([1,"\"capo\":2,\"bpm\":64,\"timeSignature\":[\"1\",\"x\",\"x\",\"x\",\"2\",\"x\",\"x\",\"x\",\"3\",\"x\",\"x\",\"x\",\"4\",\"x\",\"x\",\"x\"]"]);
+    </script>
+    <pre>
+[Intro] Bm  A/C#  D  A  G
+
+Bm            A/C#
+Tua voz me chama sobre as águas
+    </pre>
+</body>
+</html>
+HTML;
+
+        $result = $this->scraper->parseHtmlContent($html, 'https://www.cifraclub.com.br/ana-nobrega/oceanos/');
+
+        $this->assertSame('Oceanos', $result['title']);
+        $this->assertSame('Ana Nóbrega', $result['artist']);
+        $this->assertSame('D', $result['original_key']);
+        $this->assertSame(64, $result['bpm']);
+        $this->assertSame('4/4', $result['time_signature']);
+        $this->assertSame(2, $result['capo_fret']);
     }
 
     public function test_parses_cifras_html_correctly(): void

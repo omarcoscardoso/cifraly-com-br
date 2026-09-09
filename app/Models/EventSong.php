@@ -33,6 +33,7 @@ class EventSong extends Model
         'song_id',
         'song_version_id',
         'target_key',
+        'capo_fret',
         'order_index',
         'arrangement_notes',
     ];
@@ -45,6 +46,7 @@ class EventSong extends Model
     protected function casts(): array
     {
         return [
+            'capo_fret' => 'integer',
             'order_index' => 'integer',
         ];
     }

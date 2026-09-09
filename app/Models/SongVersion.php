@@ -23,6 +23,7 @@ class SongVersion extends Model
         'song_id',
         'label',
         'base_key',
+        'capo_fret',
         'chordpro_content',
         'is_default',
     ];
@@ -35,6 +36,7 @@ class SongVersion extends Model
     protected function casts(): array
     {
         return [
+            'capo_fret' => 'integer',
             'is_default' => 'boolean',
         ];
     }

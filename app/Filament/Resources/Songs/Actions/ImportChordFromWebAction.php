@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Filament\Resources\Songs\Actions;
 
 use App\Services\Music\ChordScraperService;
+use App\Services\Music\YouTubeSearchService;
 use Filament\Actions\Action;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
@@ -125,6 +126,31 @@ class ImportChordFromWebAction
                         'chordpro_content' => $imported['chordpro_content'] ?: ($currentData['chordpro_content'] ?? ''),
                     ];
 
+                    if (! empty($imported['bpm'])) {
+                        $fillData['bpm'] = $imported['bpm'];
+                    }
+
+                    if (! empty($imported['time_signature'])) {
+                        $fillData['time_signature'] = $imported['time_signature'];
+                    }
+
+                    if (! empty($imported['capo_fret'])) {
+                        $fillData['capo_fret'] = $imported['capo_fret'];
+                    }
+
+                    // Se não tiver link do YouTube ainda, buscar automaticamente pela API do YouTube
+                    if (blank($currentData['youtube_url'] ?? null) && ! empty($fillData['title'])) {
+                        $youtubeService = app(YouTubeSearchService::class);
+                        $youtubeUrl = $youtubeService->searchVideoUrl(
+                            (string) $fillData['title'],
+                            (string) ($fillData['artist'] ?? '')
+                        );
+
+                        if (! empty($youtubeUrl)) {
+                            $fillData['youtube_url'] = $youtubeUrl;
+                        }
+                    }
+
                     if ($livewire && method_exists($livewire, 'form')) {
                         $livewire->form->fill($fillData);
                     }
@@ -133,9 +159,24 @@ class ImportChordFromWebAction
                         $livewire->data = array_merge($livewire->data, $fillData);
                     }
 
+                    $details = ["Tom: {$imported['original_key']}"];
+                    if (! empty($imported['bpm'])) {
+                        $details[] = "BPM: {$imported['bpm']}";
+                    }
+                    if (! empty($imported['time_signature'])) {
+                        $details[] = "Compasso: {$imported['time_signature']}";
+                    }
+                    if (! empty($imported['capo_fret'])) {
+                        $details[] = "Capo: {$imported['capo_fret']}ª casa";
+                    }
+                    if (! empty($fillData['youtube_url'])) {
+                        $details[] = 'YouTube vinculado';
+                    }
+                    $detailsStr = implode(' | ', $details);
+
                     Notification::make()
                         ->title('Cifra importada com sucesso!')
-                        ->body("Música: {$imported['title']} - {$imported['artist']} (Tom: {$imported['original_key']})")
+                        ->body("Música: {$imported['title']} - {$imported['artist']} ({$detailsStr})")
                         ->success()
                         ->send();
                 } catch (Throwable $e) {

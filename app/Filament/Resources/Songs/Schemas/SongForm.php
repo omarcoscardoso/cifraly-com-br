@@ -34,13 +34,21 @@ class SongForm
                                 ->maxLength(150),
                         ]),
 
-                        Grid::make(3)->schema([
+                        Grid::make(['default' => 2, 'md' => 4])->schema([
                             Select::make('original_key')
                                 ->label('Tom Original')
                                 ->options(SongResource::KEY_OPTIONS)
                                 ->default('C')
                                 ->required()
                                 ->searchable(),
+
+                            TextInput::make('capo_fret')
+                                ->label('Capotraste')
+                                ->placeholder('Sem capo')
+                                ->numeric()
+                                ->minValue(1)
+                                ->maxValue(12)
+                                ->helperText('Casa do braço (1 a 12)'),
 
                             TextInput::make('bpm')
                                 ->label('BPM')

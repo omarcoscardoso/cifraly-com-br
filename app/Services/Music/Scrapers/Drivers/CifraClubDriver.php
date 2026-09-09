@@ -154,24 +154,37 @@ class CifraClubDriver implements ChordScraperDriverInterface
 
         $chordPro = $this->converter->convert($rawChords);
 
+        $capoFret = $metadata['capo_fret'] ?? null;
+        if ($capoFret === null && preg_match('/(?:capotraste|capo)\s*(?:na|:)?\s*(\d+)[ªº°a]?\s*(?:casa)?/i', $rawChords, $capoMatch)) {
+            $parsedCapo = (int) $capoMatch[1];
+            if ($parsedCapo >= 1 && $parsedCapo <= 12) {
+                $capoFret = $parsedCapo;
+            }
+        }
+
         return new ScrapedChordData(
             title: $metadata['title'] ?: 'Música Sem Título',
             artist: $metadata['artist'] ?: 'Artista Desconhecido',
             originalKey: $key ?: 'C',
             rawChords: $rawChords,
             chordProContent: $chordPro,
+            bpm: $metadata['bpm'] ?? null,
+            timeSignature: $metadata['time_signature'] ?? null,
+            capoFret: $capoFret,
             sourceUrl: $url ?: null,
         );
     }
 
     /**
-     * @return array{title: string, artist: string, original_key: string}
+     * @return array{title: string, artist: string, original_key: string, bpm: ?int, time_signature: ?string, capo_fret: ?int}
      */
     protected function extractMetadata(string $html, string $url = ''): array
     {
         $title = '';
         $artist = '';
         $key = '';
+        $bpm = null;
+        $timeSignature = null;
 
         if (preg_match('/<title>(.*?)<\/title>/si', $html, $titleMatch)) {
             $titleTag = html_entity_decode(trim($titleMatch[1]));
@@ -210,10 +223,68 @@ class CifraClubDriver implements ChordScraperDriverInterface
             $key = $this->transposer->normalizeKey($tomMatch[1]);
         }
 
+        // 4. BPM (Andamento)
+        if (preg_match('/(?:\\\\\"bpm\\\\\"|\"bpm\"):\s*(\d+)/i', $html, $bpmMatch)) {
+            $parsedBpm = (int) $bpmMatch[1];
+            if ($parsedBpm >= 30 && $parsedBpm <= 300) {
+                $bpm = $parsedBpm;
+            }
+        } elseif (preg_match('/(?:bpm|tempo|andamento):\s*(\d+)/i', $html, $bpmMatch)) {
+            $parsedBpm = (int) $bpmMatch[1];
+            if ($parsedBpm >= 30 && $parsedBpm <= 300) {
+                $bpm = $parsedBpm;
+            }
+        }
+
+        // 5. Fórmula de Compasso (Time Signature)
+        if (preg_match('/(?:\\\\\"timeSignature\\\\\"|\"timeSignature\"):\s*\[([^\]]+)\]/i', $html, $tsMatch)) {
+            preg_match_all('/[0-9]+/', $tsMatch[1], $beats);
+            if (! empty($beats[0])) {
+                $maxBeat = max(array_map('intval', $beats[0]));
+                $timeSignature = match ($maxBeat) {
+                    4 => '4/4',
+                    3 => '3/4',
+                    2 => '2/4',
+                    6 => '6/8',
+                    12 => '12/8',
+                    default => null,
+                };
+            }
+        }
+
+        if (! $timeSignature && preg_match('/(?:compasso|fórmula de compasso|meter|time signature):\s*(\d+\/\d+)/i', $html, $tsMatch)) {
+            $candidate = trim($tsMatch[1]);
+            if (in_array($candidate, ['4/4', '3/4', '2/4', '6/8', '12/8'], true)) {
+                $timeSignature = $candidate;
+            }
+        }
+
+        // 6. Capotraste
+        $capoFret = null;
+        if (preg_match('/(?:\\\\\"capo\\\\\"|\"capo\"):\s*(\d+)/i', $html, $capoMatch)) {
+            $parsedCapo = (int) $capoMatch[1];
+            if ($parsedCapo >= 1 && $parsedCapo <= 12) {
+                $capoFret = $parsedCapo;
+            }
+        } elseif (preg_match('/(?:id=["\']cifra_capo["\']|id=["\']capo["\'])[^>]*>.*?(\d+)[ªº°a]?\s*casa/si', $html, $capoMatch)) {
+            $parsedCapo = (int) $capoMatch[1];
+            if ($parsedCapo >= 1 && $parsedCapo <= 12) {
+                $capoFret = $parsedCapo;
+            }
+        } elseif (preg_match('/(?:capotraste|capo)\s*(?:na|:)?\s*(\d+)[ªº°a]?\s*(?:casa)?/i', $html, $capoMatch)) {
+            $parsedCapo = (int) $capoMatch[1];
+            if ($parsedCapo >= 1 && $parsedCapo <= 12) {
+                $capoFret = $parsedCapo;
+            }
+        }
+
         return [
             'title' => $title,
             'artist' => $artist,
             'original_key' => $key,
+            'bpm' => $bpm,
+            'time_signature' => $timeSignature,
+            'capo_fret' => $capoFret,
         ];
     }
 

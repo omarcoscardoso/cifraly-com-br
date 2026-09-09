@@ -9,6 +9,7 @@ use Filament\Actions\Action;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
+use Filament\Resources\Pages\CreateRecord;
 use Filament\Support\Icons\Heroicon;
 use Livewire\Component;
 use Throwable;
@@ -82,7 +83,7 @@ class ImportChordFromWebAction
                     ->live()
                     ->helperText('Selecione uma das cifras encontradas para importar.'),
             ])
-            ->action(function (array $data, Component $livewire): void {
+            ->action(function (array $data, Action $action): void {
                 $url = $data['selected_url'] ?? null;
 
                 if (blank($url) && ! empty($data['search_query'])) {
@@ -111,16 +112,25 @@ class ImportChordFromWebAction
                     $scraper = app(ChordScraperService::class);
                     $imported = $scraper->importFromUrl($url);
 
-                    $currentData = is_array($livewire->data ?? null) ? $livewire->data : [];
+                    /** @var CreateRecord|Component|null $livewire */
+                    $livewire = $action->getLivewire();
 
-                    if (method_exists($livewire, 'form')) {
-                        $livewire->form->fill([
-                            ...$currentData,
-                            'title' => $imported['title'] ?: ($currentData['title'] ?? ''),
-                            'artist' => $imported['artist'] ?: ($currentData['artist'] ?? ''),
-                            'original_key' => $imported['original_key'] ?: ($currentData['original_key'] ?? 'C'),
-                            'chordpro_content' => $imported['chordpro_content'] ?: ($currentData['chordpro_content'] ?? ''),
-                        ]);
+                    $currentData = is_array($livewire?->data ?? null) ? $livewire->data : [];
+
+                    $fillData = [
+                        ...$currentData,
+                        'title' => $imported['title'] ?: ($currentData['title'] ?? ''),
+                        'artist' => $imported['artist'] ?: ($currentData['artist'] ?? ''),
+                        'original_key' => $imported['original_key'] ?: ($currentData['original_key'] ?? 'C'),
+                        'chordpro_content' => $imported['chordpro_content'] ?: ($currentData['chordpro_content'] ?? ''),
+                    ];
+
+                    if ($livewire && method_exists($livewire, 'form')) {
+                        $livewire->form->fill($fillData);
+                    }
+
+                    if ($livewire && is_array($livewire->data ?? null)) {
+                        $livewire->data = array_merge($livewire->data, $fillData);
                     }
 
                     Notification::make()

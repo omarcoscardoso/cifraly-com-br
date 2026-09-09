@@ -46,6 +46,23 @@ class SongResource extends Resource
         'A#' => 'A#',
         'Bb' => 'Bb',
         'B' => 'B',
+        'Cm' => 'Cm',
+        'C#m' => 'C#m',
+        'Dbm' => 'Dbm',
+        'Dm' => 'Dm',
+        'D#m' => 'D#m',
+        'Ebm' => 'Ebm',
+        'Em' => 'Em',
+        'Fm' => 'Fm',
+        'F#m' => 'F#m',
+        'Gbm' => 'Gbm',
+        'Gm' => 'Gm',
+        'G#m' => 'G#m',
+        'Abm' => 'Abm',
+        'Am' => 'Am',
+        'A#m' => 'A#m',
+        'Bbm' => 'Bbm',
+        'Bm' => 'Bm',
     ];
 
     public const TIME_SIGNATURE_OPTIONS = [

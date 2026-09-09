@@ -62,13 +62,21 @@ class GenericHtmlDriver implements ChordScraperDriverInterface
         }
 
         $key = 'C';
-        if (preg_match('/(?:id=["\']cifra_tom["\']|class=["\'][^"\']*tom[^"\']*["\'])[^>]*>(.*?)<\/(?:span|div|a|button)>/si', $html, $tomContainer)) {
+        if (preg_match('/id=["\']key["\'][^>]*>.*?<button[^>]*aria-label=["\'](?:Diminuir tom|Aumentar tom)["\'][^>]*>.*?<p[^>]*>([A-G][#b♭♯]?(?:m|maj|min)?)/si', $html, $tomMatch)) {
+            $key = $this->transposer->normalizeKey($tomMatch[1]);
+        } elseif (preg_match('/id=["\']key["\'][^>]*>.*?<p[^>]*>([A-G][#b♭♯]?(?:m|maj|min)?)(?:<\/p>|\s|<)/si', $html, $tomMatch)) {
+            $key = $this->transposer->normalizeKey($tomMatch[1]);
+        } elseif (preg_match('/"(?:keyShape|key|tom)":\s*"([A-G][#b♭♯]?(?:m|maj|min)?)"/i', $html, $tomMatch)) {
+            $key = $this->transposer->normalizeKey($tomMatch[1]);
+        } elseif (preg_match('/(?:id=["\']cifra_tom["\']|class=["\'][^"\']*tom[^"\']*["\'])[^>]*>(.*?)<\/(?:span|div|a|button)>/si', $html, $tomContainer)) {
             $cleaned = strip_tags($tomContainer[1]);
-            if (preg_match('/([A-G][#b♭♯]?)/', $cleaned, $tomMatch)) {
-                $key = $this->transposer->normalizeNote($tomMatch[1]);
+            if (preg_match('/([A-G][#b♭♯]?(?:m|maj|min)?)/', $cleaned, $tomMatch)) {
+                $key = $this->transposer->normalizeKey($tomMatch[1]);
             }
-        } elseif (preg_match('/Tom:\s*(?:<[^>]+>)*\s*([A-G][#b♭♯]?)/si', $html, $tomMatch)) {
-            $key = $this->transposer->normalizeNote($tomMatch[1]);
+        } elseif (preg_match('/Tom:\s*(?:<[^>]+>)*\s*([A-G][#b♭♯]?(?:m|maj|min)?)/si', $html, $tomMatch)) {
+            $key = $this->transposer->normalizeKey($tomMatch[1]);
+        } elseif (preg_match('/Tom:\s*([A-G][#b♭♯]?(?:m|maj|min)?)/i', $rawChords, $tomMatch)) {
+            $key = $this->transposer->normalizeKey($tomMatch[1]);
         }
 
         $chordPro = $this->converter->convert($rawChords);

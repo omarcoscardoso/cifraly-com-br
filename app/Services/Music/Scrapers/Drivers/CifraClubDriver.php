@@ -190,13 +190,24 @@ class CifraClubDriver implements ChordScraperDriverInterface
             $artist = html_entity_decode(trim(strip_tags($h2Match[1])));
         }
 
-        if (preg_match('/(?:id=["\']cifra_tom["\']|class=["\'][^"\']*tom[^"\']*["\'])[^>]*>(.*?)<\/(?:span|div|a|button)>/si', $html, $tomContainer)) {
+        // 1. Layout Bento (novo) do Cifra Club: elemento com id="key"
+        if (preg_match('/id=["\']key["\'][^>]*>.*?<button[^>]*aria-label=["\'](?:Diminuir tom|Aumentar tom)["\'][^>]*>.*?<p[^>]*>([A-G][#b♭♯]?(?:m|maj|min)?)/si', $html, $tomMatch)) {
+            $key = $this->transposer->normalizeKey($tomMatch[1]);
+        } elseif (preg_match('/id=["\']key["\'][^>]*>.*?<p[^>]*>([A-G][#b♭♯]?(?:m|maj|min)?)(?:<\/p>|\s|<)/si', $html, $tomMatch)) {
+            $key = $this->transposer->normalizeKey($tomMatch[1]);
+        }
+        // 2. Dados embutidos em JSON/scripts SSR do Next.js
+        elseif (preg_match('/"(?:keyShape|key|tom)":\s*"([A-G][#b♭♯]?(?:m|maj|min)?)"/i', $html, $tomMatch)) {
+            $key = $this->transposer->normalizeKey($tomMatch[1]);
+        }
+        // 3. Layout clássico / alternativo do Cifra Club
+        elseif (preg_match('/(?:id=["\']cifra_tom["\']|class=["\'][^"\']*tom[^"\']*["\'])[^>]*>(.*?)<\/(?:span|div|a|button)>/si', $html, $tomContainer)) {
             $cleaned = strip_tags($tomContainer[1]);
-            if (preg_match('/([A-G][#b♭♯]?)/', $cleaned, $tomMatch)) {
-                $key = $this->transposer->normalizeNote($tomMatch[1]);
+            if (preg_match('/([A-G][#b♭♯]?(?:m|maj|min)?)/', $cleaned, $tomMatch)) {
+                $key = $this->transposer->normalizeKey($tomMatch[1]);
             }
-        } elseif (preg_match('/Tom:\s*(?:<[^>]+>)*\s*([A-G][#b♭♯]?)/si', $html, $tomMatch)) {
-            $key = $this->transposer->normalizeNote($tomMatch[1]);
+        } elseif (preg_match('/Tom:\s*(?:<[^>]+>)*\s*([A-G][#b♭♯]?(?:m|maj|min)?)/si', $html, $tomMatch)) {
+            $key = $this->transposer->normalizeKey($tomMatch[1]);
         }
 
         return [
@@ -208,8 +219,16 @@ class CifraClubDriver implements ChordScraperDriverInterface
 
     protected function detectKeyFromChords(string $rawChords): string
     {
-        if (preg_match('/Tom:\s*([A-G][#b♭♯]?)/i', $rawChords, $match)) {
-            return $this->transposer->normalizeNote($match[1]);
+        if (preg_match('/Tom:\s*([A-G][#b♭♯]?(?:m|maj|min)?)/i', $rawChords, $match)) {
+            return $this->transposer->normalizeKey($match[1]);
+        }
+
+        if (preg_match_all('/\b([A-G][#b♭♯]?(?:m|maj|min)?)(?:\/|\b)/', $rawChords, $matches)) {
+            foreach ($matches[1] as $candidate) {
+                if ($this->transposer->isValidChord($candidate)) {
+                    return $this->transposer->normalizeKey($candidate);
+                }
+            }
         }
 
         return 'C';

@@ -292,6 +292,38 @@ class ChordTransposerService
     }
 
     /**
+     * Normalize a musical key (e.g. 'Am', 'c#m', 'Db', 'f#') to standard root, accidental and minor indicator.
+     */
+    public function normalizeKey(string $key): string
+    {
+        $trimmed = trim($key);
+
+        if ($trimmed === '') {
+            return 'C';
+        }
+
+        if (! preg_match('/^([A-G])([#b♭♯]?)(m|min|minor)?/i', $trimmed, $matches)) {
+            return 'C';
+        }
+
+        $root = strtoupper($matches[1]);
+        $accidental = '';
+
+        if (! empty($matches[2])) {
+            $char = $matches[2];
+            if ($char === '#' || $char === '♯') {
+                $accidental = '#';
+            } elseif ($char === 'b' || $char === 'B' || $char === '♭') {
+                $accidental = 'b';
+            }
+        }
+
+        $mode = (! empty($matches[3]) && in_array(strtolower($matches[3]), ['m', 'min', 'minor'], true)) ? 'm' : '';
+
+        return $root.$accidental.$mode;
+    }
+
+    /**
      * Determine whether the target key prefers flats over sharps.
      */
     public function keyPrefersFlats(string $key): bool

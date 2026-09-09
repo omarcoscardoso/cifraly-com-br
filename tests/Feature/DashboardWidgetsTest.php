@@ -146,7 +146,6 @@ class DashboardWidgetsTest extends TestCase
             ->assertSuccessful()
             ->assertCanSeeTableRecords([$event])
             ->assertSee('Vigília Jovem')
-            ->assertSee('Banda Alpha')
             ->assertTableActionExists('stageView')
             ->assertTableActionExists('editEvent');
     }

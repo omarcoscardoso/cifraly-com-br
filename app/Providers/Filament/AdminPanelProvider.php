@@ -2,6 +2,7 @@
 
 namespace App\Providers\Filament;
 
+use App\Filament\Pages\Auth\Register;
 use App\Filament\Pages\Tenancy\EditOrganizationProfile;
 use App\Filament\Pages\Tenancy\RegisterOrganization;
 use App\Filament\Widgets\OrganizationHeaderWidget;
@@ -36,6 +37,7 @@ class AdminPanelProvider extends PanelProvider
             ->id('app')
             ->path('app')
             ->login()
+            ->registration(Register::class)
             ->defaultThemeMode(ThemeMode::Dark)
             ->brandLogo(fn () => view('components.brand-logo', ['class' => 'h-full w-auto text-white']))
             ->brandLogoHeight('2.85rem')
@@ -46,6 +48,10 @@ class AdminPanelProvider extends PanelProvider
             ->renderHook(
                 PanelsRenderHook::AUTH_LOGIN_FORM_BEFORE,
                 fn () => view('filament.auth.google-button'),
+            )
+            ->renderHook(
+                PanelsRenderHook::AUTH_REGISTER_FORM_BEFORE,
+                fn () => view('filament.auth.google-button', ['actionText' => 'Cadastrar com Google']),
             )
             ->renderHook(
                 PanelsRenderHook::HEAD_END,

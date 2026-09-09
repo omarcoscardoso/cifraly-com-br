@@ -154,6 +154,14 @@ class CifraClubDriver implements ChordScraperDriverInterface
 
         $chordPro = $this->converter->convert($rawChords);
 
+        $capoFret = $metadata['capo_fret'] ?? null;
+        if ($capoFret === null && preg_match('/(?:capotraste|capo)\s*(?:na|:)?\s*(\d+)[ªº°a]?\s*(?:casa)?/i', $rawChords, $capoMatch)) {
+            $parsedCapo = (int) $capoMatch[1];
+            if ($parsedCapo >= 1 && $parsedCapo <= 12) {
+                $capoFret = $parsedCapo;
+            }
+        }
+
         return new ScrapedChordData(
             title: $metadata['title'] ?: 'Música Sem Título',
             artist: $metadata['artist'] ?: 'Artista Desconhecido',
@@ -162,12 +170,13 @@ class CifraClubDriver implements ChordScraperDriverInterface
             chordProContent: $chordPro,
             bpm: $metadata['bpm'] ?? null,
             timeSignature: $metadata['time_signature'] ?? null,
+            capoFret: $capoFret,
             sourceUrl: $url ?: null,
         );
     }
 
     /**
-     * @return array{title: string, artist: string, original_key: string, bpm: ?int, time_signature: ?string}
+     * @return array{title: string, artist: string, original_key: string, bpm: ?int, time_signature: ?string, capo_fret: ?int}
      */
     protected function extractMetadata(string $html, string $url = ''): array
     {
@@ -250,12 +259,32 @@ class CifraClubDriver implements ChordScraperDriverInterface
             }
         }
 
+        // 6. Capotraste
+        $capoFret = null;
+        if (preg_match('/(?:\\\\\"capo\\\\\"|\"capo\"):\s*(\d+)/i', $html, $capoMatch)) {
+            $parsedCapo = (int) $capoMatch[1];
+            if ($parsedCapo >= 1 && $parsedCapo <= 12) {
+                $capoFret = $parsedCapo;
+            }
+        } elseif (preg_match('/(?:id=["\']cifra_capo["\']|id=["\']capo["\'])[^>]*>.*?(\d+)[ªº°a]?\s*casa/si', $html, $capoMatch)) {
+            $parsedCapo = (int) $capoMatch[1];
+            if ($parsedCapo >= 1 && $parsedCapo <= 12) {
+                $capoFret = $parsedCapo;
+            }
+        } elseif (preg_match('/(?:capotraste|capo)\s*(?:na|:)?\s*(\d+)[ªº°a]?\s*(?:casa)?/i', $html, $capoMatch)) {
+            $parsedCapo = (int) $capoMatch[1];
+            if ($parsedCapo >= 1 && $parsedCapo <= 12) {
+                $capoFret = $parsedCapo;
+            }
+        }
+
         return [
             'title' => $title,
             'artist' => $artist,
             'original_key' => $key,
             'bpm' => $bpm,
             'time_signature' => $timeSignature,
+            'capo_fret' => $capoFret,
         ];
     }
 

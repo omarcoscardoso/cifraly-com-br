@@ -72,8 +72,10 @@
         }
     </style>
 </head>
-<body class="h-full overflow-hidden font-sans text-slate-100 antialiased bg-black select-none">
+<body class="h-full overflow-hidden font-sans text-slate-100 antialiased bg-[#08080a] select-none">
     {{ $slot }}
+
+    <x-altar-metronome />
 
     @livewireScripts
     @include('pwa.scripts')

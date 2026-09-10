@@ -62,8 +62,18 @@ class AdminPanelProvider extends PanelProvider
                 PanelsRenderHook::BODY_END,
                 fn () => view('pwa.scripts'),
             )
+            ->renderHook(
+                PanelsRenderHook::BODY_END,
+                fn () => view('components.altar-metronome'),
+            )
+            ->renderHook(
+                PanelsRenderHook::BODY_END,
+                fn () => view('components.altar-bottom-nav'),
+            )
             ->colors([
-                'primary' => Color::Amber,
+                'primary' => Color::hex('#00d2ff'),
+                'amber' => Color::Amber,
+                'success' => Color::hex('#00e676'),
             ])
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\Filament\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\Filament\Pages')

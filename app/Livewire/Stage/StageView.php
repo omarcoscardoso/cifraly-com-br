@@ -194,16 +194,25 @@ class StageView extends Component
         $htmlLines = [];
 
         foreach ($lines as $line) {
-            // Check if section header or bracketed tag: e.g. [Intro] or [Refrão]
-            if (preg_match('/^\[(intro|verso|verse|refrão|refrao|chorus|ponte|bridge|solo|final|outro|tag|interlúdio|interlude)[^\]]*\]/i', trim($line))) {
-                $htmlLines[] = '<div class="stage-section-badge font-bold text-cyan-400 bg-cyan-950/40 border-l-2 border-cyan-400 px-3 py-1 my-2 rounded-r tracking-wider text-[0.9em] inline-block">'.e($line).'</div>';
+            $trimmed = trim($line);
+
+            // Refrão / Chorus: destaque em altar-amber e target para salto rápido
+            if (preg_match('/^\[(refrão|refrao|chorus)[^\]]*\]/i', $trimmed)) {
+                $htmlLines[] = '<div class="stage-section-chorus stage-chorus-target">'.e($line).'</div>';
+
+                continue;
+            }
+
+            // Outras seções estruturais (Intro, Verso, Ponte, etc.)
+            if (preg_match('/^\[(intro|verso|verse|ponte|bridge|solo|final|outro|tag|interlúdio|interlude)[^\]]*\]/i', $trimmed)) {
+                $htmlLines[] = '<div class="stage-section-badge">'.e($line).'</div>';
 
                 continue;
             }
 
             // Standalone section bracket e.g. [Parte 1]
-            if (preg_match('/^\[[^\]]+\]$/', trim($line))) {
-                $htmlLines[] = '<div class="stage-section-tag font-bold text-amber-500/80 tracking-wider text-[0.85em] my-1 uppercase">'.e($line).'</div>';
+            if (preg_match('/^\[[^\]]+\]$/', $trimmed)) {
+                $htmlLines[] = '<div class="stage-section-tag">'.e($line).'</div>';
 
                 continue;
             }

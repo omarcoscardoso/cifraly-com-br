@@ -60,40 +60,6 @@
         max-width: 100% !important;
     }
 
-    /* SVG Icon & Container Safeguards for Filament & ALTAR UI */
-    svg {
-        box-sizing: border-box;
-    }
-    svg.w-3, svg.h-3 { width: 0.75rem !important; height: 0.75rem !important; min-width: 0.75rem; min-height: 0.75rem; max-width: 0.75rem; max-height: 0.75rem; flex-shrink: 0; }
-    svg.w-3\.5, svg.h-3\.5 { width: 0.875rem !important; height: 0.875rem !important; min-width: 0.875rem; min-height: 0.875rem; max-width: 0.875rem; max-height: 0.875rem; flex-shrink: 0; }
-    svg.w-4, svg.h-4 { width: 1rem !important; height: 1rem !important; min-width: 1rem; min-height: 1rem; max-width: 1rem; max-height: 1rem; flex-shrink: 0; }
-    svg.w-5, svg.h-5 { width: 1.25rem !important; height: 1.25rem !important; min-width: 1.25rem; min-height: 1.25rem; max-width: 1.25rem; max-height: 1.25rem; flex-shrink: 0; }
-    svg.w-6, svg.h-6 { width: 1.5rem !important; height: 1.5rem !important; min-width: 1.5rem; min-height: 1.5rem; max-width: 1.5rem; max-height: 1.5rem; flex-shrink: 0; }
-
-    /* Filament Standard Icon Sizing Protection */
-    .fi-icon {
-        display: inline-flex !important;
-        align-items: center;
-        justify-content: center;
-        flex-shrink: 0 !important;
-    }
-    .fi-size-xs, .fi-size-xs > svg { width: 1rem !important; height: 1rem !important; max-width: 1rem !important; max-height: 1rem !important; }
-    .fi-size-sm, .fi-size-sm > svg { width: 1.125rem !important; height: 1.125rem !important; max-width: 1.125rem !important; max-height: 1.125rem !important; }
-    .fi-size-md, .fi-size-md > svg { width: 1.25rem !important; height: 1.25rem !important; max-width: 1.25rem !important; max-height: 1.25rem !important; }
-    .fi-size-lg, .fi-size-lg > svg { width: 1.5rem !important; height: 1.5rem !important; max-width: 1.5rem !important; max-height: 1.5rem !important; }
-    .fi-size-xl, .fi-size-xl > svg { width: 1.75rem !important; height: 1.75rem !important; max-width: 1.75rem !important; max-height: 1.75rem !important; }
-
-    /* Fix ALTAR Bottom Nav Bar SVG constraints */
-    .altar-bottom-nav svg {
-        width: 1.25rem !important;
-        height: 1.25rem !important;
-        min-width: 1.25rem !important;
-        min-height: 1.25rem !important;
-        max-width: 1.25rem !important;
-        max-height: 1.25rem !important;
-        flex-shrink: 0 !important;
-    }
-
     /* Responsividade dos contadores nos cards de estatísticas (Dashboard) para tablets e celulares */
     @media (max-width: 1023px) {
         .fi-wi-stats-overview-stat .fi-wi-stats-overview-stat-value,

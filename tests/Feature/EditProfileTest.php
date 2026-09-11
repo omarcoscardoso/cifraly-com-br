@@ -82,6 +82,17 @@ class EditProfileTest extends TestCase
         $response->assertSee('Lucas Batera');
     }
 
+    public function test_profile_http_route_is_accessible_when_no_tenant_is_active(): void
+    {
+        Filament::setTenant(null);
+
+        $response = $this->get('/app/profile');
+
+        $response->assertSuccessful();
+        $response->assertSee('Meu Perfil');
+        $response->assertSee('Lucas Batera');
+    }
+
     public function test_user_can_update_profile_information_including_phone_and_birth_date(): void
     {
         Livewire::test(EditProfile::class)

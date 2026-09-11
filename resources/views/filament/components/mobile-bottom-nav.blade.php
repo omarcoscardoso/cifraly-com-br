@@ -13,17 +13,17 @@
     }
 
     $dashboardUrl = Filament::getUrl($tenant);
-    $songsUrl = SongResource::getUrl('index');
-    $eventsUrl = EventResource::getUrl('index');
+    $songsUrl = SongResource::getUrl('index', ['tenant' => $tenant], tenant: $tenant);
+    $eventsUrl = EventResource::getUrl('index', ['tenant' => $tenant], tenant: $tenant);
     $profileUrl = EditProfile::getUrl();
 
-    $newSongUrl = SongResource::getUrl('create');
-    $newEventUrl = EventResource::getUrl('create');
+    $newSongUrl = SongResource::getUrl('create', ['tenant' => $tenant], tenant: $tenant);
+    $newEventUrl = EventResource::getUrl('create', ['tenant' => $tenant], tenant: $tenant);
 
     $isDashboardActive = request()->routeIs('filament.*.pages.dashboard');
     $isSongsActive = request()->routeIs('filament.*.resources.songs.*');
     $isEventsActive = request()->routeIs('filament.*.resources.events.*');
-    $isProfileActive = request()->routeIs('filament.*.pages.profile');
+    $isProfileActive = request()->routeIs('filament.*.pages.profile') || request()->routeIs('filament.*.auth.profile');
 
     $nextEvent = Event::query()
         ->where('organization_id', $tenant->id)

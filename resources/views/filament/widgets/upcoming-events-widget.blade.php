@@ -4,10 +4,10 @@
     use Filament\Support\Facades\FilamentView;
     use Filament\Widgets\View\WidgetsRenderHook;
 
-    $events = $this->getUpcomingEvents();
-    $eventsUrl = EventResource::getUrl('index');
-    $createEventUrl = EventResource::getUrl('create');
     $tenant = Filament::getTenant();
+    $events = $this->getUpcomingEvents();
+    $eventsUrl = $tenant ? EventResource::getUrl('index', ['tenant' => $tenant], tenant: $tenant) : '#';
+    $createEventUrl = $tenant ? EventResource::getUrl('create', ['tenant' => $tenant], tenant: $tenant) : '#';
 @endphp
 
 <x-filament-widgets::widget class="fi-wi-upcoming-events !p-0">

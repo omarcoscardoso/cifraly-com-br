@@ -47,7 +47,7 @@
                                 class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 ring-1 ring-emerald-500/20 hover:bg-emerald-500 hover:text-white dark:bg-emerald-950/40 dark:text-emerald-400 dark:ring-emerald-500/30 dark:hover:bg-emerald-500 dark:hover:text-white transition active:scale-90"
                                 title="Confirmar Presença"
                             >
-                                <svg class="h-5 w-5 stroke-[2.5]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <svg width="20" height="20" style="width: 20px; height: 20px; min-width: 20px; min-height: 20px; max-width: 20px; max-height: 20px;" stroke-width="2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
                                 </svg>
                             </button>
@@ -76,7 +76,7 @@
                                 class="rounded-xl bg-gray-100 dark:bg-stone-800 p-1.5 text-gray-400 hover:text-red-500 dark:text-stone-400 transition active:scale-95"
                                 title="Informar ausência"
                             >
-                                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <svg width="16" height="16" style="width: 16px; height: 16px; min-width: 16px; min-height: 16px; max-width: 16px; max-height: 16px;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                                 </svg>
                             </button>

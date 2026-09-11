@@ -39,6 +39,7 @@ class AdminPanelProvider extends PanelProvider
             ->default()
             ->id('app')
             ->path('app')
+            ->viteTheme('resources/css/app.css')
             ->login(Login::class)
             ->registration(Register::class)
             ->defaultThemeMode(ThemeMode::Dark)

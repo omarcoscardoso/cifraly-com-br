@@ -11,12 +11,12 @@
 @endphp
 
 <x-filament-widgets::widget class="fi-wi-upcoming-events">
-    {{-- Versão Mobile: Carrossel Horizontal de Cultos ("Projetos") --}}
-    <div class="lg:hidden space-y-3">
+    {{-- Seção de Cultos & Eventos em Cards (Estilo "Project" do Modelo) --}}
+    <div class="space-y-3.5 mb-3">
         {{-- Cabeçalho da Seção com Título e "Ver todos" --}}
         <div class="flex items-center justify-between px-1">
             <h3 class="text-base font-bold tracking-tight text-gray-900 dark:text-white">
-                Cultos & Eventos
+                Cultos &amp; Eventos
             </h3>
             <a
                 href="{{ $eventsUrl }}"
@@ -28,7 +28,10 @@
 
         {{-- Carrossel com Scroll Horizontal por Toque --}}
         @if ($events->isNotEmpty())
-            <div class="flex gap-3.5 overflow-x-auto snap-x snap-mandatory pb-2 pt-1 no-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0">
+            <div
+                class="flex gap-4 overflow-x-auto snap-x snap-mandatory pb-3 pt-1 no-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0"
+                style="scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch;"
+            >
                 @foreach ($events as $index => $event)
                     @php
                         $isFirst = $index === 0;
@@ -40,12 +43,18 @@
                     @endphp
 
                     @if ($isFirst)
-                        {{-- Card Destaque: Azul Vibrante com cantos arredondados (igual ao print) --}}
-                        <div class="w-[82vw] max-w-[310px] shrink-0 snap-center rounded-3xl bg-gradient-to-br from-sky-500 to-cyan-500 p-5 text-white shadow-lg shadow-sky-500/25 flex flex-col justify-between min-h-[190px]">
+                        {{-- Card 1 Destaque: Azul Vibrante com cantos arredondados (igual ao print) --}}
+                        <div
+                            class="w-[82vw] max-w-[310px] shrink-0 snap-center rounded-3xl p-5 shadow-lg flex flex-col justify-between min-h-[195px]"
+                            style="background: linear-gradient(135deg, #1992fe 0%, #00b4d8 100%); color: #ffffff; scroll-snap-align: center;"
+                        >
                             <div>
                                 <div class="flex items-center justify-between gap-2 mb-3">
-                                    <div class="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/20 text-white backdrop-blur-md ring-1 ring-white/30">
-                                        <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <div
+                                        class="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/20 text-white backdrop-blur-md ring-1 ring-white/30 shrink-0"
+                                        style="width: 44px; height: 44px; min-width: 44px; min-height: 44px;"
+                                    >
+                                        <svg width="22" height="22" style="width: 22px; height: 22px; min-width: 22px; min-height: 22px; max-width: 22px; max-height: 22px;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                                         </svg>
                                     </div>
@@ -63,8 +72,8 @@
                                 </p>
                             </div>
 
-                            <div class="mt-4 flex items-center justify-between pt-2 border-t border-white/15">
-                                <span class="text-xs font-semibold text-white/90">
+                            <div class="mt-4 flex items-center justify-between pt-2.5 border-t border-white/20">
+                                <span class="text-xs font-semibold text-white/95">
                                     Modo Palco
                                 </span>
 
@@ -72,10 +81,11 @@
                                     <a
                                         href="{{ $stageUrl }}"
                                         target="_blank"
-                                        class="flex h-9 w-9 items-center justify-center rounded-full bg-white text-sky-600 shadow-md transition hover:scale-105 active:scale-95"
+                                        class="flex h-9 w-9 items-center justify-center rounded-full bg-white text-sky-600 shadow-md transition hover:scale-105 active:scale-95 shrink-0"
+                                        style="width: 36px; height: 36px; min-width: 36px; min-height: 36px;"
                                         title="Abrir Modo Palco"
                                     >
-                                        <svg class="h-4 w-4 stroke-[2.5]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <svg width="16" height="16" style="width: 16px; height: 16px; min-width: 16px; min-height: 16px; max-width: 16px; max-height: 16px;" stroke-width="2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
                                         </svg>
                                     </a>
@@ -83,12 +93,18 @@
                             </div>
                         </div>
                     @else
-                        {{-- Card Secundário: Fundo Clean com Borda e Ícone (igual ao print) --}}
-                        <div class="w-[82vw] max-w-[310px] shrink-0 snap-center rounded-3xl border border-gray-200/80 bg-white p-5 shadow-sm dark:border-stone-800 dark:bg-stone-900 flex flex-col justify-between min-h-[190px]">
+                        {{-- Card 2+ Secundário: Fundo Clean com Borda e Ícone (igual ao print) --}}
+                        <div
+                            class="w-[82vw] max-w-[310px] shrink-0 snap-center rounded-3xl border border-gray-200 bg-white p-5 shadow-sm dark:border-stone-800 dark:bg-stone-900 flex flex-col justify-between min-h-[195px]"
+                            style="scroll-snap-align: center;"
+                        >
                             <div>
                                 <div class="flex items-center justify-between gap-2 mb-3">
-                                    <div class="flex h-11 w-11 items-center justify-center rounded-2xl bg-gray-100 text-gray-600 dark:bg-stone-800 dark:text-stone-300">
-                                        <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <div
+                                        class="flex h-11 w-11 items-center justify-center rounded-2xl bg-gray-100 text-gray-600 dark:bg-stone-800 dark:text-stone-300 shrink-0"
+                                        style="width: 44px; height: 44px; min-width: 44px; min-height: 44px;"
+                                    >
+                                        <svg width="22" height="22" style="width: 22px; height: 22px; min-width: 22px; min-height: 22px; max-width: 22px; max-height: 22px;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
                                         </svg>
                                     </div>
@@ -106,7 +122,7 @@
                                 </p>
                             </div>
 
-                            <div class="mt-4 flex items-center justify-between pt-2 border-t border-gray-100 dark:border-stone-800">
+                            <div class="mt-4 flex items-center justify-between pt-2.5 border-t border-gray-100 dark:border-stone-800">
                                 <span class="text-xs font-semibold text-gray-600 dark:text-stone-300">
                                     Modo Palco
                                 </span>
@@ -115,10 +131,11 @@
                                     <a
                                         href="{{ $stageUrl }}"
                                         target="_blank"
-                                        class="flex h-9 w-9 items-center justify-center rounded-full bg-gray-100 text-gray-700 hover:bg-sky-500 hover:text-white dark:bg-stone-800 dark:text-stone-200 transition active:scale-95"
+                                        class="flex h-9 w-9 items-center justify-center rounded-full bg-gray-100 text-gray-700 hover:bg-sky-500 hover:text-white dark:bg-stone-800 dark:text-stone-200 transition active:scale-95 shrink-0"
+                                        style="width: 36px; height: 36px; min-width: 36px; min-height: 36px;"
                                         title="Abrir Modo Palco"
                                     >
-                                        <svg class="h-4 w-4 stroke-[2.5]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <svg width="16" height="16" style="width: 16px; height: 16px; min-width: 16px; min-height: 16px; max-width: 16px; max-height: 16px;" stroke-width="2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
                                         </svg>
                                     </a>
@@ -129,11 +146,14 @@
                 @endforeach
             </div>
         @else
-            {{-- Estado Vazio Amigável no Mobile --}}
+            {{-- Estado Vazio Amigável --}}
             <div class="rounded-3xl border border-dashed border-gray-200 bg-white p-6 text-center dark:border-stone-800 dark:bg-stone-900/50">
-                <div class="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-sky-50 text-sky-500 dark:bg-sky-950/40 dark:text-sky-400">
-                    <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                <div
+                    class="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-sky-50 text-sky-500 dark:bg-sky-950/40 dark:text-sky-400 shrink-0"
+                    style="width: 48px; height: 48px; min-width: 48px; min-height: 48px;"
+                >
+                    <svg width="24" height="24" style="width: 24px; height: 24px; min-width: 24px; min-height: 24px; max-width: 24px; max-height: 24px;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                     </svg>
                 </div>
                 <h4 class="mt-3 text-sm font-bold text-gray-900 dark:text-white">Nenhum evento agendado</h4>
@@ -143,7 +163,7 @@
                         href="{{ $createEventUrl }}"
                         class="inline-flex items-center gap-1.5 rounded-xl bg-sky-500 px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-sky-400 transition"
                     >
-                        <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                        <svg width="14" height="14" style="width: 14px; height: 14px; min-width: 14px; min-height: 14px; max-width: 14px; max-height: 14px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
                         </svg>
                         <span>Criar Primeiro Evento</span>
@@ -153,8 +173,8 @@
         @endif
     </div>
 
-    {{-- Versão Desktop: Tabela Padrão do Filament --}}
-    <div class="hidden lg:block">
+    {{-- Tabela Padrão do Filament no Desktop para Gestão Administrativa Completa --}}
+    <div class="hidden lg:block mt-2">
         {{ FilamentView::renderHook(WidgetsRenderHook::TABLE_WIDGET_START, scopes: static::class) }}
 
         {{ $this->table ?? null }}

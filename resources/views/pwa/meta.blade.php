@@ -95,5 +95,38 @@
         .fi-layout > section {
             padding-bottom: calc(5.5rem + env(safe-area-inset-bottom, 0px)) !important;
         }
+
+        /* Topbar com azul vibrante do modelo */
+        .fi-topbar {
+            background: linear-gradient(135deg, #1992fe 0%, #00b4d8 100%) !important;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.15) !important;
+        }
+        .fi-topbar .fi-topbar-item-btn,
+        .fi-topbar button,
+        .fi-topbar a,
+        .fi-topbar svg {
+            color: #ffffff !important;
+            stroke: currentColor !important;
+        }
     }
+
+    /* Salvaguarda Estrita Contra Ícones SVG Gigantes */
+    svg {
+        box-sizing: border-box;
+    }
+    .fi-mobile-bottom-nav svg,
+    .fi-wi-organization-header svg,
+    .fi-wi-upcoming-events svg,
+    .fi-wi-roster-confirmation-alert svg {
+        max-width: 1.75rem !important;
+        max-height: 1.75rem !important;
+        flex-shrink: 0 !important;
+    }
+    svg.h-3, svg.w-3 { width: 0.75rem !important; height: 0.75rem !important; max-width: 0.75rem !important; max-height: 0.75rem !important; flex-shrink: 0 !important; }
+    svg.h-3\.5, svg.w-3\.5 { width: 0.875rem !important; height: 0.875rem !important; max-width: 0.875rem !important; max-height: 0.875rem !important; flex-shrink: 0 !important; }
+    svg.h-4, svg.w-4 { width: 1rem !important; height: 1rem !important; max-width: 1rem !important; max-height: 1rem !important; flex-shrink: 0 !important; }
+    svg.h-5, svg.w-5 { width: 1.25rem !important; height: 1.25rem !important; max-width: 1.25rem !important; max-height: 1.25rem !important; flex-shrink: 0 !important; }
+    svg.h-6, svg.w-6 { width: 1.5rem !important; height: 1.5rem !important; max-width: 1.5rem !important; max-height: 1.5rem !important; flex-shrink: 0 !important; }
+    svg.h-7, svg.w-7 { width: 1.75rem !important; height: 1.75rem !important; max-width: 1.75rem !important; max-height: 1.75rem !important; flex-shrink: 0 !important; }
+    svg.h-8, svg.w-8 { width: 2rem !important; height: 2rem !important; max-width: 2rem !important; max-height: 2rem !important; flex-shrink: 0 !important; }
 </style>

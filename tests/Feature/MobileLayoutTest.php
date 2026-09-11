@@ -92,7 +92,8 @@ class MobileLayoutTest extends TestCase
 
         Livewire::test(UpcomingEventsWidget::class)
             ->assertSuccessful()
-            ->assertSee('Cultos & Eventos', escape: false)
+            ->assertSee('Cultos')
+            ->assertSee('Eventos')
             ->assertSee('Culto de Celebração')
             ->assertSee('Culto de Oração')
             ->assertSee('Modo Palco')

@@ -5,9 +5,9 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Cifraly">
 <meta name="application-name" content="Cifraly">
-<meta name="theme-color" content="#08080a">
-<meta name="msapplication-TileColor" content="#08080a">
-<meta name="msapplication-navbutton-color" content="#08080a">
+<meta name="theme-color" content="#1565e0">
+<meta name="msapplication-TileColor" content="#1565e0">
+<meta name="msapplication-navbutton-color" content="#1565e0">
 
 <!-- Google Fonts: Plus Jakarta Sans & JetBrains Mono -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -20,7 +20,7 @@
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
 
-<!-- Mobile Viewport Fit Cover for Safe Area Insets -->
+<!-- Mobile Viewport Fit Cover for Safe Area Insets & Responsive Styling -->
 <style>
     /* ==========================================
        CIFRALY MOBILE APP LAYOUT — CSS OVERRIDES
@@ -50,6 +50,14 @@
     .fi-topbar .fi-logo, .fi-sidebar-header .fi-logo { height: 2.85rem !important; max-width: 100% !important; }
     .fi-simple-main .fi-logo, .fi-simple-layout .fi-logo, .fi-simple-header .fi-logo { height: 3.75rem !important; max-width: 100% !important; }
 
+    /* Bottom Nav Desktop Hide */
+    @media (min-width: 1024px) {
+        .fi-mobile-bottom-nav {
+            display: none !important;
+        }
+    }
+
+    /* Mobile & Tablet Optimizations (< 1024px) */
     @media (max-width: 1023px) {
         /* Ocultar botões de recolher sidebar */
         .fi-topbar-collapse-sidebar-btn-ctn,
@@ -59,7 +67,7 @@
         .fi-sidebar-open-collapse-sidebar-btn { display: none !important; }
 
         /* Compensação para a bottom nav fixa */
-        .fi-main, main.fi-main, .fi-layout > section {
+        .fi-main, main.fi-main, .fi-page-content, .fi-layout > section {
             padding-bottom: calc(5.5rem + env(safe-area-inset-bottom, 0px)) !important;
         }
 
@@ -75,6 +83,23 @@
         .fi-topbar svg {
             color: #ffffff !important;
             stroke: currentColor !important;
+        }
+
+        /* Oculta completamente cabeçalho com "Painel de Controle" ou títulos na dashboard */
+        .fi-page:has(#cifraly-hero-card) .fi-header,
+        .fi-page:has(.fi-wi-organization-header) .fi-header {
+            display: none !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            height: 0 !important;
+            min-height: 0 !important;
+        }
+
+        /* Remove padding superior no container de páginas do dashboard para colar no topo */
+        .fi-page:has(#cifraly-hero-card) .fi-page-header-main-ctn,
+        .fi-page:has(.fi-wi-organization-header) .fi-page-header-main-ctn {
+            padding-top: 0 !important;
+            gap: 0 !important;
         }
 
         /* Hero Card: remove padding e borda do container widget para o efeito edge-to-edge */
@@ -97,15 +122,47 @@
             box-shadow: none !important;
         }
 
-        /* Widget grid: remove gap para o hero se conectar à topbar */
+        /* Widget grid: espaçamento para o próximo elemento após o Hero Card */
         .fi-wi-organization-header + * {
-            margin-top: 1.25rem;
+            margin-top: 1.5rem !important;
         }
 
-        /* Hero card bleed: margin mobile = -fi-main padding-inline = -16px */
+        /* Hero card bleed: margem que anula o padding lateral de .fi-main e cola na topbar */
         #cifraly-hero-card {
-            margin: -16px -16px 0 !important;
-            padding: 20px 16px 22px !important;
+            margin: 0 -16px 0 !important;
+            padding: 16px 16px 22px !important;
+            border-top-left-radius: 0 !important;
+            border-top-right-radius: 0 !important;
+            border-bottom-left-radius: 24px !important;
+            border-bottom-right-radius: 24px !important;
+            background: linear-gradient(180deg, #1992fe 0%, #1565e0 40%, #0d47a1 100%) !important;
+            box-shadow: 0 10px 25px -5px rgba(21, 101, 224, 0.35) !important;
+        }
+
+        /* Bottom Nav Fixa no Mobile */
+        .fi-mobile-bottom-nav {
+            display: block !important;
+            position: fixed !important;
+            bottom: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            width: 100% !important;
+            z-index: 9999 !important;
+        }
+
+        .fi-mobile-bottom-nav-bar {
+            position: fixed !important;
+            bottom: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            width: 100% !important;
+            z-index: 9999 !important;
+            background: rgba(18, 20, 26, 0.96) !important;
+            backdrop-filter: blur(16px) !important;
+            -webkit-backdrop-filter: blur(16px) !important;
+            border-top: 1px solid #1e222c !important;
+            box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.4) !important;
+            padding-bottom: max(env(safe-area-inset-bottom, 0px), 4px) !important;
         }
 
         /* Responsividade dos stat cards */
@@ -127,8 +184,46 @@
     /* Hero card bleed: sm breakpoint fi-main padding = 24px */
     @media (min-width: 640px) and (max-width: 1023px) {
         #cifraly-hero-card {
-            margin: -24px -24px 0 !important;
-            padding: 28px 24px 24px !important;
+            margin: 0 -24px 0 !important;
+            padding: 20px 24px 24px !important;
+        }
+    }
+
+    /* ==========================================
+       CARROSSEL HORIZONTAL DE EVENTOS (TOUCH)
+       ========================================== */
+    .cifraly-events-carousel {
+        display: flex !important;
+        flex-direction: row !important;
+        flex-wrap: nowrap !important;
+        gap: 14px !important;
+        overflow-x: auto !important;
+        overflow-y: hidden !important;
+        -webkit-overflow-scrolling: touch !important;
+        scroll-snap-type: x mandatory !important;
+        padding: 4px 16px 14px 16px !important;
+        margin: 0 -16px !important;
+        scrollbar-width: none !important;
+        -ms-overflow-style: none !important;
+    }
+    .cifraly-events-carousel::-webkit-scrollbar {
+        display: none !important;
+    }
+    .cifraly-event-card {
+        flex: 0 0 280px !important;
+        width: 280px !important;
+        min-width: 280px !important;
+        max-width: 280px !important;
+        scroll-snap-align: start !important;
+        border-radius: 20px !important;
+        box-sizing: border-box !important;
+    }
+    @media (min-width: 400px) {
+        .cifraly-event-card {
+            flex: 0 0 300px !important;
+            width: 300px !important;
+            min-width: 300px !important;
+            max-width: 300px !important;
         }
     }
 

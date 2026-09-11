@@ -10,17 +10,16 @@
     $tenant = Filament::getTenant();
 @endphp
 
-<x-filament-widgets::widget class="fi-wi-upcoming-events">
-    {{-- Seção de Cultos & Eventos em Cards (Estilo "Project" do Modelo) --}}
-    <div class="space-y-3.5 mb-3">
+<x-filament-widgets::widget class="fi-wi-upcoming-events !p-0">
+    <div style="margin-bottom: 1rem;">
         {{-- Cabeçalho da Seção com Título e "Ver todos" --}}
-        <div class="flex items-center justify-between px-1">
-            <h3 class="text-base font-bold tracking-tight text-gray-900 dark:text-white">
+        <div style="display: flex; align-items: center; justify-content: space-between; padding: 0 4px; margin-bottom: 12px;">
+            <h3 style="font-size: 1rem; font-weight: 700; letter-spacing: -0.01em; margin: 0; color: inherit;">
                 Cultos &amp; Eventos
             </h3>
             <a
                 href="{{ $eventsUrl }}"
-                class="text-xs font-semibold text-sky-500 hover:text-sky-600 dark:text-sky-400"
+                style="font-size: 0.75rem; font-weight: 600; color: #00d2ff; text-decoration: none;"
             >
                 Ver todos
             </a>
@@ -29,8 +28,8 @@
         {{-- Carrossel com Scroll Horizontal por Toque --}}
         @if ($events->isNotEmpty())
             <div
-                class="flex gap-4 overflow-x-auto snap-x snap-mandatory pb-3 pt-1 no-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0"
-                style="scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch;"
+                class="cifraly-events-carousel"
+                style="display: flex; flex-direction: row; flex-wrap: nowrap; gap: 14px; overflow-x: auto; overflow-y: hidden; -webkit-overflow-scrolling: touch; scroll-snap-type: x mandatory; padding: 4px 16px 14px 16px; margin: 0 -16px; scrollbar-width: none;"
             >
                 @foreach ($events as $index => $event)
                     @php
@@ -43,49 +42,50 @@
                     @endphp
 
                     @if ($isFirst)
-                        {{-- Card 1 Destaque: Azul Vibrante com cantos arredondados (igual ao print) --}}
+                        {{-- Card 1 Destaque: Gradiente Azul Cifraly com cantos arredondados e sombra sutil --}}
                         <div
-                            class="w-[82vw] max-w-[310px] shrink-0 snap-center rounded-3xl p-5 shadow-lg flex flex-col justify-between min-h-[195px]"
-                            style="background: linear-gradient(135deg, #1992fe 0%, #00b4d8 100%); color: #ffffff; scroll-snap-align: center;"
+                            class="cifraly-event-card cifraly-event-card-featured"
+                            style="flex: 0 0 280px; width: 280px; min-width: 280px; max-width: 280px; scroll-snap-align: start; border-radius: 20px; padding: 18px; display: flex; flex-direction: column; justify-content: space-between; min-height: 190px; box-sizing: border-box; background: linear-gradient(135deg, #1565e0 0%, #1992fe 60%, #00b4d8 100%); color: #ffffff; box-shadow: 0 10px 24px -4px rgba(25, 146, 254, 0.4); border: 1px solid rgba(255, 255, 255, 0.2);"
                         >
                             <div>
-                                <div class="flex items-center justify-between gap-2 mb-3">
+                                <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 12px;">
                                     <div
-                                        class="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/20 text-white backdrop-blur-md ring-1 ring-white/30 shrink-0"
-                                        style="width: 44px; height: 44px; min-width: 44px; min-height: 44px;"
+                                        style="width: 40px; height: 40px; min-width: 40px; min-height: 40px; border-radius: 12px; background: rgba(255, 255, 255, 0.2); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; color: #ffffff;"
                                     >
-                                        <svg width="22" height="22" style="width: 22px; height: 22px; min-width: 22px; min-height: 22px; max-width: 22px; max-height: 22px;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <svg width="20" height="20" style="width: 20px; height: 20px; min-width: 20px; min-height: 20px; max-width: 20px; max-height: 20px;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                                         </svg>
                                     </div>
-                                    <span class="rounded-full bg-white/20 px-2.5 py-1 text-[11px] font-bold text-white backdrop-blur-md">
+                                    <span style="border-radius: 9999px; background: rgba(255, 255, 255, 0.22); padding: 4px 10px; font-size: 11px; font-weight: 700; color: #ffffff; backdrop-filter: blur(8px); white-space: nowrap;">
                                         {{ $startsAt->translatedFormat('D, d/m') }} &bull; {{ $startsAt->format('H:i') }}
                                     </span>
                                 </div>
 
-                                <h4 class="text-lg font-bold leading-snug line-clamp-1 text-white">
+                                <h4 style="font-size: 1.05rem; font-weight: 700; line-height: 1.3; color: #ffffff; margin: 0 0 4px 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
                                     {{ $event->title }}
                                 </h4>
 
-                                <p class="text-xs text-sky-100/90 mt-1 line-clamp-2">
+                                <p style="font-size: 0.75rem; color: rgba(255, 255, 255, 0.85); margin: 0; line-height: 1.4;">
                                     {{ $songsCount }} {{ $songsCount === 1 ? 'música' : 'músicas' }} no repertório &bull; {{ $confirmedRosters }}/{{ $totalRosters }} confirmados
                                 </p>
                             </div>
 
-                            <div class="mt-4 flex items-center justify-between pt-2.5 border-t border-white/20">
-                                <span class="text-xs font-semibold text-white/95">
-                                    Modo Palco
-                                </span>
+                            <div style="margin-top: 14px; display: flex; align-items: center; justify-content: space-between; padding-top: 10px; border-top: 1px solid rgba(255, 255, 255, 0.2);">
+                                <div style="display: flex; align-items: center; gap: 6px;">
+                                    <span style="width: 7px; height: 7px; border-radius: 9999px; background: #34d399; display: inline-block;"></span>
+                                    <span style="font-size: 0.75rem; font-weight: 600; color: #ffffff;">
+                                        Modo Palco
+                                    </span>
+                                </div>
 
                                 @if ($stageUrl)
                                     <a
                                         href="{{ $stageUrl }}"
                                         target="_blank"
-                                        class="flex h-9 w-9 items-center justify-center rounded-full bg-white text-sky-600 shadow-md transition hover:scale-105 active:scale-95 shrink-0"
-                                        style="width: 36px; height: 36px; min-width: 36px; min-height: 36px;"
+                                        style="width: 34px; height: 34px; min-width: 34px; min-height: 34px; border-radius: 9999px; background: #ffffff; color: #1565e0; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2); text-decoration: none; transition: transform 0.15s ease;"
                                         title="Abrir Modo Palco"
                                     >
-                                        <svg width="16" height="16" style="width: 16px; height: 16px; min-width: 16px; min-height: 16px; max-width: 16px; max-height: 16px;" stroke-width="2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <svg width="15" height="15" style="width: 15px; height: 15px; min-width: 15px; min-height: 15px; max-width: 15px; max-height: 15px;" stroke-width="2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
                                         </svg>
                                     </a>
@@ -93,37 +93,36 @@
                             </div>
                         </div>
                     @else
-                        {{-- Card 2+ Secundário: Fundo Clean com Borda e Ícone (igual ao print) --}}
+                        {{-- Card 2+ Secundário: Fundo Clean Dark / Light com Borda e Ícone --}}
                         <div
-                            class="w-[82vw] max-w-[310px] shrink-0 snap-center rounded-3xl border border-gray-200 bg-white p-5 shadow-sm dark:border-stone-800 dark:bg-stone-900 flex flex-col justify-between min-h-[195px]"
-                            style="scroll-snap-align: center;"
+                            class="cifraly-event-card cifraly-event-card-standard"
+                            style="flex: 0 0 280px; width: 280px; min-width: 280px; max-width: 280px; scroll-snap-align: start; border-radius: 20px; padding: 18px; display: flex; flex-direction: column; justify-content: space-between; min-height: 190px; box-sizing: border-box; background: #12141a; color: #f8fafc; border: 1px solid #1e222c; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);"
                         >
                             <div>
-                                <div class="flex items-center justify-between gap-2 mb-3">
+                                <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 12px;">
                                     <div
-                                        class="flex h-11 w-11 items-center justify-center rounded-2xl bg-gray-100 text-gray-600 dark:bg-stone-800 dark:text-stone-300 shrink-0"
-                                        style="width: 44px; height: 44px; min-width: 44px; min-height: 44px;"
+                                        style="width: 40px; height: 40px; min-width: 40px; min-height: 40px; border-radius: 12px; background: rgba(255, 255, 255, 0.08); display: flex; align-items: center; justify-content: center; color: #94a3b8;"
                                     >
-                                        <svg width="22" height="22" style="width: 22px; height: 22px; min-width: 22px; min-height: 22px; max-width: 22px; max-height: 22px;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <svg width="20" height="20" style="width: 20px; height: 20px; min-width: 20px; min-height: 20px; max-width: 20px; max-height: 20px;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
                                         </svg>
                                     </div>
-                                    <span class="rounded-full bg-gray-100 px-2.5 py-1 text-[11px] font-semibold text-gray-600 dark:bg-stone-800 dark:text-stone-300">
+                                    <span style="border-radius: 9999px; background: rgba(255, 255, 255, 0.08); padding: 4px 10px; font-size: 11px; font-weight: 600; color: #94a3b8; white-space: nowrap;">
                                         {{ $startsAt->translatedFormat('D, d/m') }} &bull; {{ $startsAt->format('H:i') }}
                                     </span>
                                 </div>
 
-                                <h4 class="text-lg font-bold leading-snug line-clamp-1 text-gray-900 dark:text-white">
+                                <h4 style="font-size: 1.05rem; font-weight: 700; line-height: 1.3; color: #f8fafc; margin: 0 0 4px 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
                                     {{ $event->title }}
                                 </h4>
 
-                                <p class="text-xs text-gray-500 dark:text-stone-400 mt-1 line-clamp-2">
-                                    {{ $songsCount }} músicas &bull; {{ $event->team?->name ?? 'Geral' }}
+                                <p style="font-size: 0.75rem; color: #94a3b8; margin: 0; line-height: 1.4;">
+                                    {{ $songsCount }} {{ $songsCount === 1 ? 'música' : 'músicas' }} &bull; {{ $event->team?->name ?? 'Geral' }}
                                 </p>
                             </div>
 
-                            <div class="mt-4 flex items-center justify-between pt-2.5 border-t border-gray-100 dark:border-stone-800">
-                                <span class="text-xs font-semibold text-gray-600 dark:text-stone-300">
+                            <div style="margin-top: 14px; display: flex; align-items: center; justify-content: space-between; padding-top: 10px; border-top: 1px solid #1e222c;">
+                                <span style="font-size: 0.75rem; font-weight: 600; color: #94a3b8;">
                                     Modo Palco
                                 </span>
 
@@ -131,11 +130,10 @@
                                     <a
                                         href="{{ $stageUrl }}"
                                         target="_blank"
-                                        class="flex h-9 w-9 items-center justify-center rounded-full bg-gray-100 text-gray-700 hover:bg-sky-500 hover:text-white dark:bg-stone-800 dark:text-stone-200 transition active:scale-95 shrink-0"
-                                        style="width: 36px; height: 36px; min-width: 36px; min-height: 36px;"
+                                        style="width: 34px; height: 34px; min-width: 34px; min-height: 34px; border-radius: 9999px; background: rgba(255, 255, 255, 0.1); color: #f8fafc; display: flex; align-items: center; justify-content: center; text-decoration: none; transition: background 0.15s ease;"
                                         title="Abrir Modo Palco"
                                     >
-                                        <svg width="16" height="16" style="width: 16px; height: 16px; min-width: 16px; min-height: 16px; max-width: 16px; max-height: 16px;" stroke-width="2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <svg width="15" height="15" style="width: 15px; height: 15px; min-width: 15px; min-height: 15px; max-width: 15px; max-height: 15px;" stroke-width="2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
                                         </svg>
                                     </a>
@@ -147,21 +145,20 @@
             </div>
         @else
             {{-- Estado Vazio Amigável --}}
-            <div class="rounded-3xl border border-dashed border-gray-200 bg-white p-6 text-center dark:border-stone-800 dark:bg-stone-900/50">
+            <div style="border-radius: 20px; border: 1px dashed #1e222c; background: #12141a; padding: 24px; text-align: center;">
                 <div
-                    class="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-sky-50 text-sky-500 dark:bg-sky-950/40 dark:text-sky-400 shrink-0"
-                    style="width: 48px; height: 48px; min-width: 48px; min-height: 48px;"
+                    style="margin: 0 auto; width: 44px; height: 44px; min-width: 44px; min-height: 44px; border-radius: 14px; background: rgba(0, 210, 255, 0.1); color: #00d2ff; display: flex; align-items: center; justify-content: center;"
                 >
-                    <svg width="24" height="24" style="width: 24px; height: 24px; min-width: 24px; min-height: 24px; max-width: 24px; max-height: 24px;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <svg width="22" height="22" style="width: 22px; height: 22px; min-width: 22px; min-height: 22px; max-width: 22px; max-height: 22px;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                     </svg>
                 </div>
-                <h4 class="mt-3 text-sm font-bold text-gray-900 dark:text-white">Nenhum evento agendado</h4>
-                <p class="mt-1 text-xs text-gray-500 dark:text-stone-400">Organize escalas e setlists criando seu primeiro evento.</p>
-                <div class="mt-4">
+                <h4 style="margin: 12px 0 4px 0; font-size: 0.875rem; font-weight: 700; color: inherit;">Nenhum evento agendado</h4>
+                <p style="margin: 0 0 16px 0; font-size: 0.75rem; color: #94a3b8;">Organize escalas e setlists criando seu primeiro evento.</p>
+                <div>
                     <a
                         href="{{ $createEventUrl }}"
-                        class="inline-flex items-center gap-1.5 rounded-xl bg-sky-500 px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-sky-400 transition"
+                        style="display: inline-flex; align-items: center; gap: 6px; border-radius: 12px; background: #00d2ff; padding: 8px 16px; font-size: 0.75rem; font-weight: 700; color: #08080a; text-decoration: none;"
                     >
                         <svg width="14" height="14" style="width: 14px; height: 14px; min-width: 14px; min-height: 14px; max-width: 14px; max-height: 14px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />

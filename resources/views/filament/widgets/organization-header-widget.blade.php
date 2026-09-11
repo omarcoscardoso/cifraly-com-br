@@ -4,11 +4,11 @@
     $stageUrl = $this->getNextEventStageUrl();
     $user = Filament::auth()->user();
     $org = $this->getOrganization();
+    $setlistUrl = $stageUrl ?? $this->getEventsIndexUrl();
 @endphp
 
 {{--
-    Hero Card: usa margin: -24px para sangrar borda a borda no mobile,
-    sobrepondo o padding do container do widget Filament.
+    Hero Card: borda a borda no mobile, conectado à topbar azul
 --}}
 <x-filament-widgets::widget class="fi-wi-organization-header !p-0 overflow-hidden">
     <div
@@ -33,7 +33,7 @@
         </div>
 
         {{-- Saudação --}}
-        <div style="margin-bottom:18px;">
+        <div style="margin-bottom:16px;">
             <h2 style="font-size:1.65rem; font-weight:800; color:#fff; line-height:1.2; margin:0 0 5px 0;">
                 {{ $this->getTimeGreeting() }}, {{ $this->getUserFirstName() }}
             </h2>
@@ -46,72 +46,41 @@
             </p>
         </div>
 
-        {{-- Barra de busca + botão de metrônomo --}}
-        <div style="display:flex; align-items:center; gap:10px; margin-bottom:14px;">
-            <a
-                href="{{ $this->getSongsIndexUrl() }}"
-                style="flex:1; display:flex; align-items:center; gap:10px; background:rgba(255,255,255,0.18); border-radius:14px; padding:11px 14px; color:rgba(255,255,255,0.92); font-size:13px; text-decoration:none; border:1px solid rgba(255,255,255,0.22);"
-            >
-                <svg width="16" height="16" style="width:16px;height:16px;min-width:16px;min-height:16px;max-width:16px;max-height:16px;flex-shrink:0;opacity:0.85;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-                <span style="opacity:0.85;">Buscar cifras...</span>
-            </a>
-            <button
-                type="button"
-                x-on:click="$dispatch('open-altar-metronome', { bpm: 120, timeSignature: '4/4' })"
-                style="width:44px;height:44px;min-width:44px;min-height:44px;border-radius:12px;background:rgba(0,0,0,0.22);border:1px solid rgba(255,255,255,0.22);display:flex;align-items:center;justify-content:center;color:#fff;cursor:pointer;flex-shrink:0;"
-                title="Metrônomo"
-            >
-                <svg width="20" height="20" style="width:20px;height:20px;min-width:20px;min-height:20px;max-width:20px;max-height:20px;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-            </button>
-        </div>
-
-        {{-- Pílulas de ações rápidas --}}
-        <div style="display:flex;gap:8px;overflow-x:auto;padding-bottom:2px;-webkit-overflow-scrolling:touch;scrollbar-width:none;">
+        {{-- Botões de Ações Rápidas: + Evento, + Cifra, SetList --}}
+        <div style="display:flex; align-items:center; gap:8px; overflow-x:auto; padding-bottom:2px; -webkit-overflow-scrolling:touch; scrollbar-width:none;">
+            {{-- 1. + Evento --}}
             <a
                 href="{{ $this->getNewEventUrl() }}"
-                style="flex-shrink:0;display:inline-flex;align-items:center;gap:5px;background:#fff;color:#1565e0;border-radius:9px;padding:7px 12px;font-size:12px;font-weight:700;text-decoration:none;"
+                style="flex-shrink:0; display:inline-flex; align-items:center; gap:6px; background:#ffffff; color:#1565e0; border-radius:12px; padding:8px 14px; font-size:12px; font-weight:700; text-decoration:none; box-shadow:0 2px 8px rgba(0,0,0,0.12);"
             >
-                <svg width="11" height="11" style="width:11px;height:11px;min-width:11px;min-height:11px;max-width:11px;max-height:11px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+                <svg width="12" height="12" style="width:12px;height:12px;min-width:12px;min-height:12px;max-width:12px;max-height:12px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
                 </svg>
-                Novo Evento
+                <span>+ Evento</span>
             </a>
+
+            {{-- 2. + Cifra --}}
             <a
                 href="{{ $this->getNewSongUrl() }}"
-                style="flex-shrink:0;display:inline-flex;align-items:center;gap:5px;background:rgba(255,255,255,0.18);color:#fff;border-radius:9px;padding:7px 12px;font-size:12px;font-weight:600;text-decoration:none;border:1px solid rgba(255,255,255,0.28);"
+                style="flex-shrink:0; display:inline-flex; align-items:center; gap:6px; background:rgba(255,255,255,0.18); color:#ffffff; border-radius:12px; padding:8px 14px; font-size:12px; font-weight:600; text-decoration:none; border:1px solid rgba(255,255,255,0.28); backdrop-filter:blur(8px);"
             >
-                <svg width="11" height="11" style="width:11px;height:11px;min-width:11px;min-height:11px;max-width:11px;max-height:11px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+                <svg width="12" height="12" style="width:12px;height:12px;min-width:12px;min-height:12px;max-width:12px;max-height:12px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
                 </svg>
-                Nova Cifra
+                <span>+ Cifra</span>
             </a>
-            @if ($stageUrl)
-                <a
-                    href="{{ $stageUrl }}"
-                    target="_blank"
-                    style="flex-shrink:0;display:inline-flex;align-items:center;gap:5px;background:#34d399;color:#022c22;border-radius:9px;padding:7px 12px;font-size:12px;font-weight:700;text-decoration:none;"
-                >
-                    <svg width="11" height="11" style="width:11px;height:11px;min-width:11px;min-height:11px;max-width:11px;max-height:11px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    Modo Palco
-                </a>
-            @endif
-            <button
-                type="button"
-                x-on:click="$dispatch('open-altar-metronome', { bpm: 120, timeSignature: '4/4' })"
-                style="flex-shrink:0;display:inline-flex;align-items:center;gap:5px;background:rgba(255,255,255,0.18);color:#fff;border-radius:9px;padding:7px 12px;font-size:12px;font-weight:600;border:1px solid rgba(255,255,255,0.28);cursor:pointer;"
+
+            {{-- 3. SetList --}}
+            <a
+                href="{{ $setlistUrl }}"
+                @if ($stageUrl) target="_blank" @endif
+                style="flex-shrink:0; display:inline-flex; align-items:center; gap:6px; background:#00e676; color:#022c22; border-radius:12px; padding:8px 14px; font-size:12px; font-weight:700; text-decoration:none; box-shadow:0 2px 8px rgba(0,230,118,0.25);"
             >
-                <svg width="11" height="11" style="width:11px;height:11px;min-width:11px;min-height:11px;max-width:11px;max-height:11px;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                <svg width="12" height="12" style="width:12px;height:12px;min-width:12px;min-height:12px;max-width:12px;max-height:12px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
                 </svg>
-                Metrônomo
-            </button>
+                <span>SetList</span>
+            </a>
         </div>
     </div>
 </x-filament-widgets::widget>

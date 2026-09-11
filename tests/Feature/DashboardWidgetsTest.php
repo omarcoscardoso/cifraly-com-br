@@ -77,8 +77,9 @@ class DashboardWidgetsTest extends TestCase
             ->assertDontSee('Olá, Pastor João!')
             ->assertDontSee('VIDA2026')
             ->assertDontSee('Configurações')
-            ->assertSee('Novo Evento')
-            ->assertSee('Nova Cifra')
+            ->assertSee('+ Evento')
+            ->assertSee('+ Cifra')
+            ->assertSee('SetList')
             ->assertDontSee('Repertório')
             ->assertDontSee('Equipes');
     }

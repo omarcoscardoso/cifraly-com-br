@@ -76,17 +76,30 @@ class OrganizationHeaderWidget extends Widget
 
     public function getNewEventUrl(): string
     {
-        return EventResource::getUrl('create');
+        $tenant = $this->getOrganization();
+
+        return EventResource::getUrl('create', ['tenant' => $tenant], tenant: $tenant);
     }
 
     public function getNewSongUrl(): string
     {
-        return SongResource::getUrl('create');
+        $tenant = $this->getOrganization();
+
+        return SongResource::getUrl('create', ['tenant' => $tenant], tenant: $tenant);
+    }
+
+    public function getEventsIndexUrl(): string
+    {
+        $tenant = $this->getOrganization();
+
+        return EventResource::getUrl('index', ['tenant' => $tenant], tenant: $tenant);
     }
 
     public function getSongsIndexUrl(): string
     {
-        return SongResource::getUrl('index');
+        $tenant = $this->getOrganization();
+
+        return SongResource::getUrl('index', ['tenant' => $tenant], tenant: $tenant);
     }
 
     public function getUserFirstName(): string

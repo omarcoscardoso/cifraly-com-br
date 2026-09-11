@@ -69,9 +69,11 @@ class MobileLayoutTest extends TestCase
             ->assertSuccessful()
             ->assertSee('Marcos')
             ->assertSee('Comunidade da Graça')
-            ->assertSee('Buscar cifras...')
-            ->assertSee('Novo Evento')
-            ->assertSee('Nova Cifra');
+            ->assertSee('+ Evento')
+            ->assertSee('+ Cifra')
+            ->assertSee('SetList')
+            ->assertDontSee('Buscar cifras...')
+            ->assertDontSee('Metrônomo');
     }
 
     public function test_upcoming_events_widget_renders_mobile_carousel_cards(): void

@@ -71,6 +71,10 @@ class AdminPanelProvider extends PanelProvider
                 PanelsRenderHook::BODY_END,
                 fn () => view('components.altar-metronome'),
             )
+            ->renderHook(
+                PanelsRenderHook::BODY_END,
+                fn () => view('filament.components.mobile-bottom-nav'),
+            )
             ->colors([
                 'primary' => Color::hex('#00d2ff'),
                 'amber' => Color::Amber,

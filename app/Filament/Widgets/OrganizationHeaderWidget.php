@@ -83,4 +83,28 @@ class OrganizationHeaderWidget extends Widget
     {
         return SongResource::getUrl('create');
     }
+
+    public function getSongsIndexUrl(): string
+    {
+        return SongResource::getUrl('index');
+    }
+
+    public function getUserFirstName(): string
+    {
+        $name = Filament::auth()->user()?->name ?? 'Músico';
+        $parts = explode(' ', trim($name));
+
+        return $parts[0] ?? $name;
+    }
+
+    public function getTimeGreeting(): string
+    {
+        $hour = (int) now()->format('H');
+
+        return match (true) {
+            $hour < 12 => 'Bom dia',
+            $hour < 18 => 'Boa tarde',
+            default => 'Boa noite',
+        };
+    }
 }

@@ -87,4 +87,13 @@
             line-height: 1.75rem !important;
         }
     }
+
+    /* Compensação para a barra de navegação inferior fixa (Bottom Navigation Bar) em dispositivos móveis */
+    @media (max-width: 1023px) {
+        .fi-main,
+        main.fi-main,
+        .fi-layout > section {
+            padding-bottom: calc(5.5rem + env(safe-area-inset-bottom, 0px)) !important;
+        }
+    }
 </style>

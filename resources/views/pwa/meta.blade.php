@@ -128,5 +128,9 @@
     svg.h-5, svg.w-5 { width: 1.25rem !important; height: 1.25rem !important; max-width: 1.25rem !important; max-height: 1.25rem !important; flex-shrink: 0 !important; }
     svg.h-6, svg.w-6 { width: 1.5rem !important; height: 1.5rem !important; max-width: 1.5rem !important; max-height: 1.5rem !important; flex-shrink: 0 !important; }
     svg.h-7, svg.w-7 { width: 1.75rem !important; height: 1.75rem !important; max-width: 1.75rem !important; max-height: 1.75rem !important; flex-shrink: 0 !important; }
-    svg.h-8, svg.w-8 { width: 2rem !important; height: 2rem !important; max-width: 2rem !important; max-height: 2rem !important; flex-shrink: 0 !important; }
+    /* Limite máximo universal para qualquer SVG que não seja a logo principal */
+    svg:not(.fi-logo svg):not(#cifralyIconOnlyGrad svg):not([class*="cifraly-logo"]) {
+        max-width: 2.25rem !important;
+        max-height: 2.25rem !important;
+    }
 </style>

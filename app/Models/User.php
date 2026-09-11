@@ -20,7 +20,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Collection;
 
-#[Fillable(['name', 'email', 'phone', 'password', 'google_id', 'avatar', 'is_super_admin'])]
+#[Fillable(['name', 'email', 'phone', 'birth_date', 'password', 'google_id', 'avatar', 'is_super_admin'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable implements FilamentUser, HasTenants
 {
@@ -36,6 +36,7 @@ class User extends Authenticatable implements FilamentUser, HasTenants
     {
         return [
             'email_verified_at' => 'datetime',
+            'birth_date' => 'date',
             'password' => 'hashed',
             'is_super_admin' => 'boolean',
         ];

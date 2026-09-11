@@ -17,7 +17,7 @@ class RecentSongsWidget extends TableWidget
 {
     protected static ?int $sort = 4;
 
-    protected static ?string $heading = 'Repertório Recente de Músicas';
+    protected static ?string $heading = 'Músicas Recentes';
 
     protected int|string|array $columnSpan = 'full';
 
@@ -29,7 +29,6 @@ class RecentSongsWidget extends TableWidget
     public function table(Table $table): Table
     {
         return $table
-            ->stackedOnMobile()
             ->query(
                 Song::query()
                     ->where('organization_id', Filament::getTenant()?->id)
@@ -39,50 +38,13 @@ class RecentSongsWidget extends TableWidget
             ->columns([
                 TextColumn::make('title')
                     ->label('Música')
-                    ->searchable()
                     ->weight('bold'),
 
-                TextColumn::make('artist')
-                    ->label('Artista')
-                    ->placeholder('Não informado'),
-
                 TextColumn::make('original_key')
-                    ->label('Tom Principal')
+                    ->label('Tom')
                     ->badge()
                     ->color('primary'),
 
-                TextColumn::make('bpm')
-                    ->label('BPM')
-                    ->placeholder('-'),
-
-                TextColumn::make('time_signature')
-                    ->label('Compasso')
-                    ->placeholder('-'),
-
-                TextColumn::make('updated_at')
-                    ->label('Atualizada em')
-                    ->dateTime('d/m/Y H:i')
-                    ->sortable(),
-            ])
-            ->headerActions([
-                Action::make('createSong')
-                    ->label('Nova Música')
-                    ->icon(Heroicon::OutlinedPlus)
-                    ->color('primary')
-                    ->url(fn (): string => SongResource::getUrl('create')),
-
-                Action::make('viewAllSongs')
-                    ->label('Ver Repertório')
-                    ->icon(Heroicon::OutlinedMusicalNote)
-                    ->color('gray')
-                    ->url(fn (): string => SongResource::getUrl('index')),
-            ])
-            ->recordActions([
-                Action::make('editSong')
-                    ->label('Editar')
-                    ->icon(Heroicon::OutlinedPencilSquare)
-                    ->color('gray')
-                    ->url(fn (Song $record): string => SongResource::getUrl('edit', ['record' => $record])),
             ])
             ->emptyStateHeading('Nenhuma música cadastrada')
             ->emptyStateDescription('Adicione cifras e músicas ao repertório da sua organização.')

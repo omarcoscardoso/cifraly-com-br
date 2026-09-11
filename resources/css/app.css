@@ -235,5 +235,16 @@ button, a, input, select, textarea {
     background-color: #181b24 !important;
 }
 
+/* Ocultar botões de seta para recolher a barra lateral em telas pequenas (< 1024px) */
+@media (max-width: 1023px) {
+    .fi-topbar-collapse-sidebar-btn-ctn,
+    .fi-topbar-open-collapse-sidebar-btn,
+    .fi-topbar-close-collapse-sidebar-btn,
+    .fi-sidebar-close-collapse-sidebar-btn,
+    .fi-sidebar-open-collapse-sidebar-btn {
+        display: none !important;
+    }
+}
+
 
 

@@ -18,7 +18,7 @@ class UpcomingEventsWidget extends TableWidget
 {
     protected static ?int $sort = 2;
 
-    protected static ?string $heading = 'Próximos Eventos & Modo Palco';
+    protected static ?string $heading = 'Eventos & Setlist';
 
     protected int|string|array $columnSpan = 'full';
 
@@ -30,12 +30,16 @@ class UpcomingEventsWidget extends TableWidget
     public function table(Table $table): Table
     {
         return $table
-            ->stackedOnMobile()
             ->paginated(false)
             ->query(
                 Event::query()
                     ->where('organization_id', Filament::getTenant()?->id)
                     ->where('starts_at', '>=', now()->subHours(6))
+                    ->withCount([
+                        'eventSongs',
+                        'rosters',
+                        'rosters as confirmed_rosters_count' => fn ($query) => $query->where('status', EventRoster::STATUS_CONFIRMED),
+                    ])
                     ->orderBy('starts_at', 'asc')
                     ->limit(5)
             )
@@ -44,31 +48,17 @@ class UpcomingEventsWidget extends TableWidget
                     ->label('Evento')
                     ->weight('bold'),
 
-                // TextColumn::make('team.name')
-                //     ->label('Equipe')
-                //     ->placeholder('Geral / Sem equipe')
-                //     ->badge()
-                //     ->color('gray')
-                //     ->visibleFrom('md'),
-
                 TextColumn::make('starts_at')
                     ->label('Data')
                     ->dateTime('d/m/Y'),
-
-                // TextColumn::make('status')
-                //     ->label('Status')
-                //     ->badge()
-                //     ->formatStateUsing(fn (?string $state): string => Event::STATUS_OPTIONS[$state] ?? $state ?? '-')
-                //     ->color(fn (?string $state): string => Event::STATUS_COLORS[$state] ?? 'gray')
-                //     ->visibleFrom('md'),
 
                 TextColumn::make('roster_summary')
                     ->label('Escala')
                     ->badge()
                     ->color('info')
                     ->state(function (Event $record): string {
-                        $total = $record->rosters()->count();
-                        $confirmed = $record->rosters()->where('status', EventRoster::STATUS_CONFIRMED)->count();
+                        $total = $record->rosters_count ?? $record->rosters()->count();
+                        $confirmed = $record->confirmed_rosters_count ?? $record->rosters()->where('status', EventRoster::STATUS_CONFIRMED)->count();
 
                         return "{$confirmed}/{$total} confirmados";
                     })
@@ -78,7 +68,7 @@ class UpcomingEventsWidget extends TableWidget
                     ->label('Setlist')
                     ->badge()
                     ->color('primary')
-                    ->state(fn (Event $record): string => $record->eventSongs()->count().' músicas')
+                    ->state(fn (Event $record): string => ($record->event_songs_count ?? $record->eventSongs()->count()).' músicas')
                     ->visibleFrom('md'),
             ])
             ->recordActions([
@@ -93,12 +83,6 @@ class UpcomingEventsWidget extends TableWidget
                         'event' => $record,
                     ]))
                     ->openUrlInNewTab(),
-
-                Action::make('editEvent')
-                    ->label('Editar')
-                    ->icon(Heroicon::OutlinedPencilSquare)
-                    ->color('gray')
-                    ->url(fn (Event $record): string => EventResource::getUrl('edit', ['record' => $record])),
             ])
             ->emptyStateHeading('Nenhum evento agendado')
             ->emptyStateDescription('Crie um novo evento para organizar a escala de voluntários e as cifras no Modo Palco.')

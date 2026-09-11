@@ -146,8 +146,7 @@ class DashboardWidgetsTest extends TestCase
             ->assertSuccessful()
             ->assertCanSeeTableRecords([$event])
             ->assertSee('Vigília Jovem')
-            ->assertTableActionExists('stageView')
-            ->assertTableActionExists('editEvent');
+            ->assertTableActionExists('stageView');
     }
 
     public function test_recent_songs_widget_displays_songs(): void
@@ -164,10 +163,7 @@ class DashboardWidgetsTest extends TestCase
             ->assertSuccessful()
             ->assertCanSeeTableRecords([$song])
             ->assertSee('Bondade de Deus')
-            ->assertSee('Isaias Saad')
-            ->assertSee('G')
-            ->assertSee('70')
-            ->assertTableActionExists('editSong');
+            ->assertSee('G');
     }
 
     public function test_stats_widget_shows_pending_rosters_warning(): void

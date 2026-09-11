@@ -2,13 +2,11 @@
     use Filament\Support\Icons\Heroicon;
     $nextEvent = $this->getNextEvent();
     $stageUrl = $this->getNextEventStageUrl();
-    $org = $this->getOrganization();
 @endphp
 
 <x-filament-widgets::widget class="fi-wi-organization-header">
     <x-filament::section
         :heading="$this->getGreeting()"
-        :description="($org?->name ?? 'Igreja Local') . ' • Ministério de Louvor & Adoração'"
     >
         <x-slot name="headerEnd">
             @if ($nextEvent)

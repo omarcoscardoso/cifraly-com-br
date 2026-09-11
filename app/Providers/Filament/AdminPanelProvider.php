@@ -2,6 +2,7 @@
 
 namespace App\Providers\Filament;
 
+use App\Filament\Pages\Auth\EditProfile;
 use App\Filament\Pages\Auth\Login;
 use App\Filament\Pages\Auth\Register;
 use App\Filament\Pages\Tenancy\EditOrganizationProfile;
@@ -13,6 +14,7 @@ use App\Filament\Widgets\RosterConfirmationAlertWidget;
 use App\Filament\Widgets\UpcomingEventsWidget;
 use App\Models\Organization;
 use Filament\Enums\ThemeMode;
+use Filament\Enums\UserMenuPosition;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -40,6 +42,9 @@ class AdminPanelProvider extends PanelProvider
             ->login(Login::class)
             ->registration(Register::class)
             ->defaultThemeMode(ThemeMode::Dark)
+            ->sidebarCollapsibleOnDesktop()
+            ->userMenu(position: UserMenuPosition::Sidebar)
+            ->profile(EditProfile::class)
             ->brandLogo(fn () => view('components.brand-logo', ['class' => 'h-full w-auto text-white']))
             ->brandLogoHeight('2.85rem')
             ->favicon(asset('favicon.svg'))

@@ -6,14 +6,10 @@ namespace App\Filament\Widgets;
 
 use App\Filament\Resources\Events\EventResource;
 use App\Filament\Resources\Songs\SongResource;
-use App\Filament\Resources\Teams\TeamResource;
 use App\Models\Event;
 use App\Models\Organization;
-use App\Models\Song;
-use App\Models\User;
 use Filament\Facades\Filament;
 use Filament\Widgets\Widget;
-use Illuminate\Database\Eloquent\Collection;
 
 class OrganizationHeaderWidget extends Widget
 {
@@ -35,25 +31,6 @@ class OrganizationHeaderWidget extends Widget
         $tenant = Filament::getTenant();
 
         return $tenant instanceof Organization ? $tenant : null;
-    }
-
-    public function getUser(): ?User
-    {
-        $user = Filament::auth()->user();
-
-        return $user instanceof User ? $user : null;
-    }
-
-    public function getInviteCode(): ?string
-    {
-        return $this->getOrganization()?->invite_code;
-    }
-
-    public function getInviteUrl(): ?string
-    {
-        $code = $this->getInviteCode();
-
-        return $code ? route('organization.join', ['code' => $code]) : null;
     }
 
     public function getNextEvent(): ?Event
@@ -85,6 +62,8 @@ class OrganizationHeaderWidget extends Widget
 
     public function getGreeting(): string
     {
+        $orgName = $this->getOrganization()?->name ?? 'Igreja';
+
         $hour = (int) now()->format('H');
         $timeGreeting = match (true) {
             $hour < 12 => 'Manhã de Adoração',
@@ -92,23 +71,7 @@ class OrganizationHeaderWidget extends Widget
             default => 'Noite de Celebração',
         };
 
-        return "Altar • {$timeGreeting}";
-    }
-
-    /**
-     * @return Collection<int, Song>
-     */
-    public function getSongs(): Collection
-    {
-        $tenantId = $this->getOrganization()?->id;
-        if (! $tenantId) {
-            return Song::query()->whereRaw('1 = 0')->get();
-        }
-
-        return Song::where('organization_id', $tenantId)
-            ->latest()
-            ->limit(6)
-            ->get();
+        return "{$orgName} • {$timeGreeting}";
     }
 
     public function getNewEventUrl(): string
@@ -119,20 +82,5 @@ class OrganizationHeaderWidget extends Widget
     public function getNewSongUrl(): string
     {
         return SongResource::getUrl('create');
-    }
-
-    public function getSongsUrl(): string
-    {
-        return SongResource::getUrl('index');
-    }
-
-    public function getEventsUrl(): string
-    {
-        return EventResource::getUrl('index');
-    }
-
-    public function getTeamsUrl(): string
-    {
-        return TeamResource::getUrl('index');
     }
 }

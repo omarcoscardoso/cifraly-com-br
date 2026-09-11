@@ -60,6 +60,17 @@
         max-width: 100% !important;
     }
 
+    /* Ocultar botões de seta para recolher a barra lateral em telas pequenas (mobile/tablets < 1024px), mantendo o menu hamburger */
+    @media (max-width: 1023px) {
+        .fi-topbar-collapse-sidebar-btn-ctn,
+        .fi-topbar-open-collapse-sidebar-btn,
+        .fi-topbar-close-collapse-sidebar-btn,
+        .fi-sidebar-close-collapse-sidebar-btn,
+        .fi-sidebar-open-collapse-sidebar-btn {
+            display: none !important;
+        }
+    }
+
     /* Responsividade dos contadores nos cards de estatísticas (Dashboard) para tablets e celulares */
     @media (max-width: 1023px) {
         .fi-wi-stats-overview-stat .fi-wi-stats-overview-stat-value,

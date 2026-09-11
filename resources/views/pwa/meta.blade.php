@@ -22,6 +22,10 @@
 
 <!-- Mobile Viewport Fit Cover for Safe Area Insets -->
 <style>
+    /* ==========================================
+       CIFRALY MOBILE APP LAYOUT — CSS OVERRIDES
+       ========================================== */
+
     /* Safe Area insets adjustment for Filament and standalone mobile web app */
     :root {
         --sat: env(safe-area-inset-top, 0px);
@@ -29,6 +33,7 @@
         --sal: env(safe-area-inset-left, 0px);
         --sar: env(safe-area-inset-right, 0px);
     }
+
     @media (display-mode: standalone) {
         body {
             overscroll-behavior-y: contain;
@@ -39,40 +44,71 @@
         }
     }
 
-    /* Brand Logo Sizing & Display Enhancements */
-    .fi-topbar-start {
-        display: flex !important;
-    }
-    .fi-logo svg {
-        height: 100% !important;
-        width: auto !important;
-        overflow: visible !important;
-    }
-    .fi-topbar .fi-logo,
-    .fi-sidebar-header .fi-logo {
-        height: 2.85rem !important;
-        max-width: 100% !important;
-    }
-    .fi-simple-main .fi-logo,
-    .fi-simple-layout .fi-logo,
-    .fi-simple-header .fi-logo {
-        height: 3.75rem !important;
-        max-width: 100% !important;
-    }
+    /* Brand Logo Sizing */
+    .fi-topbar-start { display: flex !important; }
+    .fi-logo svg { height: 100% !important; width: auto !important; overflow: visible !important; }
+    .fi-topbar .fi-logo, .fi-sidebar-header .fi-logo { height: 2.85rem !important; max-width: 100% !important; }
+    .fi-simple-main .fi-logo, .fi-simple-layout .fi-logo, .fi-simple-header .fi-logo { height: 3.75rem !important; max-width: 100% !important; }
 
-    /* Ocultar botões de seta para recolher a barra lateral em telas pequenas (mobile/tablets < 1024px), mantendo o menu hamburger */
     @media (max-width: 1023px) {
+        /* Ocultar botões de recolher sidebar */
         .fi-topbar-collapse-sidebar-btn-ctn,
         .fi-topbar-open-collapse-sidebar-btn,
         .fi-topbar-close-collapse-sidebar-btn,
         .fi-sidebar-close-collapse-sidebar-btn,
-        .fi-sidebar-open-collapse-sidebar-btn {
-            display: none !important;
-        }
-    }
+        .fi-sidebar-open-collapse-sidebar-btn { display: none !important; }
 
-    /* Responsividade dos contadores nos cards de estatísticas (Dashboard) para tablets e celulares */
-    @media (max-width: 1023px) {
+        /* Compensação para a bottom nav fixa */
+        .fi-main, main.fi-main, .fi-layout > section {
+            padding-bottom: calc(5.5rem + env(safe-area-inset-bottom, 0px)) !important;
+        }
+
+        /* Topbar azul vibrante — integra visualmente com o Hero Card */
+        .fi-topbar {
+            background: linear-gradient(145deg, #1565e0 0%, #1992fe 100%) !important;
+            border-bottom: none !important;
+            box-shadow: none !important;
+        }
+        .fi-topbar .fi-topbar-item-btn,
+        .fi-topbar button,
+        .fi-topbar a,
+        .fi-topbar svg {
+            color: #ffffff !important;
+            stroke: currentColor !important;
+        }
+
+        /* Hero Card: remove padding e borda do container widget para o efeito edge-to-edge */
+        .fi-wi-organization-header {
+            padding: 0 !important;
+            margin-left: 0 !important;
+            margin-right: 0 !important;
+            border-radius: 0 !important;
+            box-shadow: none !important;
+            border: none !important;
+            background: transparent !important;
+        }
+        /* Remove o ring/border do wrapper do widget section */
+        .fi-wi-organization-header > .fi-section,
+        .fi-wi-organization-header .fi-section-content,
+        .fi-wi-organization-header .fi-section-content-ctn {
+            padding: 0 !important;
+            border: none !important;
+            background: transparent !important;
+            box-shadow: none !important;
+        }
+
+        /* Widget grid: remove gap para o hero se conectar à topbar */
+        .fi-wi-organization-header + * {
+            margin-top: 1.25rem;
+        }
+
+        /* Hero card bleed: margin mobile = -fi-main padding-inline = -16px */
+        #cifraly-hero-card {
+            margin: -16px -16px 0 !important;
+            padding: 20px 16px 22px !important;
+        }
+
+        /* Responsividade dos stat cards */
         .fi-wi-stats-overview-stat .fi-wi-stats-overview-stat-value,
         .cifraly-stat-card .fi-wi-stats-overview-stat-value {
             font-size: 1.5rem !important;
@@ -88,47 +124,38 @@
         }
     }
 
-    /* Compensação para a barra de navegação inferior fixa (Bottom Navigation Bar) em dispositivos móveis */
-    @media (max-width: 1023px) {
-        .fi-main,
-        main.fi-main,
-        .fi-layout > section {
-            padding-bottom: calc(5.5rem + env(safe-area-inset-bottom, 0px)) !important;
-        }
-
-        /* Topbar com azul vibrante do modelo */
-        .fi-topbar {
-            background: linear-gradient(135deg, #1992fe 0%, #00b4d8 100%) !important;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.15) !important;
-        }
-        .fi-topbar .fi-topbar-item-btn,
-        .fi-topbar button,
-        .fi-topbar a,
-        .fi-topbar svg {
-            color: #ffffff !important;
-            stroke: currentColor !important;
+    /* Hero card bleed: sm breakpoint fi-main padding = 24px */
+    @media (min-width: 640px) and (max-width: 1023px) {
+        #cifraly-hero-card {
+            margin: -24px -24px 0 !important;
+            padding: 28px 24px 24px !important;
         }
     }
 
-    /* Salvaguarda Estrita Contra Ícones SVG Gigantes */
-    svg {
-        box-sizing: border-box;
-    }
+    /* ==========================================
+       SALVAGUARDA CONTRA ÍCONES SVG GIGANTES
+       ========================================== */
+    svg { box-sizing: border-box; }
+
+    /* Namespaced widget SVGs */
     .fi-mobile-bottom-nav svg,
     .fi-wi-organization-header svg,
     .fi-wi-upcoming-events svg,
     .fi-wi-roster-confirmation-alert svg {
-        max-width: 1.75rem !important;
-        max-height: 1.75rem !important;
+        max-width: 2rem !important;
+        max-height: 2rem !important;
         flex-shrink: 0 !important;
     }
-    svg.h-3, svg.w-3 { width: 0.75rem !important; height: 0.75rem !important; max-width: 0.75rem !important; max-height: 0.75rem !important; flex-shrink: 0 !important; }
-    svg.h-3\.5, svg.w-3\.5 { width: 0.875rem !important; height: 0.875rem !important; max-width: 0.875rem !important; max-height: 0.875rem !important; flex-shrink: 0 !important; }
-    svg.h-4, svg.w-4 { width: 1rem !important; height: 1rem !important; max-width: 1rem !important; max-height: 1rem !important; flex-shrink: 0 !important; }
-    svg.h-5, svg.w-5 { width: 1.25rem !important; height: 1.25rem !important; max-width: 1.25rem !important; max-height: 1.25rem !important; flex-shrink: 0 !important; }
-    svg.h-6, svg.w-6 { width: 1.5rem !important; height: 1.5rem !important; max-width: 1.5rem !important; max-height: 1.5rem !important; flex-shrink: 0 !important; }
-    svg.h-7, svg.w-7 { width: 1.75rem !important; height: 1.75rem !important; max-width: 1.75rem !important; max-height: 1.75rem !important; flex-shrink: 0 !important; }
-    /* Limite máximo universal para qualquer SVG que não seja a logo principal */
+
+    /* Tailwind size classes */
+    svg.h-3, svg.w-3 { width: 0.75rem !important; height: 0.75rem !important; max-width: 0.75rem !important; max-height: 0.75rem !important; }
+    svg.h-3\.5, svg.w-3\.5 { width: 0.875rem !important; height: 0.875rem !important; max-width: 0.875rem !important; max-height: 0.875rem !important; }
+    svg.h-4, svg.w-4 { width: 1rem !important; height: 1rem !important; max-width: 1rem !important; max-height: 1rem !important; }
+    svg.h-5, svg.w-5 { width: 1.25rem !important; height: 1.25rem !important; max-width: 1.25rem !important; max-height: 1.25rem !important; }
+    svg.h-6, svg.w-6 { width: 1.5rem !important; height: 1.5rem !important; max-width: 1.5rem !important; max-height: 1.5rem !important; }
+    svg.h-7, svg.w-7 { width: 1.75rem !important; height: 1.75rem !important; max-width: 1.75rem !important; max-height: 1.75rem !important; }
+
+    /* Limite máximo universal (exclui logos) */
     svg:not(.fi-logo svg):not(#cifralyIconOnlyGrad svg):not([class*="cifraly-logo"]) {
         max-width: 2.25rem !important;
         max-height: 2.25rem !important;

@@ -69,7 +69,7 @@ class MobileLayoutTest extends TestCase
             ->assertSuccessful()
             ->assertSee('Marcos')
             ->assertSee('Comunidade da Graça')
-            ->assertSee('Buscar cifras e repertório...')
+            ->assertSee('Buscar cifras...')
             ->assertSee('Novo Evento')
             ->assertSee('Nova Cifra');
     }

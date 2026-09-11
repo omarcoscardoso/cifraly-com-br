@@ -58,11 +58,15 @@ class EventForm
                             DateTimePicker::make('starts_at')
                                 ->label('Data e Horário do Evento')
                                 ->displayFormat('d/m/Y H:i')
+                                ->native(false)
+                                ->seconds(false)
                                 ->required(),
 
                             DateTimePicker::make('rehearsal_at')
                                 ->label('Passagem de Som / Ensaio')
                                 ->displayFormat('d/m/Y H:i')
+                                ->native(false)
+                                ->seconds(false)
                                 ->nullable(),
                         ]),
 

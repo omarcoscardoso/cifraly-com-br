@@ -3,7 +3,7 @@
  * Focus: Mobile performance, offline resilience, and future extensible sync/push capabilities.
  */
 
-const CACHE_VERSION = 'cifraly-v1.0.1';
+const CACHE_VERSION = 'cifraly-v1.0.2';
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const RUNTIME_CACHE = `${CACHE_VERSION}-runtime`;
 const OFFLINE_FALLBACK_URL = '/offline.html';
@@ -22,10 +22,10 @@ const PRECACHE_ASSETS = [
     '/favicon.svg'
 ];
 
-// Patterns that MUST NOT be cached (mutations, livewire polling/updates, auth)
+// Patterns that MUST NOT be cached (mutations, livewire polling/updates, auth, dynamic admin panel)
 const EXCLUDED_PATTERNS = [
-    /\/livewire\/update/,
-    /\/livewire\/upload-file/,
+    /\/livewire\//,
+    /\/app\//,
     /\/auth\/google\//,
     /\/api\/auth\//,
     /\/telescope\//,
@@ -63,6 +63,11 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
     const { request } = event;
     const url = new URL(request.url);
+
+    // Only handle http and https requests (ignore chrome-extension:, moz-extension:, etc.)
+    if (!url.protocol.startsWith('http')) {
+        return;
+    }
 
     // Only handle GET requests and same-origin / CDN requests
     if (request.method !== 'GET') {
@@ -116,7 +121,9 @@ self.addEventListener('fetch', (event) => {
                 const fetchPromise = fetch(request).then((networkResponse) => {
                     if (networkResponse && networkResponse.status === 200) {
                         const copy = networkResponse.clone();
-                        caches.open(RUNTIME_CACHE).then((cache) => cache.put(request, copy));
+                        caches.open(RUNTIME_CACHE)
+                            .then((cache) => cache.put(request, copy))
+                            .catch(() => {});
                     }
                     return networkResponse;
                 }).catch(() => cachedResponse);

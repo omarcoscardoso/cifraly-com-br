@@ -12,7 +12,6 @@ use App\Models\Song;
 use App\Models\SongVersion;
 use App\Models\User;
 use Filament\Facades\Filament;
-use Filament\Tables\Columns\Layout\Stack;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use Tests\TestCase;
@@ -60,26 +59,28 @@ class SongResourceTest extends TestCase
         $response->assertSee('John Newton');
     }
 
-    public function test_songs_table_stacks_title_and_artist_and_hides_bpm_and_compass_by_default(): void
+    public function test_songs_table_renders_default_columns_and_populates_toggleable_manager(): void
     {
         $test = Livewire::actingAs($this->user)->test(ListSongs::class);
-        $columns = $test->instance()->getTable()->getColumns();
+        $table = $test->instance()->getTable();
 
-        $this->assertArrayHasKey('title', $columns);
-        $this->assertArrayHasKey('artist', $columns);
-        $this->assertArrayHasKey('original_key', $columns);
-        $this->assertArrayHasKey('bpm', $columns);
-        $this->assertArrayHasKey('time_signature', $columns);
+        $this->assertFalse($table->hasColumnsLayout());
 
+        $visibleColumns = $table->getVisibleColumns();
+        $this->assertEquals(['title', 'artist', 'original_key'], array_keys($visibleColumns));
+
+        $columns = $table->getColumns();
         $this->assertTrue($columns['bpm']->isToggleable());
         $this->assertTrue($columns['bpm']->isToggledHiddenByDefault());
 
         $this->assertTrue($columns['time_signature']->isToggleable());
         $this->assertTrue($columns['time_signature']->isToggledHiddenByDefault());
 
-        $layoutComponents = $test->instance()->getTable()->getColumnsLayout();
-        $this->assertNotEmpty($layoutComponents);
-        $this->assertInstanceOf(Stack::class, $layoutComponents[0]);
+        $this->assertTrue($columns['created_at']->isToggleable());
+        $this->assertTrue($columns['created_at']->isToggledHiddenByDefault());
+
+        $tableColumns = $test->get('tableColumns');
+        $this->assertNotEmpty($tableColumns);
     }
 
     public function test_songs_are_scoped_to_active_organization_tenant(): void

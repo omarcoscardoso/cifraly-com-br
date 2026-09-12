@@ -10,7 +10,6 @@ use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Facades\Filament;
-use Filament\Tables\Columns\Layout\Stack;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
@@ -26,26 +25,25 @@ class SongsTable
                 'song' => $record,
             ]))
             ->columns([
-                Stack::make([
-                    TextColumn::make('title')
-                        ->label('Título')
-                        ->searchable()
-                        ->sortable()
-                        ->weight('bold'),
+                TextColumn::make('title')
+                    ->label('Nome da música')
+                    ->searchable()
+                    ->sortable()
+                    ->weight('bold'),
 
-                    TextColumn::make('artist')
-                        ->label('Artista')
-                        ->searchable()
-                        ->sortable()
-                        ->color('gray')
-                        ->placeholder('Não informado'),
-                ])->space(1),
+                TextColumn::make('artist')
+                    ->label('Autor')
+                    ->searchable()
+                    ->sortable()
+                    ->placeholder('Não informado')
+                    ->toggleable(),
 
                 TextColumn::make('original_key')
-                    ->label('Tom Original')
+                    ->label('Tom')
                     ->badge()
                     ->color('primary')
-                    ->sortable(),
+                    ->sortable()
+                    ->toggleable(),
 
                 TextColumn::make('bpm')
                     ->label('BPM')
@@ -61,7 +59,7 @@ class SongsTable
                     ->toggleable(isToggledHiddenByDefault: true),
 
                 TextColumn::make('created_at')
-                    ->label('Criado em')
+                    ->label('Data de criação')
                     ->dateTime('d/m/Y H:i')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),

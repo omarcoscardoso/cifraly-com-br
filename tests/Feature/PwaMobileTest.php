@@ -147,13 +147,13 @@ class PwaMobileTest extends TestCase
         $this->assertFileExists($faviconPath);
 
         $logoSvg = (string) file_get_contents($logoPath);
-        $this->assertStringContainsString('cifralyIconGrad', $logoSvg);
-        $this->assertStringContainsString('cifralyArcGrad', $logoSvg);
-        $this->assertStringContainsString('Cifras &amp; Escalas', $logoSvg);
+        $this->assertStringContainsString('cifralyPickGrad', $logoSvg);
+        $this->assertStringContainsString('Cifra', $logoSvg);
+        $this->assertStringContainsString('Ly', $logoSvg);
+        $this->assertStringContainsString('SETLIST &amp; ESCALAS', $logoSvg);
 
         $iconSvg = (string) file_get_contents($iconPath);
-        $this->assertStringContainsString('cifralyIconGrad', $iconSvg);
-        $this->assertStringContainsString('cifralyArcGrad', $iconSvg);
+        $this->assertStringContainsString('cifralyPickGrad', $iconSvg);
     }
 
     public function test_dark_mode_is_default_on_welcome_and_renders_brand_logo(): void
@@ -163,8 +163,8 @@ class PwaMobileTest extends TestCase
         $response->assertStatus(200);
         $response->assertSee('class="dark', false);
         $response->assertSee('bg-slate-950', false);
-        $response->assertSee('cifralyTextLyGrad', false);
-        $response->assertSee('cifraly-brand-root-mob', false);
+        $response->assertSee('brandPickGrad', false);
+        $response->assertSee('SETLIST &amp; ESCALAS', false);
     }
 
     public function test_filament_app_login_renders_cifraly_brand_logo_and_dark_mode(): void
@@ -172,7 +172,7 @@ class PwaMobileTest extends TestCase
         $response = $this->get('/app/login');
 
         $response->assertStatus(200);
-        $response->assertSee('cifralyTextLyGrad', false);
-        $response->assertSee('cifraly-brand-root-mob', false);
+        $response->assertSee('brandPickGrad', false);
+        $response->assertSee('SETLIST &amp; ESCALAS', false);
     }
 }

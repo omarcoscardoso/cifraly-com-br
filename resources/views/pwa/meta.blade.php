@@ -9,10 +9,10 @@
 <meta name="msapplication-TileColor" content="#1565e0">
 <meta name="msapplication-navbutton-color" content="#1565e0">
 
-<!-- Google Fonts: Plus Jakarta Sans & JetBrains Mono -->
+<!-- Google Fonts: Plus Jakarta Sans, Space Grotesk & JetBrains Mono -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&family=Space+Grotesk:wght@600;700;900&display=swap" rel="stylesheet">
 
 <!-- Icons -->
 <link rel="icon" type="image/svg+xml" href="/favicon.svg">
@@ -89,10 +89,7 @@
             stroke: currentColor !important;
         }
         .fi-logo,
-        .fi-logo *,
-        .fi-logo svg,
-        .fi-logo svg * {
-            stroke: none !important;
+        .fi-logo svg {
             border: none !important;
             outline: none !important;
             box-shadow: none !important;
@@ -282,7 +279,7 @@
     svg.h-7, svg.w-7 { width: 1.75rem !important; height: 1.75rem !important; max-width: 1.75rem !important; max-height: 1.75rem !important; }
 
     /* Limite máximo universal (exclui logos) */
-    svg:not(.fi-logo svg):not(#cifralyIconOnlyGrad svg):not([class*="cifraly-logo"]) {
+    svg:not(.fi-logo svg):not([class*="cifraly"]):not([id*="cifraly"]):not([class*="brand"]):not([id*="brand"]) {
         max-width: 2.25rem !important;
         max-height: 2.25rem !important;
     }

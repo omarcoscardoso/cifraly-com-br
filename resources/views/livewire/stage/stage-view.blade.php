@@ -168,19 +168,19 @@
         <div class="flex-1 text-center px-2 min-w-0">
             @if ($selectedEventSong && $selectedEventSong->song)
                 <div class="flex items-center justify-center gap-2">
-                    <span class="text-[10px] uppercase font-mono font-extrabold px-2 py-0.5 rounded-full bg-[#12141a] border border-[#1e222c] text-[#71788e]">
+                    <span class="hidden sm:inline-block text-[10px] uppercase font-mono font-extrabold px-2 py-0.5 rounded-full bg-[#12141a] border border-[#1e222c] text-[#71788e]">
                         {{ $event->eventSongs->search(fn ($item) => $item->id === $selectedEventSongId) + 1 }} de {{ $event->eventSongs->count() }}
                     </span>
                     <h1 class="text-sm sm:text-base font-black text-white truncate tracking-tight">
                         {{ $selectedEventSong->song->title }}
                     </h1>
                 </div>
-                <p class="text-xs text-[#71788e] truncate font-medium">
+                <p class="hidden sm:block text-xs text-[#71788e] truncate font-medium">
                     {{ $selectedEventSong->song->artist ?? 'Artista não informado' }} • <span class="text-slate-400">{{ $event->title }}</span>
                 </p>
             @else
                 <h1 class="text-sm font-bold text-white truncate">{{ $event->title }}</h1>
-                <p class="text-xs text-[#71788e] truncate">{{ $organization->name }}</p>
+                <p class="hidden sm:block text-xs text-[#71788e] truncate">{{ $organization->name }}</p>
             @endif
         </div>
 
@@ -465,7 +465,7 @@
                     tabindex="0"
                 >
                     <div 
-                        class="mx-auto pb-36 transition-all duration-150"
+                        class="mx-auto pb-48 transition-all duration-150"
                         :class="twoColumns ? 'max-w-7xl stage-two-columns' : 'max-w-4xl'"
                     >
                         {!! $formattedChords !!}
@@ -473,9 +473,9 @@
                 </div>
 
                 <!-- ALTAR Floating Navigation & Chorus Jump Bar (Docked Bottom) -->
-                <div class="absolute bottom-6 inset-x-0 px-4 sm:px-8 flex items-center justify-between pointer-events-none z-20 stage-safe-bottom">
+                <div class="absolute bottom-12 sm:bottom-6 inset-x-0 px-4 sm:px-8 flex items-center justify-between pointer-events-none z-20 stage-safe-bottom">
                     
-                    <!-- Left: Quick Jump to Chorus Button & Mobile Letra Toggle -->
+                    <!-- Left: Quick Jump to Chorus Button -->
                     <div class="flex items-center gap-2 pointer-events-auto">
                         <button
                             @click="jumpToChorus()"
@@ -484,15 +484,6 @@
                         >
                             <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
                             Refrão
-                        </button>
-                        <button
-                            type="button"
-                            @click="showLyricsOnly = !showLyricsOnly"
-                            class="sm:hidden px-3 py-2.5 rounded-2xl border font-black text-xs uppercase tracking-wider shadow-xl backdrop-blur-md tap-scale transition-all cursor-pointer flex items-center gap-1.5"
-                            :class="showLyricsOnly ? 'bg-cyan-500 text-black border-cyan-400 font-bold shadow-cyan-500/20' : 'bg-[#12141a]/95 border-[#1e222c] text-slate-300'"
-                            title="Alternar entre Cifra e Apenas Letra"
-                        >
-                            Letra
                         </button>
                     </div>
 

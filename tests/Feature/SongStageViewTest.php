@@ -146,7 +146,7 @@ class SongStageViewTest extends TestCase
 
         $response->assertSuccessful();
         $response->assertSee('Repertório');
-        $response->assertSee('Avulsa');
+        $response->assertDontSee('Avulsa');
         $response->assertSee('Tela Ativa');
         $response->assertSee('2 Colunas');
         $response->assertSee('Letra');

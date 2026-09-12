@@ -12,6 +12,8 @@ use App\Models\Song;
 use App\Models\SongVersion;
 use App\Models\User;
 use Filament\Facades\Filament;
+use Filament\Support\Enums\FontWeight;
+use Filament\Support\Enums\TextSize;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use Tests\TestCase;
@@ -59,17 +61,32 @@ class SongResourceTest extends TestCase
         $response->assertSee('John Newton');
     }
 
-    public function test_songs_table_renders_default_columns_and_populates_toggleable_manager(): void
+    public function test_songs_table_renders_responsive_layout_and_populates_toggleable_manager(): void
     {
         $test = Livewire::actingAs($this->user)->test(ListSongs::class);
         $table = $test->instance()->getTable();
 
-        $this->assertFalse($table->hasColumnsLayout());
+        $this->assertTrue($table->hasColumnsLayout());
 
-        $visibleColumns = $table->getVisibleColumns();
-        $this->assertEquals(['title', 'artist', 'original_key'], array_keys($visibleColumns));
+        $layout = $table->getColumnsLayout();
+        $this->assertNotEmpty($layout);
 
         $columns = $table->getColumns();
+        $this->assertArrayHasKey('title', $columns);
+        $this->assertArrayHasKey('artist', $columns);
+        $this->assertArrayHasKey('original_key', $columns);
+        $this->assertArrayHasKey('bpm', $columns);
+        $this->assertArrayHasKey('time_signature', $columns);
+        $this->assertArrayHasKey('created_at', $columns);
+
+        $this->assertSame(FontWeight::Bold, $columns['title']->getWeight());
+        $this->assertSame(FontWeight::Normal, $columns['artist']->getWeight());
+        $this->assertSame(TextSize::ExtraSmall, $columns['artist']->getSize(null));
+        $this->assertSame('heroicon-m-user', $columns['artist']->getIcon(null));
+
+        $this->assertTrue($columns['original_key']->isBadge());
+        $this->assertNull($columns['original_key']->getIcon(null));
+
         $this->assertTrue($columns['bpm']->isToggleable());
         $this->assertTrue($columns['bpm']->isToggledHiddenByDefault());
 
@@ -80,7 +97,15 @@ class SongResourceTest extends TestCase
         $this->assertTrue($columns['created_at']->isToggledHiddenByDefault());
 
         $tableColumns = $test->get('tableColumns');
-        $this->assertNotEmpty($tableColumns);
+        $this->assertCount(6, $tableColumns);
+
+        $columnState = collect($tableColumns)->pluck('isToggled', 'name')->all();
+        $this->assertTrue($columnState['title']);
+        $this->assertTrue($columnState['artist']);
+        $this->assertTrue($columnState['original_key']);
+        $this->assertFalse($columnState['bpm']);
+        $this->assertFalse($columnState['time_signature']);
+        $this->assertFalse($columnState['created_at']);
     }
 
     public function test_songs_are_scoped_to_active_organization_tenant(): void

@@ -12,6 +12,7 @@ use App\Models\Song;
 use App\Models\SongVersion;
 use App\Models\User;
 use Filament\Facades\Filament;
+use Filament\Tables\Columns\Layout\Stack;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use Tests\TestCase;
@@ -57,6 +58,28 @@ class SongResourceTest extends TestCase
         $response->assertStatus(200);
         $response->assertSee('Graça Maravilhosa');
         $response->assertSee('John Newton');
+    }
+
+    public function test_songs_table_stacks_title_and_artist_and_hides_bpm_and_compass_by_default(): void
+    {
+        $test = Livewire::actingAs($this->user)->test(ListSongs::class);
+        $columns = $test->instance()->getTable()->getColumns();
+
+        $this->assertArrayHasKey('title', $columns);
+        $this->assertArrayHasKey('artist', $columns);
+        $this->assertArrayHasKey('original_key', $columns);
+        $this->assertArrayHasKey('bpm', $columns);
+        $this->assertArrayHasKey('time_signature', $columns);
+
+        $this->assertTrue($columns['bpm']->isToggleable());
+        $this->assertTrue($columns['bpm']->isToggledHiddenByDefault());
+
+        $this->assertTrue($columns['time_signature']->isToggleable());
+        $this->assertTrue($columns['time_signature']->isToggledHiddenByDefault());
+
+        $layoutComponents = $test->instance()->getTable()->getColumnsLayout();
+        $this->assertNotEmpty($layoutComponents);
+        $this->assertInstanceOf(Stack::class, $layoutComponents[0]);
     }
 
     public function test_songs_are_scoped_to_active_organization_tenant(): void

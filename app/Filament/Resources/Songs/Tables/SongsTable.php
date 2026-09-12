@@ -10,6 +10,7 @@ use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Facades\Filament;
+use Filament\Tables\Columns\Layout\Stack;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
@@ -25,17 +26,20 @@ class SongsTable
                 'song' => $record,
             ]))
             ->columns([
-                TextColumn::make('title')
-                    ->label('Título')
-                    ->searchable()
-                    ->sortable()
-                    ->weight('bold'),
+                Stack::make([
+                    TextColumn::make('title')
+                        ->label('Título')
+                        ->searchable()
+                        ->sortable()
+                        ->weight('bold'),
 
-                TextColumn::make('artist')
-                    ->label('Artista')
-                    ->searchable()
-                    ->sortable()
-                    ->placeholder('Não informado'),
+                    TextColumn::make('artist')
+                        ->label('Artista')
+                        ->searchable()
+                        ->sortable()
+                        ->color('gray')
+                        ->placeholder('Não informado'),
+                ])->space(1),
 
                 TextColumn::make('original_key')
                     ->label('Tom Original')
@@ -47,11 +51,14 @@ class SongsTable
                     ->label('BPM')
                     ->numeric()
                     ->sortable()
-                    ->placeholder('-'),
+                    ->placeholder('-')
+                    ->toggleable(isToggledHiddenByDefault: true),
 
                 TextColumn::make('time_signature')
                     ->label('Compasso')
-                    ->sortable(),
+                    ->sortable()
+                    ->placeholder('-')
+                    ->toggleable(isToggledHiddenByDefault: true),
 
                 TextColumn::make('created_at')
                     ->label('Criado em')

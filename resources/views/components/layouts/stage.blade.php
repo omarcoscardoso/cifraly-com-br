@@ -114,6 +114,41 @@
         .hide-chords .stage-lyric-line {
             margin-bottom: 0.4rem !important;
         }
+
+        /* Modo 2 Colunas para Telas Médias/Grandes (Tablets, iPads e Desktops) */
+        .stage-two-columns {
+            column-count: 1;
+        }
+        @media (min-width: 768px) {
+            .stage-two-columns {
+                column-count: 2;
+                column-gap: 3.5rem;
+                column-rule: 1px solid rgba(255, 255, 255, 0.08);
+            }
+        }
+        .stage-section-badge,
+        .stage-section-chorus,
+        .stage-section-tag {
+            break-inside: avoid;
+            page-break-inside: avoid;
+        }
+
+        /* Microinterações de toque para palco ao vivo */
+        .tap-scale {
+            transition: transform 0.12s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.15s ease, border-color 0.15s ease, opacity 0.15s ease;
+            touch-action: manipulation;
+        }
+        .tap-scale:active {
+            transform: scale(0.94);
+        }
+
+        /* Safe area insets para iPhone / Android */
+        .stage-safe-bottom {
+            padding-bottom: max(env(safe-area-inset-bottom, 0px), 16px);
+        }
+        .stage-safe-top {
+            padding-top: max(env(safe-area-inset-top, 0px), 0px);
+        }
     </style>
 </head>
 <body class="h-full overflow-hidden font-sans text-slate-100 antialiased bg-[#08080a] select-none">

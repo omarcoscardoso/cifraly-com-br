@@ -16,6 +16,10 @@ trait InteractsWithStageControls
 
     public bool $isAutoScrolling = false;
 
+    public bool $twoColumns = false;
+
+    public bool $showLyricsOnly = false;
+
     public function transposeUp(): void
     {
         $service = app(ChordTransposerService::class);
@@ -46,6 +50,16 @@ trait InteractsWithStageControls
     public function toggleAutoScroll(): void
     {
         $this->isAutoScrolling = ! $this->isAutoScrolling;
+    }
+
+    public function toggleTwoColumns(): void
+    {
+        $this->twoColumns = ! $this->twoColumns;
+    }
+
+    public function toggleLyricsOnly(): void
+    {
+        $this->showLyricsOnly = ! $this->showLyricsOnly;
     }
 
     /**

@@ -5,7 +5,23 @@
         isAutoScrolling: @entangle('isAutoScrolling'),
         scrollSpeed: @entangle('scrollSpeed'),
         showLyricsOnly: false,
+        twoColumns: false,
         isFullscreen: false,
+        wakeLock: null,
+        wakeLockActive: false,
+        async requestWakeLock() {
+            if ('wakeLock' in navigator) {
+                try {
+                    this.wakeLock = await navigator.wakeLock.request('screen');
+                    this.wakeLockActive = true;
+                    this.wakeLock.addEventListener('release', () => {
+                        this.wakeLockActive = false;
+                    });
+                } catch (e) {
+                    this.wakeLockActive = false;
+                }
+            }
+        },
         toggleFullscreen() {
             if (!document.fullscreenElement) {
                 document.documentElement.requestFullscreen().then(() => this.isFullscreen = true).catch(() => {});
@@ -46,6 +62,32 @@
             }));
         },
         init() {
+            // Restaurar preferências salvas no navegador
+            const savedSpeed = localStorage.getItem('cifraly_stage_scroll_speed');
+            if (savedSpeed) {
+                this.scrollSpeed = parseInt(savedSpeed, 10);
+            }
+            const savedCols = localStorage.getItem('cifraly_stage_two_columns');
+            if (savedCols !== null) {
+                this.twoColumns = savedCols === 'true';
+            }
+            const savedLyrics = localStorage.getItem('cifraly_stage_lyrics_only');
+            if (savedLyrics !== null) {
+                this.showLyricsOnly = savedLyrics === 'true';
+            }
+
+            this.$watch('scrollSpeed', val => localStorage.setItem('cifraly_stage_scroll_speed', val));
+            this.$watch('twoColumns', val => localStorage.setItem('cifraly_stage_two_columns', val));
+            this.$watch('showLyricsOnly', val => localStorage.setItem('cifraly_stage_lyrics_only', val));
+
+            // Manter a tela sempre ativa durante o palco
+            this.requestWakeLock();
+            document.addEventListener('visibilitychange', () => {
+                if (document.visibilityState === 'visible') {
+                    this.requestWakeLock();
+                }
+            });
+
             document.addEventListener('fullscreenchange', () => {
                 this.isFullscreen = !!document.fullscreenElement;
             });
@@ -142,8 +184,19 @@
             @endif
         </div>
 
-        <!-- Right: Metronome Launcher & Fullscreen -->
+        <!-- Right: Wake Lock, Metronome Launcher & Fullscreen -->
         <div class="flex items-center gap-2 shrink-0">
+            <!-- Wake Lock Active Badge -->
+            <div 
+                x-show="wakeLockActive" 
+                x-cloak
+                class="hidden lg:flex items-center gap-1.5 px-2.5 py-1.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/25 text-emerald-400 text-[11px] font-mono font-bold select-none"
+                title="Tela Ativa: Seu dispositivo permanecerá ligado durante o louvor"
+            >
+                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_6px_#34d399]"></span>
+                <span class="hidden xl:inline">Tela Ativa</span>
+            </div>
+
             @if ($selectedEventSong && $selectedEventSong->song)
                 <!-- BPM LED Pulse Trigger Button -->
                 <button
@@ -230,7 +283,7 @@
             </div>
         @endif
 
-        <!-- Font Zoom & Auto-Scroll -->
+        <!-- Font Zoom, Colunas, Letra & Auto-Scroll -->
         <div class="flex items-center gap-2 shrink-0">
             <!-- Font Zoom Controls -->
             <div class="flex items-center bg-[#08080a] border border-[#1e222c] rounded-xl p-0.5">
@@ -249,6 +302,20 @@
                     A+
                 </button>
             </div>
+
+            <!-- Toggle 2 Colunas (Tablets e Desktops) -->
+            <button
+                type="button"
+                @click="twoColumns = !twoColumns"
+                class="hidden md:flex items-center gap-1.5 text-xs font-black px-3 py-1.5 rounded-xl transition tap-scale cursor-pointer border"
+                :class="twoColumns ? 'bg-cyan-500/20 border-cyan-500 text-[#00d2ff] shadow-md shadow-cyan-500/20' : 'bg-[#08080a] border-[#1e222c] hover:bg-[#181b24] text-slate-300'"
+                title="Alternar entre 1 e 2 Colunas"
+            >
+                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 4v16m6-16v16M4 4h16a1 1 0 011 1v14a1 1 0 01-1 1H4a1 1 0 01-1-1V5a1 1 0 011-1z" />
+                </svg>
+                <span x-text="twoColumns ? '2 Colunas' : '1 Coluna'">1 Coluna</span>
+            </button>
 
             <!-- Toggle Letra (Ocultar Cifras) -->
             <button
@@ -389,20 +456,24 @@
                     </div>
                 @endif
 
-                <!-- Chord Text Container with Monospace Font and Zoom -->
+                <!-- Chord Text Container with Monospace Font, 2 Columns & Zoom -->
                 <div
                     x-ref="chordContainer"
                     :class="{ 'hide-chords': showLyricsOnly }"
-                    class="flex-1 overflow-y-auto px-4 sm:px-8 py-6 font-mono leading-relaxed no-scrollbar"
+                    class="flex-1 overflow-y-auto px-4 sm:px-8 py-6 font-mono leading-relaxed no-scrollbar focus:outline-none"
                     style="font-size: {{ $fontSize }}px;"
+                    tabindex="0"
                 >
-                    <div class="max-w-4xl mx-auto pb-36">
+                    <div 
+                        class="mx-auto pb-36 transition-all duration-150"
+                        :class="twoColumns ? 'max-w-7xl stage-two-columns' : 'max-w-4xl'"
+                    >
                         {!! $formattedChords !!}
                     </div>
                 </div>
 
                 <!-- ALTAR Floating Navigation & Chorus Jump Bar (Docked Bottom) -->
-                <div class="absolute bottom-6 inset-x-0 px-4 sm:px-8 flex items-center justify-between pointer-events-none z-20">
+                <div class="absolute bottom-6 inset-x-0 px-4 sm:px-8 flex items-center justify-between pointer-events-none z-20 stage-safe-bottom">
                     
                     <!-- Left: Quick Jump to Chorus Button & Mobile Letra Toggle -->
                     <div class="flex items-center gap-2 pointer-events-auto">

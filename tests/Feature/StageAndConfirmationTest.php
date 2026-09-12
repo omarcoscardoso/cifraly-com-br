@@ -411,4 +411,43 @@ class StageAndConfirmationTest extends TestCase
 
         $response->assertNotFound();
     }
+
+    public function test_stage_view_toggles_two_columns_and_lyrics_only(): void
+    {
+        $event = Event::factory()->create([
+            'organization_id' => $this->organization->id,
+            'title' => 'Ensaio Geral',
+        ]);
+
+        Livewire::actingAs($this->user)
+            ->test(StageView::class, [
+                'organization' => $this->organization,
+                'event' => $event,
+            ])
+            ->assertSuccessful()
+            ->assertSet('twoColumns', false)
+            ->call('toggleTwoColumns')
+            ->assertSet('twoColumns', true)
+            ->call('toggleTwoColumns')
+            ->assertSet('twoColumns', false)
+            ->assertSet('showLyricsOnly', false)
+            ->call('toggleLyricsOnly')
+            ->assertSet('showLyricsOnly', true);
+    }
+
+    public function test_stage_view_renders_two_columns_and_wake_lock_badges(): void
+    {
+        $event = Event::factory()->create([
+            'organization_id' => $this->organization->id,
+            'title' => 'Culto de Celebração',
+        ]);
+
+        $response = $this->actingAs($this->user)
+            ->get("/app/{$this->organization->slug}/events/{$event->id}/stage");
+
+        $response->assertSuccessful();
+        $response->assertSee('Tela Ativa');
+        $response->assertSee('2 Colunas');
+        $response->assertSee('Letra');
+    }
 }

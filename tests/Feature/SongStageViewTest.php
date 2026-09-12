@@ -119,4 +119,37 @@ class SongStageViewTest extends TestCase
             ->assertSuccessful()
             ->assertSee('Porque Ele Vive');
     }
+
+    public function test_song_stage_view_toggles_two_columns_and_lyrics_only(): void
+    {
+        Livewire::test(SongStageView::class, [
+            'organization' => $this->organization,
+            'song' => $this->song,
+        ])
+            ->assertSuccessful()
+            ->assertSet('twoColumns', false)
+            ->call('toggleTwoColumns')
+            ->assertSet('twoColumns', true)
+            ->call('toggleTwoColumns')
+            ->assertSet('twoColumns', false)
+            ->assertSet('showLyricsOnly', false)
+            ->call('toggleLyricsOnly')
+            ->assertSet('showLyricsOnly', true);
+    }
+
+    public function test_song_stage_view_renders_harmonized_toolbar_and_return_button(): void
+    {
+        $response = $this->get(route('songs.stage', [
+            'organization' => $this->organization,
+            'song' => $this->song,
+        ]));
+
+        $response->assertSuccessful();
+        $response->assertSee('Repertório');
+        $response->assertSee('Avulsa');
+        $response->assertSee('Tela Ativa');
+        $response->assertSee('2 Colunas');
+        $response->assertSee('Letra');
+        $response->assertSee('Refrão');
+    }
 }

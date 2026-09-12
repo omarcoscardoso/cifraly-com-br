@@ -100,8 +100,7 @@ class EventsTable
                     ->url(fn (Event $record): string => route('events.stage', [
                         'organization' => Filament::getTenant(),
                         'event' => $record,
-                    ]))
-                    ->openUrlInNewTab(),
+                    ])),
 
                 EditAction::make()
                     ->url(fn (Event $record): string => EventResource::getUrl('edit', ['record' => $record])),

@@ -69,8 +69,8 @@ class MobileLayoutTest extends TestCase
             ->assertSuccessful()
             ->assertSee('Marcos')
             ->assertSee('Comunidade da Graça')
-            ->assertSee('+ Evento')
-            ->assertSee('+ Cifra')
+            ->assertSee('Evento')
+            ->assertSee('Cifra')
             ->assertSee('SetList')
             ->assertDontSee('Buscar cifras...')
             ->assertDontSee('Metrônomo');

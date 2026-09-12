@@ -1,8 +1,6 @@
 @php
     use App\Filament\Resources\Events\EventResource;
     use Filament\Facades\Filament;
-    use Filament\Support\Facades\FilamentView;
-    use Filament\Widgets\View\WidgetsRenderHook;
 
     $tenant = Filament::getTenant();
     $events = $this->getUpcomingEvents();
@@ -29,7 +27,7 @@
         @if ($events->isNotEmpty())
             <div
                 class="cifraly-events-carousel"
-                style="display: flex; flex-direction: row; flex-wrap: nowrap; gap: 14px; overflow-x: auto; overflow-y: hidden; -webkit-overflow-scrolling: touch; scroll-snap-type: x mandatory; padding: 4px 16px 14px 16px; margin: 0 -16px; scrollbar-width: none;"
+                style="display: flex; flex-direction: row; flex-wrap: nowrap; gap: 14px; overflow-x: auto; overflow-y: hidden; -webkit-overflow-scrolling: touch; scroll-snap-type: x mandatory; padding: 6px 16px 24px 16px; margin: 0 -16px -12px; scrollbar-width: none;"
             >
                 @foreach ($events as $index => $event)
                     @php
@@ -45,7 +43,7 @@
                         {{-- Card 1 Destaque: Gradiente Azul Cifraly com cantos arredondados e sombra sutil --}}
                         <div
                             class="cifraly-event-card cifraly-event-card-featured"
-                            style="flex: 0 0 280px; width: 280px; min-width: 280px; max-width: 280px; scroll-snap-align: start; border-radius: 20px; padding: 18px; display: flex; flex-direction: column; justify-content: space-between; min-height: 190px; box-sizing: border-box; background: linear-gradient(135deg, #1565e0 0%, #1992fe 60%, #00b4d8 100%); color: #ffffff; box-shadow: 0 10px 24px -4px rgba(25, 146, 254, 0.4); border: 1px solid rgba(255, 255, 255, 0.2);"
+                            style="flex: 0 0 280px; width: 280px; min-width: 280px; max-width: 280px; scroll-snap-align: start; border-radius: 20px; padding: 18px; display: flex; flex-direction: column; justify-content: space-between; min-height: 190px; box-sizing: border-box; background: linear-gradient(135deg, #1565e0 0%, #1992fe 60%, #00b4d8 100%); color: #ffffff; box-shadow: 0 8px 24px rgba(25, 146, 254, 0.35); border: 1px solid rgba(255, 255, 255, 0.2);"
                         >
                             <div>
                                 <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 12px;">
@@ -81,7 +79,6 @@
                                 @if ($stageUrl)
                                     <a
                                         href="{{ $stageUrl }}"
-                                        target="_blank"
                                         style="width: 34px; height: 34px; min-width: 34px; min-height: 34px; border-radius: 9999px; background: #ffffff; color: #1565e0; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2); text-decoration: none; transition: transform 0.15s ease;"
                                         title="Abrir Modo Palco"
                                     >
@@ -129,7 +126,6 @@
                                 @if ($stageUrl)
                                     <a
                                         href="{{ $stageUrl }}"
-                                        target="_blank"
                                         style="width: 34px; height: 34px; min-width: 34px; min-height: 34px; border-radius: 9999px; background: rgba(255, 255, 255, 0.1); color: #f8fafc; display: flex; align-items: center; justify-content: center; text-decoration: none; transition: background 0.15s ease;"
                                         title="Abrir Modo Palco"
                                     >
@@ -168,14 +164,5 @@
                 </div>
             </div>
         @endif
-    </div>
-
-    {{-- Tabela Padrão do Filament no Desktop para Gestão Administrativa Completa --}}
-    <div class="hidden lg:block mt-2">
-        {{ FilamentView::renderHook(WidgetsRenderHook::TABLE_WIDGET_START, scopes: static::class) }}
-
-        {{ $this->table ?? null }}
-
-        {{ FilamentView::renderHook(WidgetsRenderHook::TABLE_WIDGET_END, scopes: static::class) }}
     </div>
 </x-filament-widgets::widget>

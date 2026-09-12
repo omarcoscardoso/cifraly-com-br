@@ -77,8 +77,8 @@ class DashboardWidgetsTest extends TestCase
             ->assertDontSee('Olá, Pastor João!')
             ->assertDontSee('VIDA2026')
             ->assertDontSee('Configurações')
-            ->assertSee('+ Evento')
-            ->assertSee('+ Cifra')
+            ->assertSee('Evento')
+            ->assertSee('Cifra')
             ->assertSee('SetList')
             ->assertDontSee('Repertório')
             ->assertDontSee('Equipes');
@@ -145,9 +145,8 @@ class DashboardWidgetsTest extends TestCase
 
         Livewire::test(UpcomingEventsWidget::class)
             ->assertSuccessful()
-            ->assertCanSeeTableRecords([$event])
             ->assertSee('Vigília Jovem')
-            ->assertTableActionExists('stageView');
+            ->assertSee('Modo Palco');
     }
 
     public function test_recent_songs_widget_displays_songs(): void

@@ -201,8 +201,8 @@
         overflow-y: hidden !important;
         -webkit-overflow-scrolling: touch !important;
         scroll-snap-type: x mandatory !important;
-        padding: 4px 16px 14px 16px !important;
-        margin: 0 -16px !important;
+        padding: 6px 16px 24px 16px !important;
+        margin: 0 -16px -12px !important;
         scrollbar-width: none !important;
         -ms-overflow-style: none !important;
     }
@@ -217,6 +217,14 @@
         scroll-snap-align: start !important;
         border-radius: 20px !important;
         box-sizing: border-box !important;
+    }
+    .cifraly-event-card-featured {
+        border-radius: 20px !important;
+        box-shadow: 0 8px 24px rgba(25, 146, 254, 0.35) !important;
+    }
+    .cifraly-event-card-standard {
+        border-radius: 20px !important;
+        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25) !important;
     }
     @media (min-width: 400px) {
         .cifraly-event-card {

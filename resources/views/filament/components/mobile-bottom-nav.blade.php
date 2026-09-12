@@ -124,7 +124,6 @@
             @if ($stageUrl)
                 <a
                     href="{{ $stageUrl }}"
-                    target="_blank"
                     style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; border-radius: 16px; background: rgba(0, 230, 118, 0.08); border: 1px solid rgba(0, 230, 118, 0.3); padding: 14px; text-decoration: none; color: #00e676; transition: background 0.15s ease;"
                 >
                     <div style="width: 40px; height: 40px; border-radius: 12px; background: rgba(0, 230, 118, 0.15); color: #00e676; display: flex; align-items: center; justify-content: center;">

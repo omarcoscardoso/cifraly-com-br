@@ -21,27 +21,26 @@ class AddTeamToEventRosterAction
     {
         $team->loadMissing(['teamMembers.defaultRole', 'teamMembers.user']);
 
+        /** @var array<int, bool> $existingUserIds */
+        $existingUserIds = $skipExisting
+            ? EventRoster::where('event_id', $event->id)->pluck('user_id')->flip()->map(fn () => true)->toArray()
+            : [];
+
+        $defaultOrgRoleId = $fallbackRoleId
+            ? null
+            : Role::where('organization_id', $event->organization_id)->value('id');
+
         $addedCount = 0;
         $skippedCount = 0;
 
         foreach ($team->teamMembers as $member) {
-            if ($skipExisting) {
-                $exists = EventRoster::where('event_id', $event->id)
-                    ->where('user_id', $member->user_id)
-                    ->exists();
+            if ($skipExisting && isset($existingUserIds[$member->user_id])) {
+                $skippedCount++;
 
-                if ($exists) {
-                    $skippedCount++;
-
-                    continue;
-                }
+                continue;
             }
 
-            $roleId = $member->default_role_id ?? $fallbackRoleId;
-
-            if (! $roleId) {
-                $roleId = Role::where('organization_id', $event->organization_id)->value('id');
-            }
+            $roleId = $member->default_role_id ?? $fallbackRoleId ?? $defaultOrgRoleId;
 
             if (! $roleId) {
                 continue;
@@ -55,6 +54,10 @@ class AddTeamToEventRosterAction
                 'status' => EventRoster::STATUS_PENDING,
                 'confirmation_token' => Str::random(40),
             ]);
+
+            if ($skipExisting) {
+                $existingUserIds[$member->user_id] = true;
+            }
 
             $addedCount++;
         }

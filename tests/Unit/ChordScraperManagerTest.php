@@ -11,6 +11,7 @@ use App\Services\Music\Scrapers\ChordScraperManager;
 use App\Services\Music\Scrapers\Contracts\ChordScraperDriverInterface;
 use App\Services\Music\Scrapers\Drivers\CifraClubDriver;
 use App\Services\Music\Scrapers\Drivers\GenericHtmlDriver;
+use Illuminate\Support\Facades\Cache;
 use Tests\TestCase;
 
 class ChordScraperManagerTest extends TestCase
@@ -76,5 +77,66 @@ class ChordScraperManagerTest extends TestCase
         $this->assertSame('Mock Title', $scraped->title);
         $this->assertSame('Mock Artist', $scraped->artist);
         $this->assertSame('G', $scraped->originalKey);
+    }
+
+    public function test_search_caches_results_for_one_hour(): void
+    {
+        Cache::flush();
+
+        $callCount = 0;
+        $mockDriver = new class($callCount) implements ChordScraperDriverInterface
+        {
+            public function __construct(public int &$callCount) {}
+
+            public function supportsUrl(string $url): bool
+            {
+                return true;
+            }
+
+            public function search(string $query): array
+            {
+                $this->callCount++;
+
+                return [
+                    [
+                        'title' => 'Search Result',
+                        'artist' => 'Artist',
+                        'url' => 'https://example.com/chords',
+                        'source' => 'Mock',
+                    ],
+                ];
+            }
+
+            public function scrape(string $url): ScrapedChordData
+            {
+                return new ScrapedChordData('Title', 'Artist', 'C', 'C', 'C');
+            }
+
+            public function parseHtml(string $html, string $url = ''): ScrapedChordData
+            {
+                return new ScrapedChordData('Title', 'Artist', 'C', 'C', 'C');
+            }
+        };
+
+        $this->manager->registerDriver($mockDriver);
+
+        // First call executes driver search
+        $results1 = $this->manager->search('Galhos Secos');
+        $this->assertCount(1, $results1);
+        $this->assertSame(1, $callCount);
+
+        // Second call with same query should hit cache
+        $results2 = $this->manager->search('Galhos Secos');
+        $this->assertCount(1, $results2);
+        $this->assertSame(1, $callCount, 'Search results should be retrieved from cache without re-querying driver');
+    }
+
+    public function test_search_with_direct_url_returns_immediate_result_without_driver(): void
+    {
+        $results = $this->manager->search('https://www.cifraclub.com.br/aline-barros/consagracao/');
+
+        $this->assertCount(1, $results);
+        $this->assertSame('Cifra Direta', $results[0]['title']);
+        $this->assertSame('Cifra Club', $results[0]['source']);
     }
 }

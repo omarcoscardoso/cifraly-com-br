@@ -8,6 +8,7 @@ use App\Services\Music\DTOs\ScrapedChordData;
 use App\Services\Music\Scrapers\Contracts\ChordScraperDriverInterface;
 use App\Services\Music\Scrapers\Drivers\CifraClubDriver;
 use App\Services\Music\Scrapers\Drivers\GenericHtmlDriver;
+use Illuminate\Support\Facades\Cache;
 use InvalidArgumentException;
 
 class ChordScraperManager
@@ -69,14 +70,18 @@ class ChordScraperManager
             ];
         }
 
-        foreach ($this->drivers as $driver) {
-            $results = $driver->search($trimmed);
-            if (! empty($results)) {
-                return $results;
-            }
-        }
+        $cacheKey = 'chord_search:'.md5(mb_strtolower($trimmed));
 
-        return [];
+        return Cache::remember($cacheKey, now()->addHour(), function () use ($trimmed): array {
+            foreach ($this->drivers as $driver) {
+                $results = $driver->search($trimmed);
+                if (! empty($results)) {
+                    return $results;
+                }
+            }
+
+            return [];
+        });
     }
 
     /**

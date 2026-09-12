@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Filament\Resources\Songs\Tables;
 
 use App\Filament\Resources\Songs\SongResource;
+use App\Filament\Tables\Columns\ResponsiveTextColumn;
 use App\Models\Song;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
@@ -14,7 +15,6 @@ use Filament\Support\Enums\FontWeight;
 use Filament\Support\Enums\TextSize;
 use Filament\Tables\Columns\Layout\Split;
 use Filament\Tables\Columns\Layout\Stack;
-use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 
@@ -30,13 +30,13 @@ class SongsTable
             ->columns([
                 Split::make([
                     Stack::make([
-                        TextColumn::make('title')
+                        ResponsiveTextColumn::make('title')
                             ->label('Nome da música')
                             ->searchable()
                             ->sortable()
                             ->weight(FontWeight::Bold),
 
-                        TextColumn::make('artist')
+                        ResponsiveTextColumn::make('artist')
                             ->label('Autor')
                             ->searchable()
                             ->sortable()
@@ -45,10 +45,10 @@ class SongsTable
                             ->size(TextSize::ExtraSmall)
                             ->color('gray')
                             ->placeholder('Não informado')
-                            ->toggleable(),
+                            ->toggleable(isToggledHiddenByDefault: true),
                     ])->space(1),
 
-                    TextColumn::make('original_key')
+                    ResponsiveTextColumn::make('original_key')
                         ->label('Tom')
                         ->badge()
                         ->color('primary')
@@ -56,24 +56,24 @@ class SongsTable
                         ->grow(false)
                         ->toggleable(),
 
-                    Stack::make([
-                        TextColumn::make('bpm')
-                            ->label('BPM')
-                            ->icon('heroicon-m-bolt')
-                            ->numeric()
-                            ->sortable()
-                            ->placeholder('-')
-                            ->toggleable(isToggledHiddenByDefault: true),
+                    ResponsiveTextColumn::make('bpm')
+                        ->label('BPM')
+                        ->icon('heroicon-m-bolt')
+                        ->numeric()
+                        ->sortable()
+                        ->placeholder('-')
+                        ->grow(false)
+                        ->toggleable(isToggledHiddenByDefault: true),
 
-                        TextColumn::make('time_signature')
-                            ->label('Compasso')
-                            ->icon('heroicon-m-clock')
-                            ->sortable()
-                            ->placeholder('-')
-                            ->toggleable(isToggledHiddenByDefault: true),
-                    ])->grow(false),
+                    ResponsiveTextColumn::make('time_signature')
+                        ->label('Compasso')
+                        ->icon('heroicon-m-clock')
+                        ->sortable()
+                        ->placeholder('-')
+                        ->grow(false)
+                        ->toggleable(isToggledHiddenByDefault: true),
 
-                    TextColumn::make('created_at')
+                    ResponsiveTextColumn::make('created_at')
                         ->label('Data de criação')
                         ->icon('heroicon-m-calendar')
                         ->dateTime('d/m/Y H:i')

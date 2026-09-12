@@ -58,7 +58,7 @@ class SongResourceTest extends TestCase
 
         $response->assertStatus(200);
         $response->assertSee('Graça Maravilhosa');
-        $response->assertSee('John Newton');
+        $response->assertDontSee('John Newton');
     }
 
     public function test_songs_table_renders_responsive_layout_and_populates_toggleable_manager(): void
@@ -83,6 +83,8 @@ class SongResourceTest extends TestCase
         $this->assertSame(FontWeight::Normal, $columns['artist']->getWeight());
         $this->assertSame(TextSize::ExtraSmall, $columns['artist']->getSize(null));
         $this->assertSame('heroicon-m-user', $columns['artist']->getIcon(null));
+        $this->assertTrue($columns['artist']->isToggleable());
+        $this->assertTrue($columns['artist']->isToggledHiddenByDefault());
 
         $this->assertTrue($columns['original_key']->isBadge());
         $this->assertNull($columns['original_key']->getIcon(null));
@@ -101,11 +103,35 @@ class SongResourceTest extends TestCase
 
         $columnState = collect($tableColumns)->pluck('isToggled', 'name')->all();
         $this->assertTrue($columnState['title']);
-        $this->assertTrue($columnState['artist']);
+        $this->assertFalse($columnState['artist']);
         $this->assertTrue($columnState['original_key']);
         $this->assertFalse($columnState['bpm']);
         $this->assertFalse($columnState['time_signature']);
         $this->assertFalse($columnState['created_at']);
+    }
+
+    public function test_toggling_artist_column_displays_artist_name(): void
+    {
+        Song::factory()->create([
+            'organization_id' => $this->organization->id,
+            'title' => 'Graça Maravilhosa',
+            'artist' => 'John Newton',
+            'original_key' => 'G',
+        ]);
+
+        $test = Livewire::actingAs($this->user)->test(ListSongs::class);
+        $test->assertSee('Graça Maravilhosa');
+        $test->assertDontSee('John Newton');
+
+        $tableColumns = $test->get('tableColumns');
+        foreach ($tableColumns as &$column) {
+            if ($column['name'] === 'artist') {
+                $column['isToggled'] = true;
+            }
+        }
+        $test->call('applyTableColumnManager', $tableColumns);
+
+        $test->assertSee('John Newton');
     }
 
     public function test_songs_are_scoped_to_active_organization_tenant(): void

@@ -119,7 +119,7 @@ class DashboardWidgetsTest extends TestCase
 
         Livewire::test(OrganizationStatsOverviewWidget::class)
             ->assertSuccessful()
-            ->assertSee('Próximos Eventos')
+            ->assertDontSee('Próximos Eventos')
             ->assertSee('Músicas no Repertório')
             ->assertSee('Voluntários & Equipes')
             ->assertSee('Presença em Escalas')

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Http\Controllers\Auth\GoogleAuthController;
 use App\Livewire\Public\RosterConfirmation;
+use App\Livewire\Stage\SongStageView;
 use App\Livewire\Stage\StageView;
 use App\Models\Organization;
 use Illuminate\Support\Facades\Route;
@@ -30,6 +31,7 @@ Route::get('/r/{token}', RosterConfirmation::class)
 
 Route::middleware(['web', 'auth'])->group(function (): void {
     Route::get('/app/{organization:slug}/events/{event}/stage', StageView::class)->name('events.stage');
+    Route::get('/app/{organization:slug}/songs/{song}/stage', SongStageView::class)->name('songs.stage');
 });
 
 Route::get('/join/{code}', function (string $code) {

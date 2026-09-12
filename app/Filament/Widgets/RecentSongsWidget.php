@@ -35,6 +35,10 @@ class RecentSongsWidget extends TableWidget
                     ->latest()
                     ->limit(5)
             )
+            ->recordUrl(fn (Song $record): string => route('songs.stage', [
+                'organization' => Filament::getTenant(),
+                'song' => $record,
+            ]))
             ->columns([
                 TextColumn::make('title')
                     ->label('Música')

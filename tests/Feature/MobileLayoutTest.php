@@ -54,7 +54,7 @@ class MobileLayoutTest extends TestCase
 
         $response->assertSuccessful();
         $response->assertSee('Início');
-        $response->assertSee('Cifras');
+        $response->assertSee('Músicas');
         $response->assertSee('Eventos');
         $response->assertSee('Perfil');
         $response->assertSee('Ações Rápidas');

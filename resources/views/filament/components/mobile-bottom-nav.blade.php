@@ -170,7 +170,7 @@
                 <svg width="22" height="22" style="width: 22px; height: 22px; min-width: 22px; min-height: 22px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="{{ $isSongsActive ? '2.4' : '2' }}">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
-                <span style="font-size: 10px; font-weight: {{ $isSongsActive ? '700' : '500' }}; margin-top: 3px; letter-spacing: -0.01em;">Cifras</span>
+                <span style="font-size: 10px; font-weight: {{ $isSongsActive ? '700' : '500' }}; margin-top: 3px; letter-spacing: -0.01em;">Músicas</span>
             </a>
 
             {{-- 3. Floating Action Button (FAB) Central (+) --}}

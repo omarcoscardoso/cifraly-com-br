@@ -79,10 +79,23 @@
         }
         .fi-topbar .fi-topbar-item-btn,
         .fi-topbar button,
-        .fi-topbar a,
-        .fi-topbar svg {
+        .fi-topbar a:not(.fi-logo) {
+            color: #ffffff !important;
+        }
+        .fi-topbar button svg,
+        .fi-topbar .fi-topbar-item-btn svg,
+        .fi-topbar .fi-icon-btn svg {
             color: #ffffff !important;
             stroke: currentColor !important;
+        }
+        .fi-logo,
+        .fi-logo *,
+        .fi-logo svg,
+        .fi-logo svg * {
+            stroke: none !important;
+            border: none !important;
+            outline: none !important;
+            box-shadow: none !important;
         }
 
         /* Oculta completamente cabeçalho com "Painel de Controle" ou títulos na dashboard */

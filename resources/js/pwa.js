@@ -30,6 +30,11 @@ class PwaManager {
             return;
         }
 
+        if (window.__cifraly_sw_registered) {
+            return;
+        }
+        window.__cifraly_sw_registered = true;
+
         window.addEventListener('load', async () => {
             try {
                 this.swRegistration = await navigator.serviceWorker.register('/sw.js', { scope: '/' });
@@ -47,15 +52,6 @@ class PwaManager {
                 });
             } catch (err) {
                 console.warn('[PWA] Service Worker registration failed:', err);
-            }
-        });
-
-        // Reload on controller change if update accepted
-        let refreshing = false;
-        navigator.serviceWorker.addEventListener('controllerchange', () => {
-            if (!refreshing) {
-                refreshing = true;
-                window.location.reload();
             }
         });
     }

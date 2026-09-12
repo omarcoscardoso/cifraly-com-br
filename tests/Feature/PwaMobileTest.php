@@ -153,6 +153,9 @@ class PwaMobileTest extends TestCase
 
         $iconSvg = (string) file_get_contents($iconPath);
         $this->assertStringContainsString('pickGrad2', $iconSvg);
+
+        // Garantir que a tipografia principal não tenha text-transform: uppercase forçado
+        $this->assertStringNotContainsString('.p2-font-main {\n        font-family: \'Space Grotesk\', \'Montserrat\', sans-serif;\n        font-size: 51px;\n        font-weight: 900;\n        letter-spacing: -0.05em;\n        text-transform: uppercase;', $logoSvg);
     }
 
     public function test_dark_mode_is_default_on_welcome_and_renders_brand_logo(): void
@@ -163,6 +166,7 @@ class PwaMobileTest extends TestCase
         $response->assertSee('class="dark', false);
         $response->assertSee('bg-slate-950', false);
         $response->assertSee('brandPickGrad', false);
+        $response->assertSee('aria-label="CifraLy"', false);
         $response->assertSee('SETLIST &amp; ESCALAS', false);
     }
 
@@ -172,6 +176,16 @@ class PwaMobileTest extends TestCase
 
         $response->assertStatus(200);
         $response->assertSee('brandPickGrad', false);
+        $response->assertSee('aria-label="CifraLy"', false);
         $response->assertSee('SETLIST &amp; ESCALAS', false);
+    }
+
+    public function test_mobile_topbar_styles_scale_logo_down_and_group_with_hamburger(): void
+    {
+        $view = view('pwa.meta')->render();
+
+        $this->assertStringContainsString('gap: 0.35rem !important;', $view);
+        $this->assertStringContainsString('height: 2.7rem !important;', $view);
+        $this->assertStringContainsString('margin-left: -0.25rem !important;', $view);
     }
 }

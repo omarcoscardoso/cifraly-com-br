@@ -96,6 +96,31 @@
             box-shadow: none !important;
         }
 
+        /* Reduzir o logo em 5% em telas pequenas (2.85rem * 0.95 = ~2.7rem) e aproximar do menu hambúrguer */
+        .fi-topbar-start {
+            display: flex !important;
+            align-items: center !important;
+            gap: 0.35rem !important; /* Aproxima do botão do menu hambúrguer */
+        }
+        .fi-topbar-start button,
+        .fi-topbar-start .fi-icon-btn,
+        .fi-topbar-start .fi-topbar-open-sidebar-btn {
+            margin-right: 0 !important;
+            padding-right: 0.25rem !important;
+        }
+        .fi-topbar .fi-logo,
+        .fi-topbar-start .fi-logo {
+            height: 2.7rem !important; /* 5% menor em telas pequenas */
+            max-width: 100% !important;
+            margin-left: -0.25rem !important; /* Reduz a distância do botão hambúrguer */
+            color: #ffffff !important;
+        }
+        .fi-topbar .fi-logo svg,
+        .fi-topbar-start .fi-logo svg {
+            height: 2.7rem !important;
+            width: auto !important;
+        }
+
         /* Oculta completamente cabeçalho com "Painel de Controle" ou títulos na dashboard */
         .fi-page:has(#cifraly-hero-card) .fi-header,
         .fi-page:has(.fi-wi-organization-header) .fi-header {

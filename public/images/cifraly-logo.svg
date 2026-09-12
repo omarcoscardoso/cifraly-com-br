@@ -100,7 +100,6 @@
         font-size: 51px;
         font-weight: 900;
         letter-spacing: -0.05em;
-        text-transform: uppercase;
       }
       .p2-sub {
         font-family: 'Space Grotesk', monospace;
@@ -145,7 +144,7 @@
        id="g9">
       <g
          id="text7"
-         style="font-weight:900;font-size:51px;font-family:'Space Grotesk', Montserrat, sans-serif;letter-spacing:-0.05em;text-transform:uppercase;fill:#2cbbef"
+         style="font-weight:900;font-size:51px;font-family:'Space Grotesk', Montserrat, sans-serif;letter-spacing:-0.05em;fill:#2cbbef"
          class="p2-font-main"
          aria-label="CifraLy">
         <path

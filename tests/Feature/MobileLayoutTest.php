@@ -57,10 +57,8 @@ class MobileLayoutTest extends TestCase
         $response->assertSee('Músicas');
         $response->assertSee('Eventos');
         $response->assertSee('Perfil');
-        $response->assertSee('Ações Rápidas');
-        $response->assertSee('Novo Evento');
-        $response->assertSee('Nova Cifra');
-        $response->assertSee('Metrônomo');
+        $response->assertDontSee('Ações Rápidas');
+        $response->assertDontSee('aria-label="Ações Rápidas"', false);
     }
 
     public function test_mobile_hero_header_renders_greeting_and_first_name(): void

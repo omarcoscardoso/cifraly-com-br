@@ -178,6 +178,10 @@
             padding-bottom: max(env(safe-area-inset-bottom, 0px), 4px) !important;
         }
 
+        #pwa-install-banner {
+            bottom: calc(env(safe-area-inset-bottom, 0px) + 76px) !important;
+        }
+
         /* Responsividade dos stat cards */
         .fi-wi-stats-overview-stat .fi-wi-stats-overview-stat-value,
         .cifraly-stat-card .fi-wi-stats-overview-stat-value {
@@ -245,6 +249,12 @@
             width: 300px !important;
             min-width: 300px !important;
             max-width: 300px !important;
+        }
+    }
+
+    @media (min-width: 1024px) {
+        #pwa-install-banner {
+            bottom: calc(env(safe-area-inset-bottom, 12px) + 16px) !important;
         }
     }
 

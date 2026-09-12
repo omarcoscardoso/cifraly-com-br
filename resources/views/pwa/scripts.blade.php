@@ -157,7 +157,7 @@
 
 <!-- Mobile Install Banner (Bottom Sheet style) -->
 <div id="pwa-install-banner"
-     style="display: none; position: fixed; bottom: calc(env(safe-area-inset-bottom, 12px) + 12px); left: 16px; right: 16px; max-width: 480px; margin: 0 auto; background: rgba(15, 23, 42, 0.95); border: 1px solid rgba(245, 158, 11, 0.35); border-radius: 20px; padding: 14px 16px; box-shadow: 0 16px 36px rgba(0,0,0,0.6); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); z-index: 9999; align-items: center; justify-content: space-between; gap: 12px;">
+     style="display: none; position: fixed; bottom: calc(env(safe-area-inset-bottom, 12px) + 76px); left: 16px; right: 16px; max-width: 480px; margin: 0 auto; background: rgba(15, 23, 42, 0.95); border: 1px solid rgba(245, 158, 11, 0.35); border-radius: 20px; padding: 14px 16px; box-shadow: 0 16px 36px rgba(0,0,0,0.6); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); z-index: 9999; align-items: center; justify-content: space-between; gap: 12px;">
     <div style="display: flex; align-items: center; gap: 12px; min-width: 0;">
         <img src="/icons/icon-192x192.png" alt="Cifraly" style="width: 42px; height: 42px; border-radius: 10px; flex-shrink: 0; box-shadow: 0 2px 8px rgba(0,0,0,0.4);" />
         <div style="min-width: 0;">

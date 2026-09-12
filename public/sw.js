@@ -3,9 +3,10 @@
  * Focus: Mobile performance, offline resilience, and future extensible sync/push capabilities.
  */
 
-const CACHE_VERSION = 'cifraly-v1.0.2';
+const CACHE_VERSION = 'cifraly-v1.0.3';
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const RUNTIME_CACHE = `${CACHE_VERSION}-runtime`;
+const STAGE_CACHE = `${CACHE_VERSION}-stage`;
 const OFFLINE_FALLBACK_URL = '/offline.html';
 
 // Critical core assets to precache on install
@@ -50,7 +51,7 @@ self.addEventListener('activate', (event) => {
     event.waitUntil(
         caches.keys().then((keys) => {
             return Promise.all(
-                keys.filter((key) => key !== STATIC_CACHE && key !== RUNTIME_CACHE)
+                keys.filter((key) => key !== STATIC_CACHE && key !== RUNTIME_CACHE && key !== STAGE_CACHE)
                     .map((key) => caches.delete(key))
             );
         }).then(() => self.clients.claim())
@@ -74,12 +75,42 @@ self.addEventListener('fetch', (event) => {
         return;
     }
 
-    // Never cache excluded patterns
-    if (EXCLUDED_PATTERNS.some((pattern) => pattern.test(url.pathname))) {
+    // Check if the request is for a stage screen (chord sheet) e.g. /app/{org}/events/{id}/stage or /app/{org}/songs/{id}/stage
+    const isStageRoute = /\/app\/[^\/]+\/(events|songs)\/[^\/]+\/stage/.test(url.pathname);
+
+    // Never cache excluded patterns (except stage routes which are allowed for offline chord access)
+    if (!isStageRoute && EXCLUDED_PATTERNS.some((pattern) => pattern.test(url.pathname))) {
         return;
     }
 
-    // A. HTML Navigation requests: Network-first, fallback to cache, then offline page
+    // A. Stage Views / Chord Sheets: Network-first with dedicated STAGE_CACHE fallback
+    if (isStageRoute) {
+        event.respondWith(
+            fetch(request)
+                .then((response) => {
+                    // Only cache successful responses
+                    if (response && response.status === 200 && response.type === 'basic') {
+                        const copy = response.clone();
+                        caches.open(STAGE_CACHE).then((cache) => cache.put(request, copy));
+                    }
+                    return response;
+                })
+                .catch(async () => {
+                    const cachedResponse = await caches.match(request);
+                    if (cachedResponse) {
+                        return cachedResponse;
+                    }
+                    const fallback = await caches.match(OFFLINE_FALLBACK_URL);
+                    return fallback || new Response('Cifra indisponível offline.', {
+                        status: 503,
+                        headers: { 'Content-Type': 'text/plain; charset=utf-8' }
+                    });
+                })
+        );
+        return;
+    }
+
+    // B. HTML Navigation requests: Network-first, fallback to cache, then offline page
     if (request.mode === 'navigate') {
         event.respondWith(
             fetch(request)

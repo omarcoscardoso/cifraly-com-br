@@ -1,4 +1,4 @@
-@props(['class' => 'h-8 w-auto'])
+@props(['class' => 'h-8 w-auto text-gray-800'])
 @php
     $attributes = ($attributes ?? new \Illuminate\View\ComponentAttributeBag())->merge(['class' => $class]);
 @endphp

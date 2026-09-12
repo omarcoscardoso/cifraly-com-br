@@ -4,6 +4,7 @@
         scrollInterval: null,
         isAutoScrolling: @entangle('isAutoScrolling'),
         scrollSpeed: @entangle('scrollSpeed'),
+        showLyricsOnly: false,
         isFullscreen: false,
         toggleFullscreen() {
             if (!document.fullscreenElement) {
@@ -13,9 +14,27 @@
             }
         },
         jumpToChorus() {
+            const container = this.$refs.chordContainer;
             const chorusEl = document.querySelector('.stage-chorus-target');
-            if (chorusEl) {
-                chorusEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            if (!container || !chorusEl) return;
+
+            const wasScrolling = this.isAutoScrolling;
+            if (wasScrolling) {
+                this.stopAutoScroll();
+            }
+
+            const targetScrollTop = chorusEl.offsetTop - (container.clientHeight / 3);
+            container.scrollTo({
+                top: Math.max(0, targetScrollTop),
+                behavior: 'smooth'
+            });
+
+            if (wasScrolling) {
+                setTimeout(() => {
+                    if (this.isAutoScrolling) {
+                        this.startAutoScroll();
+                    }
+                }, 600);
             }
         },
         openMetronome(bpm, timeSignature) {
@@ -231,6 +250,20 @@
                 </button>
             </div>
 
+            <!-- Toggle Letra (Ocultar Cifras) -->
+            <button
+                type="button"
+                @click="showLyricsOnly = !showLyricsOnly"
+                class="flex items-center gap-1.5 text-xs font-black px-3 py-1.5 rounded-xl transition tap-scale cursor-pointer border"
+                :class="showLyricsOnly ? 'bg-cyan-500/20 border-cyan-500 text-[#00d2ff] shadow-md shadow-cyan-500/20' : 'bg-[#08080a] border-[#1e222c] hover:bg-[#181b24] text-slate-300'"
+                title="Alternar entre Cifra Completa e Apenas Letra"
+            >
+                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                <span x-text="showLyricsOnly ? 'Cifras' : 'Letra'">Letra</span>
+            </button>
+
             <!-- Auto-Scroll Toggle & Speed -->
             <div class="flex items-center gap-1.5 bg-[#08080a] border border-[#1e222c] px-2 py-1 rounded-xl">
                 <button
@@ -359,6 +392,7 @@
                 <!-- Chord Text Container with Monospace Font and Zoom -->
                 <div
                     x-ref="chordContainer"
+                    :class="{ 'hide-chords': showLyricsOnly }"
                     class="flex-1 overflow-y-auto px-4 sm:px-8 py-6 font-mono leading-relaxed no-scrollbar"
                     style="font-size: {{ $fontSize }}px;"
                 >
@@ -370,8 +404,8 @@
                 <!-- ALTAR Floating Navigation & Chorus Jump Bar (Docked Bottom) -->
                 <div class="absolute bottom-6 inset-x-0 px-4 sm:px-8 flex items-center justify-between pointer-events-none z-20">
                     
-                    <!-- Left: Quick Jump to Chorus Button -->
-                    <div class="pointer-events-auto">
+                    <!-- Left: Quick Jump to Chorus Button & Mobile Letra Toggle -->
+                    <div class="flex items-center gap-2 pointer-events-auto">
                         <button
                             @click="jumpToChorus()"
                             class="px-4 py-2.5 rounded-2xl bg-[#12141a]/95 hover:bg-[#ffb300] border border-[#ffb300]/40 text-[#ffb300] hover:text-black font-black text-xs uppercase tracking-widest shadow-xl shadow-amber-500/10 backdrop-blur-md tap-scale transition-all cursor-pointer flex items-center gap-2"
@@ -379,6 +413,15 @@
                         >
                             <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
                             Refrão
+                        </button>
+                        <button
+                            type="button"
+                            @click="showLyricsOnly = !showLyricsOnly"
+                            class="sm:hidden px-3 py-2.5 rounded-2xl border font-black text-xs uppercase tracking-wider shadow-xl backdrop-blur-md tap-scale transition-all cursor-pointer flex items-center gap-1.5"
+                            :class="showLyricsOnly ? 'bg-cyan-500 text-black border-cyan-400 font-bold shadow-cyan-500/20' : 'bg-[#12141a]/95 border-[#1e222c] text-slate-300'"
+                            title="Alternar entre Cifra e Apenas Letra"
+                        >
+                            Letra
                         </button>
                     </div>
 

@@ -5,6 +5,7 @@
         isAutoScrolling: @entangle('isAutoScrolling'),
         scrollSpeed: @entangle('scrollSpeed'),
         isFullscreen: false,
+        showLyricsOnly: false,
         toggleFullscreen() {
             if (!document.fullscreenElement) {
                 document.documentElement.requestFullscreen().then(() => this.isFullscreen = true).catch(() => {});
@@ -14,8 +15,27 @@
         },
         jumpToChorus() {
             const chorusEl = document.querySelector('.stage-chorus-target');
-            if (chorusEl) {
-                chorusEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            if (!chorusEl) return;
+            const container = this.$refs.chordContainer;
+            if (!container) return;
+
+            const wasScrolling = this.isAutoScrolling;
+            if (wasScrolling) {
+                this.stopAutoScroll();
+            }
+
+            const targetScrollTop = chorusEl.offsetTop - (container.clientHeight / 3);
+            container.scrollTo({
+                top: Math.max(0, targetScrollTop),
+                behavior: 'smooth'
+            });
+
+            if (wasScrolling) {
+                setTimeout(() => {
+                    if (this.isAutoScrolling) {
+                        this.startAutoScroll();
+                    }
+                }, 600);
             }
         },
         openMetronome(bpm, timeSignature) {
@@ -160,6 +180,20 @@
                 </button>
             </div>
 
+            <!-- Toggle Letra (Ocultar Cifras) -->
+            <button
+                type="button"
+                @click="showLyricsOnly = !showLyricsOnly"
+                class="hidden sm:flex items-center gap-1.5 text-xs font-black px-3 py-2 rounded-2xl transition tap-scale cursor-pointer border"
+                :class="showLyricsOnly ? 'bg-cyan-500/20 border-cyan-500 text-[#00d2ff] shadow-md shadow-cyan-500/20' : 'bg-[#12141a] border-[#1e222c] hover:bg-[#181b24] text-slate-300'"
+                title="Alternar entre Cifra Completa e Apenas Letra"
+            >
+                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7" />
+                </svg>
+                <span>Letra</span>
+            </button>
+
             <!-- Auto-Scroll Toggle Button -->
             <button
                 wire:click="toggleAutoScroll"
@@ -201,6 +235,7 @@
     <!-- Main Chord & Lyric Reading Pane -->
     <main 
         x-ref="chordContainer"
+        :class="{ 'hide-chords': showLyricsOnly }"
         class="flex-1 overflow-y-auto px-4 sm:px-12 py-6 sm:py-10 bg-[#08080a] relative scroll-smooth focus:outline-none"
         tabindex="0"
     >
@@ -234,6 +269,16 @@
                 +
             </button>
         </div>
+
+        <button
+            type="button"
+            @click="showLyricsOnly = !showLyricsOnly"
+            class="px-3 py-1.5 rounded-full border text-xs font-black transition tap-scale cursor-pointer"
+            :class="showLyricsOnly ? 'bg-cyan-500 text-black border-cyan-400 font-bold shadow-cyan-500/20' : 'bg-[#181b24] border-slate-700/50 text-slate-300'"
+            title="Alternar entre Cifra e Letra"
+        >
+            Letra
+        </button>
 
         <button
             @click="jumpToChorus()"

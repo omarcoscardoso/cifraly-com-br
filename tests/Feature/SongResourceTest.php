@@ -146,20 +146,12 @@ class SongResourceTest extends TestCase
         $this->assertSame('D', $version->fresh()->base_key);
     }
 
-    public function test_transpose_action_links_to_song_stage_view(): void
+    public function test_songs_table_row_click_links_to_song_stage_view(): void
     {
         $song = Song::factory()->create([
             'organization_id' => $this->organization->id,
             'title' => 'Quão Grande É o Meu Deus',
             'original_key' => 'C',
-        ]);
-
-        SongVersion::factory()->create([
-            'song_id' => $song->id,
-            'label' => 'Padrão',
-            'base_key' => 'C',
-            'chordpro_content' => '[C] Quão grande [G] és Tu',
-            'is_default' => true,
         ]);
 
         $expectedUrl = route('songs.stage', [
@@ -169,10 +161,11 @@ class SongResourceTest extends TestCase
 
         $test = Livewire::actingAs($this->user)
             ->test(ListSongs::class)
-            ->assertTableActionExists('transposePreview');
+            ->assertTableActionDoesNotExist('transposePreview')
+            ->assertTableActionExists('edit');
 
-        $action = $test->instance()->getTable()->getAction('transposePreview');
-        $this->assertEquals($expectedUrl, $action->record($song)->getUrl());
+        $table = $test->instance()->getTable();
+        $this->assertEquals($expectedUrl, $table->getRecordUrl($song));
     }
 
     public function test_can_filter_songs_by_original_key(): void

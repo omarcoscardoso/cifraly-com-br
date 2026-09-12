@@ -109,7 +109,7 @@
             {{-- Abrir Metrônomo --}}
             <button
                 type="button"
-                x-on:click="$dispatch('open-altar-metronome', { bpm: 120, timeSignature: '4/4' }); open = false"
+                x-on:click="window.dispatchEvent(new CustomEvent('open-altar-metronome', { detail: { bpm: 120, timeSignature: '4/4' } })); open = false"
                 style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; border-radius: 16px; background: rgba(255, 255, 255, 0.04); border: 1px solid #1e222c; padding: 14px; color: #f1f5f9; cursor: pointer; transition: background 0.15s ease;"
             >
                 <div style="width: 40px; height: 40px; border-radius: 12px; background: rgba(255, 179, 0, 0.12); color: #ffb300; display: flex; align-items: center; justify-content: center;">

@@ -43,24 +43,60 @@
             word-spacing: normal !important;
         }
         .stage-section-badge {
-            font-weight: 700 !important;
-            color: #22d3ee !important;
-            background-color: rgba(8, 51, 68, 0.4) !important;
-            border-left: 2px solid #22d3ee !important;
-            padding: 0.25rem 0.75rem !important;
-            margin: 0.5rem 0 !important;
-            border-top-right-radius: 0.25rem !important;
-            border-bottom-right-radius: 0.25rem !important;
-            letter-spacing: 0.05em !important;
-            font-size: 0.9em !important;
-            display: inline-block !important;
+            font-family: 'Plus Jakarta Sans', system-ui, sans-serif !important;
+            font-weight: 800 !important;
+            color: #00d2ff !important;
+            background-color: rgba(0, 210, 255, 0.08) !important;
+            border-left: 4px solid #00d2ff !important;
+            border-top: 1px solid rgba(0, 210, 255, 0.2) !important;
+            border-bottom: 1px solid rgba(0, 210, 255, 0.2) !important;
+            border-right: none !important;
+            padding: 0.35rem 0.85rem !important;
+            margin: 1.25rem 0 0.65rem 0 !important;
+            border-radius: 6px !important;
+            letter-spacing: 0.08em !important;
+            font-size: 0.82em !important;
+            display: block !important;
+            width: 100% !important;
+            box-sizing: border-box !important;
+            text-transform: uppercase !important;
+        }
+        .stage-section-chorus {
+            font-family: 'Plus Jakarta Sans', system-ui, sans-serif !important;
+            font-weight: 800 !important;
+            color: #ffb300 !important;
+            background-color: rgba(255, 179, 0, 0.12) !important;
+            border-left: 4px solid #ffb300 !important;
+            border-top: 1px solid rgba(255, 179, 0, 0.25) !important;
+            border-bottom: 1px solid rgba(255, 179, 0, 0.25) !important;
+            border-right: none !important;
+            padding: 0.35rem 0.85rem !important;
+            margin: 1.25rem 0 0.65rem 0 !important;
+            border-radius: 6px !important;
+            letter-spacing: 0.08em !important;
+            font-size: 0.82em !important;
+            display: block !important;
+            width: 100% !important;
+            box-sizing: border-box !important;
+            text-transform: uppercase !important;
         }
         .stage-section-tag {
-            font-weight: 700 !important;
-            color: rgba(245, 158, 11, 0.8) !important;
-            letter-spacing: 0.05em !important;
-            font-size: 0.85em !important;
-            margin: 0.25rem 0 !important;
+            font-family: 'Plus Jakarta Sans', system-ui, sans-serif !important;
+            font-weight: 800 !important;
+            color: #cbd5e1 !important;
+            background-color: rgba(148, 163, 184, 0.1) !important;
+            border-left: 4px solid #94a3b8 !important;
+            border-top: 1px solid rgba(148, 163, 184, 0.15) !important;
+            border-bottom: 1px solid rgba(148, 163, 184, 0.15) !important;
+            border-right: none !important;
+            padding: 0.35rem 0.85rem !important;
+            margin: 1.25rem 0 0.65rem 0 !important;
+            border-radius: 6px !important;
+            letter-spacing: 0.08em !important;
+            font-size: 0.82em !important;
+            display: block !important;
+            width: 100% !important;
+            box-sizing: border-box !important;
             text-transform: uppercase !important;
         }
         .stage-chord {
@@ -69,6 +105,14 @@
         }
         .stage-chord-token {
             color: #fde68a !important;
+        }
+
+        /* Ocultar cifras quando o modo apenas 'Letra' estiver ativo */
+        .hide-chords .stage-chord-line {
+            display: none !important;
+        }
+        .hide-chords .stage-lyric-line {
+            margin-bottom: 0.4rem !important;
         }
     </style>
 </head>

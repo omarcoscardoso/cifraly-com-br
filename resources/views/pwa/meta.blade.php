@@ -1,5 +1,5 @@
 <!-- PWA Web App Manifest & Mobile Capability Tags -->
-<link rel="manifest" href="/manifest.webmanifest">
+<link rel="manifest" href="/manifest.webmanifest?v=1.0.5">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -9,16 +9,17 @@
 <meta name="msapplication-TileColor" content="#1565e0">
 <meta name="msapplication-navbutton-color" content="#1565e0">
 
-<!-- Google Fonts: Plus Jakarta Sans & JetBrains Mono -->
+<!-- Google Fonts: Plus Jakarta Sans, Space Grotesk & JetBrains Mono -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&family=Space+Grotesk:wght@600;700;900&display=swap" rel="stylesheet">
 
 <!-- Icons -->
-<link rel="icon" type="image/svg+xml" href="/favicon.svg">
-<link rel="icon" type="image/svg+xml" href="/icons/icon.svg">
-<link rel="apple-touch-icon" href="/apple-touch-icon.png">
-<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg?v=1.0.5">
+<link rel="icon" type="image/svg+xml" href="/icons/icon.svg?v=1.0.5">
+<link rel="shortcut icon" href="/favicon.ico?v=1.0.5">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png?v=1.0.5">
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=1.0.5">
 
 <!-- Mobile Viewport Fit Cover for Safe Area Insets & Responsive Styling -->
 <style>
@@ -89,13 +90,35 @@
             stroke: currentColor !important;
         }
         .fi-logo,
-        .fi-logo *,
-        .fi-logo svg,
-        .fi-logo svg * {
-            stroke: none !important;
+        .fi-logo svg {
             border: none !important;
             outline: none !important;
             box-shadow: none !important;
+        }
+
+        /* Reduzir o logo em 5% em telas pequenas (2.85rem * 0.95 = ~2.7rem) e aproximar do menu hambúrguer */
+        .fi-topbar-start {
+            display: flex !important;
+            align-items: center !important;
+            gap: 0.35rem !important; /* Aproxima do botão do menu hambúrguer */
+        }
+        .fi-topbar-start button,
+        .fi-topbar-start .fi-icon-btn,
+        .fi-topbar-start .fi-topbar-open-sidebar-btn {
+            margin-right: 0 !important;
+            padding-right: 0.25rem !important;
+        }
+        .fi-topbar .fi-logo,
+        .fi-topbar-start .fi-logo {
+            height: 2.7rem !important; /* 5% menor em telas pequenas */
+            max-width: 100% !important;
+            margin-left: -0.25rem !important; /* Reduz a distância do botão hambúrguer */
+            color: #ffffff !important;
+        }
+        .fi-topbar .fi-logo svg,
+        .fi-topbar-start .fi-logo svg {
+            height: 2.7rem !important;
+            width: auto !important;
         }
 
         /* Oculta completamente cabeçalho com "Painel de Controle" ou títulos na dashboard */
@@ -178,6 +201,10 @@
             padding-bottom: max(env(safe-area-inset-bottom, 0px), 4px) !important;
         }
 
+        #pwa-install-banner {
+            bottom: calc(env(safe-area-inset-bottom, 0px) + 76px) !important;
+        }
+
         /* Responsividade dos stat cards */
         .fi-wi-stats-overview-stat .fi-wi-stats-overview-stat-value,
         .cifraly-stat-card .fi-wi-stats-overview-stat-value {
@@ -248,6 +275,12 @@
         }
     }
 
+    @media (min-width: 1024px) {
+        #pwa-install-banner {
+            bottom: calc(env(safe-area-inset-bottom, 12px) + 16px) !important;
+        }
+    }
+
     /* ==========================================
        SALVAGUARDA CONTRA ÍCONES SVG GIGANTES
        ========================================== */
@@ -272,7 +305,7 @@
     svg.h-7, svg.w-7 { width: 1.75rem !important; height: 1.75rem !important; max-width: 1.75rem !important; max-height: 1.75rem !important; }
 
     /* Limite máximo universal (exclui logos) */
-    svg:not(.fi-logo svg):not(#cifralyIconOnlyGrad svg):not([class*="cifraly-logo"]) {
+    svg:not(.fi-logo svg):not([class*="cifraly"]):not([id*="cifraly"]):not([class*="brand"]):not([id*="brand"]) {
         max-width: 2.25rem !important;
         max-height: 2.25rem !important;
     }

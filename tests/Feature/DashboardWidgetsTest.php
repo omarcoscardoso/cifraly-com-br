@@ -208,7 +208,8 @@ class DashboardWidgetsTest extends TestCase
         $response = $this->get('/app/igreja-vida-nova');
         $response->assertSuccessful();
         $response->assertSee('Igreja Vida Nova');
-        $response->assertSee('Novo Evento');
+        $response->assertSee('Evento');
+        $response->assertSee('Cifra');
     }
 
     public function test_roster_confirmation_alert_widget_renders_for_scheduled_user(): void

@@ -14,9 +14,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 trait BelongsToOrganization
 {
     /**
-     * Perform any actions required after the model boots.
+     * Perform any actions required when the trait boots.
      */
-    protected static function booted(): void
+    public static function bootBelongsToOrganization(): void
     {
         static::addGlobalScope('organization', function (Builder $builder): void {
             $tenantId = TenancyContext::getId() ?? Filament::getTenant()?->id;

@@ -383,4 +383,71 @@ class StageAndConfirmationTest extends TestCase
             ->assertSeeHtml('href="'.$dashboardUrl.'"')
             ->assertDontSeeHtml('/events/'.$event->id.'/edit');
     }
+
+    public function test_scoped_bindings_prevent_accessing_event_from_another_organization(): void
+    {
+        $otherOrg = Organization::factory()->create(['slug' => 'outra-igreja']);
+        $otherEvent = Event::factory()->create([
+            'organization_id' => $otherOrg->id,
+            'title' => 'Evento de Outra Igreja',
+        ]);
+
+        $response = $this->actingAs($this->user)
+            ->get("/app/{$this->organization->slug}/events/{$otherEvent->id}/stage");
+
+        $response->assertNotFound();
+    }
+
+    public function test_scoped_bindings_prevent_accessing_song_from_another_organization(): void
+    {
+        $otherOrg = Organization::factory()->create(['slug' => 'outra-igreja']);
+        $otherSong = Song::factory()->create([
+            'organization_id' => $otherOrg->id,
+            'title' => 'Música de Outra Igreja',
+        ]);
+
+        $response = $this->actingAs($this->user)
+            ->get("/app/{$this->organization->slug}/songs/{$otherSong->id}/stage");
+
+        $response->assertNotFound();
+    }
+
+    public function test_stage_view_toggles_two_columns_and_lyrics_only(): void
+    {
+        $event = Event::factory()->create([
+            'organization_id' => $this->organization->id,
+            'title' => 'Ensaio Geral',
+        ]);
+
+        Livewire::actingAs($this->user)
+            ->test(StageView::class, [
+                'organization' => $this->organization,
+                'event' => $event,
+            ])
+            ->assertSuccessful()
+            ->assertSet('twoColumns', false)
+            ->call('toggleTwoColumns')
+            ->assertSet('twoColumns', true)
+            ->call('toggleTwoColumns')
+            ->assertSet('twoColumns', false)
+            ->assertSet('showLyricsOnly', false)
+            ->call('toggleLyricsOnly')
+            ->assertSet('showLyricsOnly', true);
+    }
+
+    public function test_stage_view_renders_two_columns_and_wake_lock_badges(): void
+    {
+        $event = Event::factory()->create([
+            'organization_id' => $this->organization->id,
+            'title' => 'Culto de Celebração',
+        ]);
+
+        $response = $this->actingAs($this->user)
+            ->get("/app/{$this->organization->slug}/events/{$event->id}/stage");
+
+        $response->assertSuccessful();
+        $response->assertSee('Tela Ativa');
+        $response->assertSee('2 Colunas');
+        $response->assertSee('Letra');
+    }
 }

@@ -22,7 +22,7 @@ class OrganizationStatsOverviewWidget extends StatsOverviewWidget
 {
     protected static ?int $sort = 3;
 
-    protected ?string $pollingInterval = '30s';
+    protected ?string $pollingInterval = '60s';
 
     protected int|string|array $columnSpan = 'full';
 
@@ -47,17 +47,10 @@ class OrganizationStatsOverviewWidget extends StatsOverviewWidget
 
         $tenantId = $tenant->id;
 
-        // 1. Próximos Eventos
+        // 1. Escopo de Próximos Eventos
         $upcomingEventsQuery = Event::where('organization_id', $tenantId)
             ->where('starts_at', '>=', now()->startOfDay())
             ->where('status', '!=', Event::STATUS_CANCELED);
-
-        $upcomingCount = (clone $upcomingEventsQuery)->count();
-        $nextEvent = (clone $upcomingEventsQuery)->orderBy('starts_at', 'asc')->first();
-
-        $nextEventDescription = $nextEvent
-            ? 'Próximo: '.$nextEvent->starts_at->format('d/m \à\s H:i')
-            : 'Nenhum evento agendado';
 
         // 2. Músicas no Repertório
         $songsCount = Song::where('organization_id', $tenantId)->count();
@@ -66,15 +59,19 @@ class OrganizationStatsOverviewWidget extends StatsOverviewWidget
         $membersCount = $tenant->users()->count();
         $teamsCount = Team::where('organization_id', $tenantId)->count();
 
-        // 4. Status de Escalas dos Próximos Eventos
-        $upcomingEventIds = (clone $upcomingEventsQuery)->pluck('id');
-        $totalRosters = EventRoster::whereIn('event_id', $upcomingEventIds)->count();
-        $confirmedRosters = EventRoster::whereIn('event_id', $upcomingEventIds)
-            ->where('status', EventRoster::STATUS_CONFIRMED)
-            ->count();
-        $pendingRosters = EventRoster::whereIn('event_id', $upcomingEventIds)
-            ->where('status', EventRoster::STATUS_PENDING)
-            ->count();
+        // 4. Status de Escalas dos Próximos Eventos (agregação condicional em 1 única query)
+        $rosterStats = EventRoster::query()
+            ->whereIn('event_id', $upcomingEventsQuery->select('id'))
+            ->selectRaw('
+                COUNT(*) as total,
+                COUNT(CASE WHEN status = ? THEN 1 END) as confirmed,
+                COUNT(CASE WHEN status = ? THEN 1 END) as pending
+            ', [EventRoster::STATUS_CONFIRMED, EventRoster::STATUS_PENDING])
+            ->first();
+
+        $totalRosters = (int) ($rosterStats?->total ?? 0);
+        $confirmedRosters = (int) ($rosterStats?->confirmed ?? 0);
+        $pendingRosters = (int) ($rosterStats?->pending ?? 0);
 
         if ($totalRosters > 0) {
             $rosterRate = round(($confirmedRosters / $totalRosters) * 100);

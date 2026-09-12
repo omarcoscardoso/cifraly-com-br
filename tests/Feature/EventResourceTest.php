@@ -539,4 +539,47 @@ class EventResourceTest extends TestCase
         // Total should be 2, without duplicating musician1
         $this->assertCount(2, $event->fresh()->rosters);
     }
+
+    public function test_events_table_renders_roster_summary_using_with_count(): void
+    {
+        $event = Event::factory()->create([
+            'organization_id' => $this->organization->id,
+            'title' => 'Culto com Escala Teste',
+            'starts_at' => now()->addDays(2),
+        ]);
+
+        $role = Role::factory()->create(['organization_id' => $this->organization->id]);
+
+        $user1 = User::factory()->create();
+        $user2 = User::factory()->create();
+        $user3 = User::factory()->create();
+
+        EventRoster::factory()->create([
+            'organization_id' => $this->organization->id,
+            'event_id' => $event->id,
+            'user_id' => $user1->id,
+            'role_id' => $role->id,
+            'status' => EventRoster::STATUS_CONFIRMED,
+        ]);
+
+        EventRoster::factory()->create([
+            'organization_id' => $this->organization->id,
+            'event_id' => $event->id,
+            'user_id' => $user2->id,
+            'role_id' => $role->id,
+            'status' => EventRoster::STATUS_CONFIRMED,
+        ]);
+
+        EventRoster::factory()->create([
+            'organization_id' => $this->organization->id,
+            'event_id' => $event->id,
+            'user_id' => $user3->id,
+            'role_id' => $role->id,
+            'status' => EventRoster::STATUS_PENDING,
+        ]);
+
+        Livewire::test(ListEvents::class)
+            ->assertCanSeeTableRecords([$event])
+            ->assertSee('2/3 confirmados');
+    }
 }

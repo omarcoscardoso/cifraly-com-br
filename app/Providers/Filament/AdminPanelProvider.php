@@ -16,6 +16,7 @@ use App\Filament\Widgets\UpcomingEventsWidget;
 use App\Models\Organization;
 use Filament\Enums\ThemeMode;
 use Filament\Enums\UserMenuPosition;
+use Filament\Facades\Filament;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -45,9 +46,10 @@ class AdminPanelProvider extends PanelProvider
             ->sidebarCollapsibleOnDesktop()
             ->userMenu(position: UserMenuPosition::Sidebar)
             ->profile(EditProfile::class)
+            ->homeUrl(fn () => Filament::getTenant() ? route('filament.app.pages.dashboard', ['tenant' => Filament::getTenant()]) : '/app')
             ->brandLogo(fn () => view('components.brand-logo', ['class' => 'h-full w-auto text-black']))
             ->brandLogoHeight('2.85rem')
-            ->favicon(asset('favicon.svg'))
+            ->favicon(asset('favicon.svg').'?v=1.0.5')
             ->tenant(Organization::class, slugAttribute: 'slug')
             ->tenantRegistration(RegisterOrganization::class)
             ->tenantProfile(EditOrganizationProfile::class)

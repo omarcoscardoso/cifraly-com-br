@@ -3,9 +3,10 @@
  * Focus: Mobile performance, offline resilience, and future extensible sync/push capabilities.
  */
 
-const CACHE_VERSION = 'cifraly-v1.0.2';
+const CACHE_VERSION = 'cifraly-v1.0.5';
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const RUNTIME_CACHE = `${CACHE_VERSION}-runtime`;
+const STAGE_CACHE = `${CACHE_VERSION}-stage`;
 const OFFLINE_FALLBACK_URL = '/offline.html';
 
 // Critical core assets to precache on install
@@ -19,26 +20,42 @@ const PRECACHE_ASSETS = [
     '/icons/icon-maskable-192x192.png',
     '/icons/icon-maskable-512x512.png',
     '/apple-touch-icon.png',
-    '/favicon.svg'
+    '/favicon.svg',
+    '/favicon.ico'
 ];
 
-// Patterns that MUST NOT be cached (mutations, livewire polling/updates, auth, dynamic admin panel)
+// Dynamic and mutation patterns that MUST NOT be cached (mutations, livewire, auth, dynamic admin panel)
 const EXCLUDED_PATTERNS = [
-    /\/livewire\//,
-    /\/app\//,
-    /\/auth\/google\//,
-    /\/api\/auth\//,
-    /\/telescope\//,
-    /\/sanctum\//
+    /\/livewire(\/|$)/,
+    /\/app(\/|$)/,
+    /\/auth(\/|$)/,
+    /\/api(\/|$)/,
+    /\/login(\/|$)/,
+    /\/join(\/|$)/,
+    /\/r(\/|$)/,
+    /\/telescope(\/|$)/,
+    /\/sanctum(\/|$)/
 ];
 
 // -------------------------------------------------------------
-// 1. Install Event - Precache shell
+// 1. Install Event - Precache shell with cache reload
 // -------------------------------------------------------------
 self.addEventListener('install', (event) => {
     event.waitUntil(
         caches.open(STATIC_CACHE)
-            .then((cache) => cache.addAll(PRECACHE_ASSETS))
+            .then((cache) => {
+                return Promise.all(
+                    PRECACHE_ASSETS.map((url) => {
+                        return fetch(new Request(url, { cache: 'reload' }))
+                            .then((response) => {
+                                if (response && response.ok) {
+                                    return cache.put(url, response);
+                                }
+                            })
+                            .catch((err) => console.warn('[SW] Precache failed for:', url, err));
+                    })
+                );
+            })
             .then(() => self.skipWaiting())
     );
 });
@@ -50,7 +67,7 @@ self.addEventListener('activate', (event) => {
     event.waitUntil(
         caches.keys().then((keys) => {
             return Promise.all(
-                keys.filter((key) => key !== STATIC_CACHE && key !== RUNTIME_CACHE)
+                keys.filter((key) => key !== STATIC_CACHE && key !== RUNTIME_CACHE && key !== STAGE_CACHE)
                     .map((key) => caches.delete(key))
             );
         }).then(() => self.clients.claim())
@@ -74,20 +91,18 @@ self.addEventListener('fetch', (event) => {
         return;
     }
 
-    // Never cache excluded patterns
-    if (EXCLUDED_PATTERNS.some((pattern) => pattern.test(url.pathname))) {
-        return;
-    }
+    // Check if the request is for a stage screen (chord sheet) e.g. /app/{org}/events/{id}/stage or /app/{org}/songs/{id}/stage
+    const isStageRoute = /\/app\/[^\/]+\/(events|songs)\/[^\/]+\/stage/.test(url.pathname);
 
-    // A. HTML Navigation requests: Network-first, fallback to cache, then offline page
-    if (request.mode === 'navigate') {
+    // A. Stage Views / Chord Sheets: Network-first with dedicated STAGE_CACHE fallback
+    if (isStageRoute) {
         event.respondWith(
             fetch(request)
                 .then((response) => {
-                    // Only cache successful HTML responses
+                    // Only cache successful responses
                     if (response && response.status === 200 && response.type === 'basic') {
                         const copy = response.clone();
-                        caches.open(RUNTIME_CACHE).then((cache) => cache.put(request, copy));
+                        caches.open(STAGE_CACHE).then((cache) => cache.put(request, copy));
                     }
                     return response;
                 })
@@ -97,12 +112,24 @@ self.addEventListener('fetch', (event) => {
                         return cachedResponse;
                     }
                     const fallback = await caches.match(OFFLINE_FALLBACK_URL);
-                    return fallback || new Response('Você está offline.', {
+                    return fallback || new Response('Cifra indisponível offline.', {
                         status: 503,
                         headers: { 'Content-Type': 'text/plain; charset=utf-8' }
                     });
                 })
         );
+        return;
+    }
+
+    // Never cache excluded patterns (app, login, livewire, auth, etc.)
+    if (EXCLUDED_PATTERNS.some((pattern) => pattern.test(url.pathname))) {
+        return;
+    }
+
+    // DO NOT intercept general HTML navigation requests.
+    // Let the browser handle standard HTTP redirects (302/301), auth session cookies,
+    // and Filament/Livewire lifecycle natively without opaque-redirect errors or cache collisions.
+    if (request.mode === 'navigate') {
         return;
     }
 
@@ -113,11 +140,12 @@ self.addEventListener('fetch', (event) => {
         url.pathname.startsWith('/js/') ||
         url.pathname.startsWith('/icons/') ||
         url.pathname.startsWith('/fonts/') ||
+        url.pathname.startsWith('/images/') ||
         /\.(css|js|woff2?|ttf|png|jpe?g|svg|ico|webp)$/i.test(url.pathname);
 
     if (isStaticAsset) {
         event.respondWith(
-            caches.match(request).then((cachedResponse) => {
+            caches.match(request, { ignoreSearch: true }).then((cachedResponse) => {
                 const fetchPromise = fetch(request).then((networkResponse) => {
                     if (networkResponse && networkResponse.status === 200) {
                         const copy = networkResponse.clone();

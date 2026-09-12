@@ -29,7 +29,7 @@ Route::get('/r/{token}', RosterConfirmation::class)
     ->middleware('throttle:60,1')
     ->name('roster.confirm');
 
-Route::middleware(['web', 'auth'])->group(function (): void {
+Route::middleware(['web', 'auth'])->scopeBindings()->group(function (): void {
     Route::get('/app/{organization:slug}/events/{event}/stage', StageView::class)->name('events.stage');
     Route::get('/app/{organization:slug}/songs/{song}/stage', SongStageView::class)->name('songs.stage');
 });

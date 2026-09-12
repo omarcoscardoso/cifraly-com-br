@@ -4,11 +4,12 @@ declare(strict_types=1);
 
 namespace App\Livewire\Stage;
 
+use App\Livewire\Stage\Concerns\InteractsWithStageControls;
 use App\Models\Event;
 use App\Models\EventSong;
 use App\Models\Organization;
 use App\Models\User;
-use App\Services\Music\ChordTransposerService;
+use App\Services\Music\StageChordFormatterService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\HtmlString;
 use Livewire\Attributes\Layout;
@@ -19,19 +20,13 @@ use Livewire\Component;
 #[Title('Modo Palco - Cifraly')]
 class StageView extends Component
 {
+    use InteractsWithStageControls;
+
     public Organization $organization;
 
     public Event $event;
 
     public ?int $selectedEventSongId = null;
-
-    public ?string $currentKey = null;
-
-    public int $fontSize = 18;
-
-    public int $scrollSpeed = 3;
-
-    public bool $isAutoScrolling = false;
 
     public bool $isDrawerOpen = false;
 
@@ -110,40 +105,11 @@ class StageView extends Component
         }
     }
 
-    public function transposeUp(): void
-    {
-        $service = app(ChordTransposerService::class);
-        $this->currentKey = $service->transposeNote($this->currentKey ?? 'C', 1);
-    }
-
-    public function transposeDown(): void
-    {
-        $service = app(ChordTransposerService::class);
-        $this->currentKey = $service->transposeNote($this->currentKey ?? 'C', -1);
-    }
-
-    public function resetKey(): void
+    protected function getDefaultKey(): string
     {
         $selected = $this->getSelectedEventSong();
 
-        if ($selected) {
-            $this->currentKey = $selected->target_key ?? $selected->song?->original_key ?? 'C';
-        }
-    }
-
-    public function increaseFontSize(): void
-    {
-        $this->fontSize = min(36, $this->fontSize + 2);
-    }
-
-    public function decreaseFontSize(): void
-    {
-        $this->fontSize = max(12, $this->fontSize - 2);
-    }
-
-    public function toggleAutoScroll(): void
-    {
-        $this->isAutoScrolling = ! $this->isAutoScrolling;
+        return $selected?->target_key ?? $selected?->song?->original_key ?? 'C';
     }
 
     public function toggleDrawer(): void
@@ -156,7 +122,7 @@ class StageView extends Component
         return $this->event->eventSongs->firstWhere('id', $this->selectedEventSongId);
     }
 
-    public function getFormattedChords(): HtmlString
+    public function getFormattedChords(?StageChordFormatterService $formatter = null): HtmlString
     {
         $selected = $this->getSelectedEventSong();
 
@@ -164,90 +130,21 @@ class StageView extends Component
             return new HtmlString('<p class="text-slate-500 italic p-8">Nenhuma música selecionada no repertório.</p>');
         }
 
+        $formatter ??= app(StageChordFormatterService::class);
         $song = $selected->song;
         $version = $selected->songVersion ?? $song->defaultVersion ?? $song->versions->first();
-        $content = $version?->chordpro_content ?? '';
-
-        if (blank($content)) {
-            return new HtmlString('<p class="text-slate-500 italic p-8">Cifra não cadastrada para esta música.</p>');
-        }
-
+        $content = $version?->chordpro_content;
         $fromKey = $version?->base_key ?? $song->original_key ?? 'C';
         $toKey = $this->currentKey ?? $selected->target_key ?? $fromKey;
 
-        $service = app(ChordTransposerService::class);
-
-        try {
-            $transposed = $service->transpose($content, $fromKey, $toKey);
-        } catch (\Throwable) {
-            $transposed = $content;
-        }
-
-        return $this->formatForStageHtml($transposed, $service);
+        return $formatter->transposeAndFormat($content, $fromKey, $toKey);
     }
 
-    private function formatForStageHtml(string $text, ChordTransposerService $service): HtmlString
-    {
-        $normalized = str_replace(["\r\n", "\r"], "\n", $text);
-        $normalized = str_replace("\t", '    ', $normalized);
-        $lines = explode("\n", $normalized);
-        $htmlLines = [];
-
-        foreach ($lines as $line) {
-            $trimmed = trim($line);
-
-            // Refrão / Chorus: destaque em altar-amber e target para salto rápido
-            if (preg_match('/^\[(refrão|refrao|chorus)[^\]]*\]/i', $trimmed)) {
-                $htmlLines[] = '<div class="stage-section-chorus stage-chorus-target">'.e($line).'</div>';
-
-                continue;
-            }
-
-            // Outras seções estruturais (Intro, Verso, Ponte, etc.)
-            if (preg_match('/^\[(intro|verso|verse|ponte|bridge|solo|final|outro|tag|interlúdio|interlude)[^\]]*\]/i', $trimmed)) {
-                $htmlLines[] = '<div class="stage-section-badge">'.e($line).'</div>';
-
-                continue;
-            }
-
-            // Standalone section bracket e.g. [Parte 1]
-            if (preg_match('/^\[[^\]]+\]$/', $trimmed)) {
-                $htmlLines[] = '<div class="stage-section-tag">'.e($line).'</div>';
-
-                continue;
-            }
-
-            // Chord line
-            if ($service->isChordLine($line)) {
-                // Highlight chords in amber while preserving spacing
-                $escaped = e($line);
-                // Wrap whitespace separated tokens that are valid chords in styled spans
-                $formatted = preg_replace_callback('/\S+/', function (array $m) use ($service): string {
-                    $token = $m[0];
-                    if ($service->isValidChord(htmlspecialchars_decode($token))) {
-                        return '<span class="stage-chord text-amber-400 font-bold">'.$token.'</span>';
-                    }
-
-                    return '<span class="stage-chord-token text-amber-200">'.$token.'</span>';
-                }, $escaped);
-
-                $htmlLines[] = '<div class="stage-chord-line leading-tight font-bold whitespace-pre" style="white-space: pre;">'.$formatted.'</div>';
-
-                continue;
-            }
-
-            // Lyric or other text line
-            $htmlLines[] = '<div class="stage-lyric-line text-slate-200 leading-snug whitespace-pre mb-2" style="white-space: pre;">'.e($line).'</div>';
-        }
-
-        return new HtmlString(implode("\n", $htmlLines));
-    }
-
-    public function render(): View
+    public function render(StageChordFormatterService $formatter): View
     {
         return view('livewire.stage.stage-view', [
             'selectedEventSong' => $this->getSelectedEventSong(),
-            'formattedChords' => $this->getFormattedChords(),
+            'formattedChords' => $this->getFormattedChords($formatter),
         ]);
     }
 }

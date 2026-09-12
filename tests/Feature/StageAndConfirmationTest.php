@@ -383,4 +383,32 @@ class StageAndConfirmationTest extends TestCase
             ->assertSeeHtml('href="'.$dashboardUrl.'"')
             ->assertDontSeeHtml('/events/'.$event->id.'/edit');
     }
+
+    public function test_scoped_bindings_prevent_accessing_event_from_another_organization(): void
+    {
+        $otherOrg = Organization::factory()->create(['slug' => 'outra-igreja']);
+        $otherEvent = Event::factory()->create([
+            'organization_id' => $otherOrg->id,
+            'title' => 'Evento de Outra Igreja',
+        ]);
+
+        $response = $this->actingAs($this->user)
+            ->get("/app/{$this->organization->slug}/events/{$otherEvent->id}/stage");
+
+        $response->assertNotFound();
+    }
+
+    public function test_scoped_bindings_prevent_accessing_song_from_another_organization(): void
+    {
+        $otherOrg = Organization::factory()->create(['slug' => 'outra-igreja']);
+        $otherSong = Song::factory()->create([
+            'organization_id' => $otherOrg->id,
+            'title' => 'Música de Outra Igreja',
+        ]);
+
+        $response = $this->actingAs($this->user)
+            ->get("/app/{$this->organization->slug}/songs/{$otherSong->id}/stage");
+
+        $response->assertNotFound();
+    }
 }

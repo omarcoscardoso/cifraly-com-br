@@ -27,6 +27,12 @@ class EventsTable
     {
         return $table
             ->stackedOnMobile()
+            ->modifyQueryUsing(fn (Builder $query): Builder => $query
+                ->with(['team'])
+                ->withCount([
+                    'rosters',
+                    'rosters as confirmed_rosters_count' => fn (Builder $subQuery): Builder => $subQuery->where('status', EventRoster::STATUS_CONFIRMED),
+                ]))
             ->recordUrl(fn (Event $record): string => EventResource::getUrl('edit', ['record' => $record]))
             ->columns([
                 TextColumn::make('title')
@@ -57,8 +63,8 @@ class EventsTable
                     ->badge()
                     ->color('info')
                     ->state(function (Event $record): string {
-                        $total = $record->rosters()->count();
-                        $confirmed = $record->rosters()->where('status', EventRoster::STATUS_CONFIRMED)->count();
+                        $total = $record->rosters_count ?? $record->rosters()->count();
+                        $confirmed = $record->confirmed_rosters_count ?? $record->rosters()->where('status', EventRoster::STATUS_CONFIRMED)->count();
 
                         return "{$confirmed}/{$total} confirmados";
                     }),

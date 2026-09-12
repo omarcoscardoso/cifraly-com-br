@@ -147,13 +147,12 @@ class PwaMobileTest extends TestCase
         $this->assertFileExists($faviconPath);
 
         $logoSvg = (string) file_get_contents($logoPath);
-        $this->assertStringContainsString('cifralyPickGrad', $logoSvg);
-        $this->assertStringContainsString('Cifra', $logoSvg);
-        $this->assertStringContainsString('Ly', $logoSvg);
+        $this->assertStringContainsString('pickGrad2', $logoSvg);
+        $this->assertStringContainsString('CifraLy', $logoSvg);
         $this->assertStringContainsString('SETLIST &amp; ESCALAS', $logoSvg);
 
         $iconSvg = (string) file_get_contents($iconPath);
-        $this->assertStringContainsString('cifralyPickGrad', $iconSvg);
+        $this->assertStringContainsString('pickGrad2', $iconSvg);
     }
 
     public function test_dark_mode_is_default_on_welcome_and_renders_brand_logo(): void

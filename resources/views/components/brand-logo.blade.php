@@ -1,9 +1,9 @@
-@props(['class' => 'h-8 w-auto'])
+@props(['class' => 'h-8 w-auto text-black'])
 @php
     $attributes = ($attributes ?? new \Illuminate\View\ComponentAttributeBag())->merge(['class' => $class]);
 @endphp
 {{-- Tipografia Cifraly + Slogan (sem o ícone quadrado) --}}
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 78" fill="none" style="overflow: visible;" {{ $attributes }}>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 78" fill="none" stroke="none" style="overflow: visible; stroke: none !important; border: none !important; outline: none !important;" {{ $attributes }}>
   <defs>
     <!-- Gradiente de Destaque para o sufixo "ly" -->
     <linearGradient id="cifralyTextLyGrad" x1="0%" y1="0%" x2="100%" y2="0%">
@@ -12,10 +12,11 @@
     </linearGradient>
 
     <style>
-      .cifraly-brand-root-mob { font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
-      .cifraly-text-main-mob { font-weight: 800; font-size: 52px; fill: currentColor; letter-spacing: -0.04em; }
-      .cifraly-text-suffix-mob { font-weight: 700; font-size: 52px; fill: #F59E0B; fill: url(#cifralyTextLyGrad); letter-spacing: -0.04em; }
-      .cifraly-tagline-mob { font-weight: 500; font-size: 11px; fill: currentColor; opacity: 0.6; letter-spacing: 0.22em; text-transform: uppercase; }
+      .cifraly-brand-root-mob,
+      .cifraly-brand-root-mob * { font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; stroke: none !important; }
+      .cifraly-text-main-mob { font-weight: 800; font-size: 52px; fill: #000000; letter-spacing: -0.04em; stroke: none !important; }
+      .cifraly-text-suffix-mob { font-weight: 700; font-size: 52px; fill: #F59E0B; fill: url(#cifralyTextLyGrad); letter-spacing: -0.04em; stroke: none !important; }
+      .cifraly-tagline-mob { font-weight: 500; font-size: 11px; fill: #000000; opacity: 0.7; letter-spacing: 0.22em; text-transform: uppercase; stroke: none !important; }
     </style>
   </defs>
 

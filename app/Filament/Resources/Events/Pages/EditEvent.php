@@ -25,8 +25,7 @@ class EditEvent extends EditRecord
                 ->url(fn (): string => route('events.stage', [
                     'organization' => Filament::getTenant(),
                     'event' => $this->getRecord(),
-                ]))
-                ->openUrlInNewTab(),
+                ])),
 
             DeleteAction::make(),
         ];

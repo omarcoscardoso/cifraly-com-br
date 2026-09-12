@@ -6,9 +6,8 @@ namespace App\Filament\Widgets;
 
 use App\Filament\Resources\Events\EventResource;
 use App\Filament\Resources\Songs\SongResource;
-use App\Filament\Resources\Teams\TeamResource;
+use App\Models\Event;
 use App\Models\Organization;
-use App\Models\User;
 use Filament\Facades\Filament;
 use Filament\Widgets\Widget;
 
@@ -34,42 +33,91 @@ class OrganizationHeaderWidget extends Widget
         return $tenant instanceof Organization ? $tenant : null;
     }
 
-    public function getUser(): ?User
+    public function getNextEvent(): ?Event
     {
-        $user = Filament::auth()->user();
+        $tenantId = $this->getOrganization()?->id;
+        if (! $tenantId) {
+            return null;
+        }
 
-        return $user instanceof User ? $user : null;
+        return Event::where('organization_id', $tenantId)
+            ->where('starts_at', '>=', now()->subHours(4))
+            ->where('status', '!=', Event::STATUS_CANCELED)
+            ->orderBy('starts_at', 'asc')
+            ->withCount('eventSongs')
+            ->first();
     }
 
-    public function getInviteCode(): ?string
+    public function getNextEventStageUrl(): ?string
     {
-        return $this->getOrganization()?->invite_code;
+        $event = $this->getNextEvent();
+        $org = $this->getOrganization();
+
+        if ($event && $org) {
+            return route('events.stage', ['organization' => $org, 'event' => $event]);
+        }
+
+        return null;
     }
 
-    public function getInviteUrl(): ?string
+    public function getGreeting(): string
     {
-        $code = $this->getInviteCode();
+        $orgName = $this->getOrganization()?->name ?? 'Igreja';
 
-        return $code ? route('organization.join', ['code' => $code]) : null;
+        $hour = (int) now()->format('H');
+        $timeGreeting = match (true) {
+            $hour < 12 => 'Manhã de Adoração',
+            $hour < 18 => 'Tarde de Louvor',
+            default => 'Noite de Celebração',
+        };
+
+        return "{$orgName} • {$timeGreeting}";
     }
 
     public function getNewEventUrl(): string
     {
-        return EventResource::getUrl('create');
+        $tenant = $this->getOrganization();
+
+        return EventResource::getUrl('create', ['tenant' => $tenant], tenant: $tenant);
     }
 
     public function getNewSongUrl(): string
     {
-        return SongResource::getUrl('create');
+        $tenant = $this->getOrganization();
+
+        return SongResource::getUrl('create', ['tenant' => $tenant], tenant: $tenant);
     }
 
-    public function getSongsUrl(): string
+    public function getEventsIndexUrl(): string
     {
-        return SongResource::getUrl('index');
+        $tenant = $this->getOrganization();
+
+        return EventResource::getUrl('index', ['tenant' => $tenant], tenant: $tenant);
     }
 
-    public function getTeamsUrl(): string
+    public function getSongsIndexUrl(): string
     {
-        return TeamResource::getUrl('index');
+        $tenant = $this->getOrganization();
+
+        return SongResource::getUrl('index', ['tenant' => $tenant], tenant: $tenant);
+    }
+
+    public function getUserFirstName(): string
+    {
+        $name = Filament::auth()->user()?->name ?? 'Músico';
+        $parts = explode(' ', trim($name));
+
+        return $parts[0] ?? $name;
+    }
+
+    public function getTimeGreeting(): string
+    {
+        $hour = (int) now()->format('H');
+
+        return match (true) {
+            $hour < 12 => 'Bom dia',
+            $hour < 18 => 'Boa tarde',
+            default => 'Boa noite',
+        };
     }
 }

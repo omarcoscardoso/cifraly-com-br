@@ -4,111 +4,48 @@ declare(strict_types=1);
 
 namespace App\Filament\Widgets;
 
-use App\Filament\Resources\Events\EventResource;
 use App\Models\Event;
 use App\Models\EventRoster;
-use Filament\Actions\Action;
 use Filament\Facades\Filament;
-use Filament\Support\Icons\Heroicon;
-use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Table;
-use Filament\Widgets\TableWidget;
+use Filament\Widgets\Widget;
+use Illuminate\Database\Eloquent\Collection;
 
-class UpcomingEventsWidget extends TableWidget
+class UpcomingEventsWidget extends Widget
 {
     protected static ?int $sort = 2;
 
-    protected static ?string $heading = 'Próximos Eventos & Modo Palco';
-
     protected int|string|array $columnSpan = 'full';
+
+    protected string $view = 'filament.widgets.upcoming-events-widget';
 
     public static function canView(): bool
     {
         return Filament::auth()->check() && Filament::getTenant() !== null;
     }
 
-    public function table(Table $table): Table
+    /**
+     * @return Collection<int, Event>
+     */
+    public function getUpcomingEvents(): Collection
     {
-        return $table
-            ->stackedOnMobile()
-            ->paginated(false)
-            ->query(
-                Event::query()
-                    ->where('organization_id', Filament::getTenant()?->id)
-                    ->where('starts_at', '>=', now()->subHours(6))
-                    ->orderBy('starts_at', 'asc')
-                    ->limit(5)
-            )
-            ->columns([
-                TextColumn::make('title')
-                    ->label('Evento')
-                    ->weight('bold'),
+        $tenantId = Filament::getTenant()?->id;
 
-                // TextColumn::make('team.name')
-                //     ->label('Equipe')
-                //     ->placeholder('Geral / Sem equipe')
-                //     ->badge()
-                //     ->color('gray')
-                //     ->visibleFrom('md'),
+        if (! $tenantId) {
+            return new Collection;
+        }
 
-                TextColumn::make('starts_at')
-                    ->label('Data')
-                    ->dateTime('d/m/Y'),
-
-                // TextColumn::make('status')
-                //     ->label('Status')
-                //     ->badge()
-                //     ->formatStateUsing(fn (?string $state): string => Event::STATUS_OPTIONS[$state] ?? $state ?? '-')
-                //     ->color(fn (?string $state): string => Event::STATUS_COLORS[$state] ?? 'gray')
-                //     ->visibleFrom('md'),
-
-                TextColumn::make('roster_summary')
-                    ->label('Escala')
-                    ->badge()
-                    ->color('info')
-                    ->state(function (Event $record): string {
-                        $total = $record->rosters()->count();
-                        $confirmed = $record->rosters()->where('status', EventRoster::STATUS_CONFIRMED)->count();
-
-                        return "{$confirmed}/{$total} confirmados";
-                    })
-                    ->visibleFrom('md'),
-
-                TextColumn::make('songs_summary')
-                    ->label('Setlist')
-                    ->badge()
-                    ->color('primary')
-                    ->state(fn (Event $record): string => $record->eventSongs()->count().' músicas')
-                    ->visibleFrom('md'),
+        return Event::query()
+            ->where('organization_id', $tenantId)
+            ->where('starts_at', '>=', now()->subHours(6))
+            ->where('status', '!=', Event::STATUS_CANCELED)
+            ->withCount([
+                'eventSongs',
+                'rosters',
+                'rosters as confirmed_rosters_count' => fn ($query) => $query->where('status', EventRoster::STATUS_CONFIRMED),
             ])
-            ->recordActions([
-                Action::make('stageView')
-                    ->label('Modo Palco')
-                    ->icon(Heroicon::OutlinedPlayCircle)
-                    ->color('warning')
-                    ->button()
-                    ->size('xs')
-                    ->url(fn (Event $record): string => route('events.stage', [
-                        'organization' => Filament::getTenant(),
-                        'event' => $record,
-                    ]))
-                    ->openUrlInNewTab(),
-
-                Action::make('editEvent')
-                    ->label('Editar')
-                    ->icon(Heroicon::OutlinedPencilSquare)
-                    ->color('gray')
-                    ->url(fn (Event $record): string => EventResource::getUrl('edit', ['record' => $record])),
-            ])
-            ->emptyStateHeading('Nenhum evento agendado')
-            ->emptyStateDescription('Crie um novo evento para organizar a escala de voluntários e as cifras no Modo Palco.')
-            ->emptyStateIcon(Heroicon::OutlinedCalendarDays)
-            ->emptyStateActions([
-                Action::make('createFirstEvent')
-                    ->label('Criar Primeiro Evento')
-                    ->icon(Heroicon::OutlinedPlus)
-                    ->url(fn (): string => EventResource::getUrl('create')),
-            ])
-            ->paginated(false);
+            ->with(['team'])
+            ->orderBy('starts_at', 'asc')
+            ->limit(6)
+            ->get();
     }
 }

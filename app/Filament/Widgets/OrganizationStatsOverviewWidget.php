@@ -90,13 +90,6 @@ class OrganizationStatsOverviewWidget extends StatsOverviewWidget
         }
 
         return [
-            Stat::make('Próximos Eventos', (string) $upcomingCount)
-                ->description($nextEventDescription)
-                ->descriptionIcon(Heroicon::OutlinedCalendarDays)
-                ->color('primary')
-                ->extraAttributes(['class' => 'cifraly-stat-card'])
-                ->url(EventResource::getUrl('index')),
-
             Stat::make('Músicas no Repertório', (string) $songsCount)
                 ->description('Cifras e arranjos prontos')
                 ->descriptionIcon(Heroicon::OutlinedMusicalNote)

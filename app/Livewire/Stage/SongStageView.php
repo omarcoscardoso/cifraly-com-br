@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Livewire\Stage;
 
-use App\Models\Event;
-use App\Models\EventSong;
 use App\Models\Organization;
+use App\Models\Song;
+use App\Models\SongVersion;
 use App\Models\User;
 use App\Services\Music\ChordTransposerService;
 use Illuminate\Contracts\View\View;
@@ -17,13 +17,13 @@ use Livewire\Component;
 
 #[Layout('components.layouts.stage')]
 #[Title('Modo Palco - Cifraly')]
-class StageView extends Component
+class SongStageView extends Component
 {
     public Organization $organization;
 
-    public Event $event;
+    public Song $song;
 
-    public ?int $selectedEventSongId = null;
+    public ?SongVersion $songVersion = null;
 
     public ?string $currentKey = null;
 
@@ -33,81 +33,25 @@ class StageView extends Component
 
     public bool $isAutoScrolling = false;
 
-    public bool $isDrawerOpen = false;
-
-    public function mount(Organization $organization, Event $event): void
+    public function mount(Organization $organization, Song $song): void
     {
         /** @var User|null $user */
         $user = auth()->user();
 
         if (! $user || (! $user->isSuperAdmin() && ! $user->canAccessTenant($organization))) {
-            abort(403, 'Você não tem permissão para acessar o Modo Palco desta organização.');
+            abort(403, 'Você não tem permissão para acessar esta cifra.');
         }
 
-        if ($event->organization_id !== $organization->id) {
+        if ($song->organization_id !== $organization->id) {
             abort(404);
         }
 
-        $event->load([
-            'organization',
-            'team',
-            'eventSongs.song.versions',
-            'eventSongs.songVersion',
-        ]);
+        $song->load(['versions', 'defaultVersion']);
 
         $this->organization = $organization;
-        $this->event = $event;
-
-        $firstSong = $event->eventSongs->first();
-
-        if ($firstSong) {
-            $this->selectedEventSongId = $firstSong->id;
-            $this->currentKey = $firstSong->target_key ?? $firstSong->song?->original_key ?? 'C';
-        }
-    }
-
-    public function selectSong(int $eventSongId): void
-    {
-        $eventSong = $this->event->eventSongs->firstWhere('id', $eventSongId);
-
-        if ($eventSong) {
-            $this->selectedEventSongId = $eventSong->id;
-            $this->currentKey = $eventSong->target_key ?? $eventSong->song?->original_key ?? 'C';
-            $this->isDrawerOpen = false;
-            $this->isAutoScrolling = false;
-        }
-    }
-
-    public function nextSong(): void
-    {
-        $songs = $this->event->eventSongs;
-
-        if ($songs->isEmpty()) {
-            return;
-        }
-
-        $currentIndex = $songs->search(fn (EventSong $item): bool => $item->id === $this->selectedEventSongId);
-
-        if ($currentIndex !== false && $currentIndex < $songs->count() - 1) {
-            $nextSong = $songs->get($currentIndex + 1);
-            $this->selectSong($nextSong->id);
-        }
-    }
-
-    public function previousSong(): void
-    {
-        $songs = $this->event->eventSongs;
-
-        if ($songs->isEmpty()) {
-            return;
-        }
-
-        $currentIndex = $songs->search(fn (EventSong $item): bool => $item->id === $this->selectedEventSongId);
-
-        if ($currentIndex !== false && $currentIndex > 0) {
-            $prevSong = $songs->get($currentIndex - 1);
-            $this->selectSong($prevSong->id);
-        }
+        $this->song = $song;
+        $this->songVersion = $song->defaultVersion ?? $song->versions->first();
+        $this->currentKey = $this->songVersion?->base_key ?? $song->original_key ?? 'C';
     }
 
     public function transposeUp(): void
@@ -124,11 +68,7 @@ class StageView extends Component
 
     public function resetKey(): void
     {
-        $selected = $this->getSelectedEventSong();
-
-        if ($selected) {
-            $this->currentKey = $selected->target_key ?? $selected->song?->original_key ?? 'C';
-        }
+        $this->currentKey = $this->songVersion?->base_key ?? $this->song->original_key ?? 'C';
     }
 
     public function increaseFontSize(): void
@@ -146,34 +86,17 @@ class StageView extends Component
         $this->isAutoScrolling = ! $this->isAutoScrolling;
     }
 
-    public function toggleDrawer(): void
-    {
-        $this->isDrawerOpen = ! $this->isDrawerOpen;
-    }
-
-    public function getSelectedEventSong(): ?EventSong
-    {
-        return $this->event->eventSongs->firstWhere('id', $this->selectedEventSongId);
-    }
-
     public function getFormattedChords(): HtmlString
     {
-        $selected = $this->getSelectedEventSong();
-
-        if (! $selected || ! $selected->song) {
-            return new HtmlString('<p class="text-slate-500 italic p-8">Nenhuma música selecionada no repertório.</p>');
-        }
-
-        $song = $selected->song;
-        $version = $selected->songVersion ?? $song->defaultVersion ?? $song->versions->first();
+        $version = $this->songVersion ?? $this->song->defaultVersion ?? $this->song->versions->first();
         $content = $version?->chordpro_content ?? '';
 
         if (blank($content)) {
             return new HtmlString('<p class="text-slate-500 italic p-8">Cifra não cadastrada para esta música.</p>');
         }
 
-        $fromKey = $version?->base_key ?? $song->original_key ?? 'C';
-        $toKey = $this->currentKey ?? $selected->target_key ?? $fromKey;
+        $fromKey = $version?->base_key ?? $this->song->original_key ?? 'C';
+        $toKey = $this->currentKey ?? $fromKey;
 
         $service = app(ChordTransposerService::class);
 
@@ -196,32 +119,26 @@ class StageView extends Component
         foreach ($lines as $line) {
             $trimmed = trim($line);
 
-            // Refrão / Chorus: destaque em altar-amber e target para salto rápido
             if (preg_match('/^\[(refrão|refrao|chorus)[^\]]*\]/i', $trimmed)) {
                 $htmlLines[] = '<div class="stage-section-chorus stage-chorus-target">'.e($line).'</div>';
 
                 continue;
             }
 
-            // Outras seções estruturais (Intro, Verso, Ponte, etc.)
             if (preg_match('/^\[(intro|verso|verse|ponte|bridge|solo|final|outro|tag|interlúdio|interlude)[^\]]*\]/i', $trimmed)) {
                 $htmlLines[] = '<div class="stage-section-badge">'.e($line).'</div>';
 
                 continue;
             }
 
-            // Standalone section bracket e.g. [Parte 1]
             if (preg_match('/^\[[^\]]+\]$/', $trimmed)) {
                 $htmlLines[] = '<div class="stage-section-tag">'.e($line).'</div>';
 
                 continue;
             }
 
-            // Chord line
             if ($service->isChordLine($line)) {
-                // Highlight chords in amber while preserving spacing
                 $escaped = e($line);
-                // Wrap whitespace separated tokens that are valid chords in styled spans
                 $formatted = preg_replace_callback('/\S+/', function (array $m) use ($service): string {
                     $token = $m[0];
                     if ($service->isValidChord(htmlspecialchars_decode($token))) {
@@ -236,7 +153,6 @@ class StageView extends Component
                 continue;
             }
 
-            // Lyric or other text line
             $htmlLines[] = '<div class="stage-lyric-line text-slate-200 leading-snug whitespace-pre mb-2" style="white-space: pre;">'.e($line).'</div>';
         }
 
@@ -245,8 +161,7 @@ class StageView extends Component
 
     public function render(): View
     {
-        return view('livewire.stage.stage-view', [
-            'selectedEventSong' => $this->getSelectedEventSong(),
+        return view('livewire.stage.song-stage-view', [
             'formattedChords' => $this->getFormattedChords(),
         ]);
     }

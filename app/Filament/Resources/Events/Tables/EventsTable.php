@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources\Events\Tables;
 
+use App\Filament\Resources\Events\EventResource;
 use App\Models\Event;
 use App\Models\EventRoster;
 use Filament\Actions\Action;
@@ -26,6 +27,7 @@ class EventsTable
     {
         return $table
             ->stackedOnMobile()
+            ->recordUrl(fn (Event $record): string => EventResource::getUrl('edit', ['record' => $record]))
             ->columns([
                 TextColumn::make('title')
                     ->label('Evento')
@@ -98,10 +100,10 @@ class EventsTable
                     ->url(fn (Event $record): string => route('events.stage', [
                         'organization' => Filament::getTenant(),
                         'event' => $record,
-                    ]))
-                    ->openUrlInNewTab(),
+                    ])),
 
-                EditAction::make(),
+                EditAction::make()
+                    ->url(fn (Event $record): string => EventResource::getUrl('edit', ['record' => $record])),
                 DeleteAction::make(),
             ])
             ->toolbarActions([

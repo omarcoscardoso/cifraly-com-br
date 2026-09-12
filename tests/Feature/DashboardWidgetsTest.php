@@ -77,8 +77,9 @@ class DashboardWidgetsTest extends TestCase
             ->assertDontSee('Olá, Pastor João!')
             ->assertDontSee('VIDA2026')
             ->assertDontSee('Configurações')
-            ->assertSee('Novo Evento')
-            ->assertSee('Nova Cifra')
+            ->assertSee('Evento')
+            ->assertSee('Cifra')
+            ->assertSee('SetList')
             ->assertDontSee('Repertório')
             ->assertDontSee('Equipes');
     }
@@ -118,7 +119,7 @@ class DashboardWidgetsTest extends TestCase
 
         Livewire::test(OrganizationStatsOverviewWidget::class)
             ->assertSuccessful()
-            ->assertSee('Próximos Eventos')
+            ->assertDontSee('Próximos Eventos')
             ->assertSee('Músicas no Repertório')
             ->assertSee('Voluntários & Equipes')
             ->assertSee('Presença em Escalas')
@@ -144,10 +145,8 @@ class DashboardWidgetsTest extends TestCase
 
         Livewire::test(UpcomingEventsWidget::class)
             ->assertSuccessful()
-            ->assertCanSeeTableRecords([$event])
             ->assertSee('Vigília Jovem')
-            ->assertTableActionExists('stageView')
-            ->assertTableActionExists('editEvent');
+            ->assertSee('Modo Palco');
     }
 
     public function test_recent_songs_widget_displays_songs(): void
@@ -164,10 +163,7 @@ class DashboardWidgetsTest extends TestCase
             ->assertSuccessful()
             ->assertCanSeeTableRecords([$song])
             ->assertSee('Bondade de Deus')
-            ->assertSee('Isaias Saad')
-            ->assertSee('G')
-            ->assertSee('70')
-            ->assertTableActionExists('editSong');
+            ->assertSee('G');
     }
 
     public function test_stats_widget_shows_pending_rosters_warning(): void

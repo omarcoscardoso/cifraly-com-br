@@ -146,7 +146,7 @@ class SongResourceTest extends TestCase
         $this->assertSame('D', $version->fresh()->base_key);
     }
 
-    public function test_transpose_action_modal_updates_chord_reactively(): void
+    public function test_songs_table_row_click_links_to_song_stage_view(): void
     {
         $song = Song::factory()->create([
             'organization_id' => $this->organization->id,
@@ -154,21 +154,18 @@ class SongResourceTest extends TestCase
             'original_key' => 'C',
         ]);
 
-        SongVersion::factory()->create([
-            'song_id' => $song->id,
-            'label' => 'Padrão',
-            'base_key' => 'C',
-            'chordpro_content' => '[C] Quão grande [G] és Tu',
-            'is_default' => true,
+        $expectedUrl = route('songs.stage', [
+            'organization' => $this->organization,
+            'song' => $song,
         ]);
 
-        Livewire::actingAs($this->user)
+        $test = Livewire::actingAs($this->user)
             ->test(ListSongs::class)
-            ->mountTableAction('transposePreview', $song)
-            ->assertTableActionDataSet([
-                'target_key' => 'C',
-                'preview_content' => '[C] Quão grande [G] és Tu',
-            ]);
+            ->assertTableActionDoesNotExist('transposePreview')
+            ->assertTableActionExists('edit');
+
+        $table = $test->instance()->getTable();
+        $this->assertEquals($expectedUrl, $table->getRecordUrl($song));
     }
 
     public function test_can_filter_songs_by_original_key(): void

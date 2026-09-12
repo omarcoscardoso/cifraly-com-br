@@ -47,7 +47,7 @@ class AdminPanelProvider extends PanelProvider
             ->profile(EditProfile::class)
             ->brandLogo(fn () => view('components.brand-logo', ['class' => 'h-full w-auto text-black']))
             ->brandLogoHeight('2.85rem')
-            ->favicon(asset('favicon.svg'))
+            ->favicon(asset('favicon.svg').'?v=1.0.4')
             ->tenant(Organization::class, slugAttribute: 'slug')
             ->tenantRegistration(RegisterOrganization::class)
             ->tenantProfile(EditOrganizationProfile::class)

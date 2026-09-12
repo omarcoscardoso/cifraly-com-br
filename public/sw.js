@@ -3,7 +3,7 @@
  * Focus: Mobile performance, offline resilience, and future extensible sync/push capabilities.
  */
 
-const CACHE_VERSION = 'cifraly-v1.0.3';
+const CACHE_VERSION = 'cifraly-v1.0.4';
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const RUNTIME_CACHE = `${CACHE_VERSION}-runtime`;
 const STAGE_CACHE = `${CACHE_VERSION}-stage`;
@@ -20,7 +20,8 @@ const PRECACHE_ASSETS = [
     '/icons/icon-maskable-192x192.png',
     '/icons/icon-maskable-512x512.png',
     '/apple-touch-icon.png',
-    '/favicon.svg'
+    '/favicon.svg',
+    '/favicon.ico'
 ];
 
 // Patterns that MUST NOT be cached (mutations, livewire polling/updates, auth, dynamic admin panel)
@@ -34,12 +35,24 @@ const EXCLUDED_PATTERNS = [
 ];
 
 // -------------------------------------------------------------
-// 1. Install Event - Precache shell
+// 1. Install Event - Precache shell with cache reload
 // -------------------------------------------------------------
 self.addEventListener('install', (event) => {
     event.waitUntil(
         caches.open(STATIC_CACHE)
-            .then((cache) => cache.addAll(PRECACHE_ASSETS))
+            .then((cache) => {
+                return Promise.all(
+                    PRECACHE_ASSETS.map((url) => {
+                        return fetch(new Request(url, { cache: 'reload' }))
+                            .then((response) => {
+                                if (response && response.ok) {
+                                    return cache.put(url, response);
+                                }
+                            })
+                            .catch((err) => console.warn('[SW] Precache failed for:', url, err));
+                    })
+                );
+            })
             .then(() => self.skipWaiting())
     );
 });
@@ -148,7 +161,7 @@ self.addEventListener('fetch', (event) => {
 
     if (isStaticAsset) {
         event.respondWith(
-            caches.match(request).then((cachedResponse) => {
+            caches.match(request, { ignoreSearch: true }).then((cachedResponse) => {
                 const fetchPromise = fetch(request).then((networkResponse) => {
                     if (networkResponse && networkResponse.status === 200) {
                         const copy = networkResponse.clone();

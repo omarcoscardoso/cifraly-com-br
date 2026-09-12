@@ -45,7 +45,7 @@ class AdminPanelProvider extends PanelProvider
             ->sidebarCollapsibleOnDesktop()
             ->userMenu(position: UserMenuPosition::Sidebar)
             ->profile(EditProfile::class)
-            ->brandLogo(fn () => view('components.brand-logo', ['class' => 'h-full w-auto text-gray-800']))
+            ->brandLogo(fn () => view('components.brand-logo', ['class' => 'h-full w-auto text-black']))
             ->brandLogoHeight('2.85rem')
             ->favicon(asset('favicon.svg'))
             ->tenant(Organization::class, slugAttribute: 'slug')

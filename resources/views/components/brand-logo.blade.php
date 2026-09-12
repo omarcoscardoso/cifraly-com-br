@@ -1,4 +1,4 @@
-@props(['class' => 'h-8 w-auto text-gray-800'])
+@props(['class' => 'h-8 w-auto text-black'])
 @php
     $attributes = ($attributes ?? new \Illuminate\View\ComponentAttributeBag())->merge(['class' => $class]);
 @endphp
@@ -13,9 +13,9 @@
 
     <style>
       .cifraly-brand-root-mob { font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
-      .cifraly-text-main-mob { font-weight: 800; font-size: 52px; fill: currentColor; letter-spacing: -0.04em; }
+      .cifraly-text-main-mob { font-weight: 800; font-size: 52px; fill: #000000; letter-spacing: -0.04em; }
       .cifraly-text-suffix-mob { font-weight: 700; font-size: 52px; fill: #F59E0B; fill: url(#cifralyTextLyGrad); letter-spacing: -0.04em; }
-      .cifraly-tagline-mob { font-weight: 500; font-size: 11px; fill: currentColor; opacity: 0.6; letter-spacing: 0.22em; text-transform: uppercase; }
+      .cifraly-tagline-mob { font-weight: 500; font-size: 11px; fill: #000000; opacity: 0.7; letter-spacing: 0.22em; text-transform: uppercase; }
     </style>
   </defs>
 

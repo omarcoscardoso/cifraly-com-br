@@ -147,7 +147,19 @@
             <!-- Musical Icon & Info Dropdown Menu -->
             <div 
                 class="relative" 
-                x-data="{ openMenu: false }" 
+                x-data="{ 
+                    openMenu: false,
+                    searchQuery: '',
+                }" 
+                x-init="$watch('openMenu', value => {
+                    if (value) {
+                        $nextTick(() => {
+                            $refs.currentSongItem?.scrollIntoView({ block: 'nearest' });
+                        });
+                    } else {
+                        searchQuery = '';
+                    }
+                })"
                 @click.outside="openMenu = false" 
                 @keydown.escape.window="openMenu = false"
             >
@@ -175,10 +187,10 @@
                     x-transition:leave="transition ease-in duration-100 transform"
                     x-transition:leave-start="opacity-100 translate-y-0 scale-100"
                     x-transition:leave-end="opacity-0 -translate-y-2 scale-95"
-                    class="absolute left-0 top-full mt-2 w-72 sm:w-80 rounded-2xl bg-[#12141a]/95 border border-[#1e222c] shadow-2xl shadow-black/90 backdrop-blur-xl p-3.5 z-50 text-left select-none"
+                    class="absolute left-0 top-full mt-2 w-80 sm:w-96 max-w-[calc(100vw-1.5rem)] max-h-[85vh] flex flex-col rounded-2xl bg-[#12141a]/95 border border-[#1e222c] shadow-2xl shadow-black/90 backdrop-blur-xl p-3.5 z-50 text-left select-none"
                 >
                     <!-- Header Info: Título e Compositor -->
-                    <div class="mb-3 pb-2.5 border-b border-[#1e222c]">
+                    <div class="mb-2.5 pb-2 border-b border-[#1e222c] shrink-0">
                         <span class="text-[10px] font-mono uppercase tracking-widest text-[#00d2ff] font-bold block mb-0.5">Informações da Cifra</span>
                         <h3 class="text-sm font-black text-white truncate" title="{{ $song->title }}">
                             {{ $song->title }}
@@ -190,23 +202,9 @@
                         @endif
                     </div>
 
-                    <!-- Informações: Tom Original -->
-                    <div class="space-y-2 mb-3">
-                        <!-- 1 - Tom original -->
-                        <div class="flex items-center justify-between px-3 py-2 rounded-xl bg-[#08080a]/70 border border-[#1e222c]">
-                            <div class="flex items-center gap-2 text-xs text-slate-300 font-medium">
-                                <span class="w-1.5 h-1.5 rounded-full bg-[#00d2ff]"></span>
-                                <span>Tom original</span>
-                            </div>
-                            <span class="font-mono font-black text-xs text-[#00d2ff] px-2 py-0.5 rounded-md bg-[#00d2ff]/10 border border-[#00d2ff]/20">
-                                {{ $song->original_key ?? $songVersion?->base_key ?? 'Não informado' }}
-                            </span>
-                        </div>
-                    </div>
-
                     <!-- 3 e 4 - Links Externos: YouTube e Spotify (quando houver) -->
                     @if ($song->youtube_url || $song->spotify_url)
-                        <div class="border-t border-[#1e222c] pt-2.5 mb-2.5 space-y-1.5">
+                        <div class="mb-2.5 space-y-1.5 shrink-0">
                             @if ($song->youtube_url)
                                 <a
                                     href="{{ $song->youtube_url }}"
@@ -235,7 +233,7 @@
                                 >
                                     <div class="flex items-center gap-2.5 min-w-0">
                                         <svg class="w-4 h-4 text-[#1db954] group-hover:scale-110 transition shrink-0" viewBox="0 0 24 24" fill="currentColor">
-                                            <path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/>
+                                            <path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/>
                                         </svg>
                                         <span class="truncate">Ouvir no Spotify</span>
                                     </div>
@@ -248,7 +246,7 @@
                     @endif
 
                     <!-- 5 - Botão "Editar" -->
-                    <div class="border-t border-[#1e222c] pt-2.5">
+                    <div class="{{ ($song->youtube_url || $song->spotify_url) ? 'border-t border-[#1e222c] pt-2.5' : '' }} shrink-0">
                         <a
                             href="{{ route('filament.app.resources.songs.edit', ['tenant' => $organization, 'record' => $song]) }}"
                             class="flex items-center justify-center gap-2 w-full px-3 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider text-white hover:text-[#00d2ff] bg-[#181b24] hover:bg-[#1e222c] border border-[#1e222c] hover:border-[#00d2ff]/40 shadow-sm transition tap-scale cursor-pointer"
@@ -259,6 +257,94 @@
                             </svg>
                             <span>Editar</span>
                         </a>
+                    </div>
+
+                    <!-- 6 - Lista de Músicas Cadastradas -->
+                    <div class="border-t border-[#1e222c] pt-2.5 mt-2.5 flex-1 min-h-0 flex flex-col">
+                        <div class="flex items-center justify-between mb-2 shrink-0">
+                            <div class="flex items-center gap-1.5">
+                                <span class="text-[10px] font-mono uppercase tracking-widest text-[#00d2ff] font-bold">
+                                    Músicas Cadastradas
+                                </span>
+                                <span class="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded-md bg-[#181b24] text-slate-400 border border-[#1e222c]">
+                                    {{ $allSongs->count() }}
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Busca rápida quando há mais de 4 músicas -->
+                        @if ($allSongs->count() > 4)
+                            <div class="relative mb-2 shrink-0">
+                                <input
+                                    type="text"
+                                    x-model="searchQuery"
+                                    placeholder="Buscar música ou artista..."
+                                    class="w-full pl-8 pr-7 py-1.5 text-xs bg-[#08080a] border border-[#1e222c] rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-[#00d2ff] focus:ring-1 focus:ring-[#00d2ff] transition"
+                                    @click.stop
+                                    @keydown.stop
+                                >
+                                <svg class="w-3.5 h-3.5 text-slate-500 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                </svg>
+                                <button
+                                    type="button"
+                                    x-show="searchQuery.length > 0"
+                                    x-cloak
+                                    @click.stop="searchQuery = ''"
+                                    class="absolute right-2 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white p-0.5"
+                                >
+                                    <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                </button>
+                            </div>
+                        @endif
+
+                        <!-- Lista rolável de músicas -->
+                        <div class="max-h-48 sm:max-h-60 overflow-y-auto space-y-1 overscroll-contain pr-1 [scrollbar-width:thin] [scrollbar-color:#1e222c_transparent]">
+                            @forelse ($allSongs as $itemSong)
+                                @php
+                                    $isCurrent = $itemSong->id === $song->id;
+                                    $searchHaystack = mb_strtolower($itemSong->title . ' ' . ($itemSong->artist ?? ''));
+                                @endphp
+                                <a
+                                    href="{{ route('songs.stage', ['organization' => $organization, 'song' => $itemSong]) }}"
+                                    @if ($isCurrent) x-ref="currentSongItem" @endif
+                                    x-show="!searchQuery.trim() || {{ json_encode($searchHaystack) }}.includes(searchQuery.toLowerCase().trim())"
+                                    class="flex items-center justify-between gap-2 px-2.5 py-2 rounded-xl text-xs transition tap-scale group {{ $isCurrent ? 'bg-[#00d2ff]/10 border border-[#00d2ff]/40 text-white font-semibold' : 'bg-[#08080a]/60 hover:bg-[#181b24] border border-[#1e222c]/60 hover:border-[#00d2ff]/30 text-slate-300 hover:text-white' }}"
+                                    title="{{ $itemSong->title }} - {{ $itemSong->artist ?? 'Sem artista' }}"
+                                >
+                                    <div class="flex items-center gap-2 min-w-0 flex-1">
+                                        @if ($isCurrent)
+                                            <span class="w-1.5 h-1.5 rounded-full bg-[#00d2ff] shrink-0 animate-pulse"></span>
+                                        @else
+                                            <span class="w-1.5 h-1.5 rounded-full bg-slate-600 group-hover:bg-[#00d2ff]/70 shrink-0 transition"></span>
+                                        @endif
+                                        <div class="min-w-0 flex-1">
+                                            <div class="truncate font-medium leading-snug {{ $isCurrent ? 'text-[#00d2ff]' : 'text-slate-200 group-hover:text-white' }}">
+                                                {{ $itemSong->title }}
+                                            </div>
+                                            @if ($itemSong->artist)
+                                                <div class="truncate text-[10px] text-slate-400 group-hover:text-slate-300">
+                                                    {{ $itemSong->artist }}
+                                                </div>
+                                            @endif
+                                        </div>
+                                    </div>
+                                    @if ($isCurrent)
+                                        <div class="flex items-center shrink-0">
+                                            <span class="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-[#00d2ff]/20 text-[#00d2ff] border border-[#00d2ff]/30">
+                                                Atual
+                                            </span>
+                                        </div>
+                                    @endif
+                                </a>
+                            @empty
+                                <div class="py-4 text-center text-xs text-slate-500">
+                                    Nenhuma música cadastrada
+                                </div>
+                            @endforelse
+                        </div>
                     </div>
                 </div>
             </div>

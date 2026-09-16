@@ -67,8 +67,13 @@ class SongStageView extends Component
 
     public function render(StageChordFormatterService $formatter): View
     {
+        $allSongs = $this->organization->songs()
+            ->orderBy('title')
+            ->get(['id', 'organization_id', 'title', 'artist', 'original_key']);
+
         return view('livewire.stage.song-stage-view', [
             'formattedChords' => $this->getFormattedChords($formatter),
+            'allSongs' => $allSongs,
         ]);
     }
 }

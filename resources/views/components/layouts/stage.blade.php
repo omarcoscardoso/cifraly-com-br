@@ -31,20 +31,24 @@
         /* Estilos Críticos do Modo Palco - Preservação de Espaçamento e Cores */
         .stage-chord-line {
             white-space: pre !important;
-            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace !important;
+            font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace !important;
             line-height: 1.25 !important;
             font-weight: 700 !important;
-            letter-spacing: normal !important;
+            letter-spacing: 0 !important;
             word-spacing: normal !important;
+            tab-size: 4 !important;
+            -moz-tab-size: 4 !important;
         }
         .stage-lyric-line {
             white-space: pre !important;
-            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace !important;
+            font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace !important;
             line-height: 1.375 !important;
             margin-bottom: 0.5rem !important;
             color: #e2e8f0 !important;
-            letter-spacing: normal !important;
+            letter-spacing: 0 !important;
             word-spacing: normal !important;
+            tab-size: 4 !important;
+            -moz-tab-size: 4 !important;
         }
         .stage-section-badge {
             font-family: 'Plus Jakarta Sans', system-ui, sans-serif !important;

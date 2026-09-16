@@ -39,6 +39,7 @@ class StageChordFormatterService
     public function formatForStageHtml(string $text): HtmlString
     {
         $normalized = str_replace(["\r\n", "\r"], "\n", $text);
+        $normalized = str_replace(["\xc2\xa0", "\u{00A0}"], ' ', $normalized);
         $normalized = str_replace("\t", '    ', $normalized);
         $lines = explode("\n", $normalized);
         $htmlLines = [];

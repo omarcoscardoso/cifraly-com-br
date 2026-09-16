@@ -221,6 +221,33 @@ class SongResourceTest extends TestCase
         $this->assertSame('D', $version->fresh()->base_key);
     }
 
+    public function test_changing_original_key_in_edit_form_transposes_chord_content_reactively(): void
+    {
+        $song = Song::factory()->create([
+            'organization_id' => $this->organization->id,
+            'title' => 'Música Transposição',
+            'original_key' => 'C',
+        ]);
+
+        SongVersion::factory()->create([
+            'song_id' => $song->id,
+            'base_key' => 'C',
+            'chordpro_content' => "C   G   Am   F\nPrimeira linha",
+            'is_default' => true,
+        ]);
+
+        Livewire::actingAs($this->user)
+            ->test(EditSong::class, ['record' => $song->getRouteKey()])
+            ->assertFormFieldExists('original_key')
+            ->fillForm([
+                'original_key' => 'D',
+            ])
+            ->assertFormSet([
+                'original_key' => 'D',
+                'chordpro_content' => "D   A   Bm   G\nPrimeira linha",
+            ]);
+    }
+
     public function test_songs_table_row_click_links_to_song_stage_view(): void
     {
         $song = Song::factory()->create([

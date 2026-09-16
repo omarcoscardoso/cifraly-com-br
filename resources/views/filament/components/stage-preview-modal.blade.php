@@ -84,6 +84,8 @@
             .stage-preview-wrap .stage-lyric {
                 color: #f1f5f9 !important;
                 font-family: 'JetBrains Mono', monospace !important;
+                letter-spacing: 0 !important;
+                white-space: pre !important;
             }
             .stage-preview-wrap .stage-lyric-chord-line {
                 display: flex !important;
@@ -100,6 +102,8 @@
                 vertical-align: bottom !important;
                 min-width: max-content !important;
                 font-family: 'JetBrains Mono', monospace !important;
+                letter-spacing: 0 !important;
+                white-space: pre !important;
             }
         </style>
 

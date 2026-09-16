@@ -9,6 +9,7 @@ use App\Services\Music\ChordToChordProConverter;
 use App\Services\Music\ChordTransposerService;
 use App\Services\Music\StageChordFormatterService;
 use Filament\Actions\Action;
+use Filament\Actions\ActionGroup;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
@@ -109,68 +110,74 @@ class SongForm
 
                 Section::make('Cifra Inicial (Versão Padrão)')
                     ->columnSpanFull()
-                    ->description('Edite no formato de 2 linhas (acordes sobre a letra) ou no formato ChordPro [C]. O modo palco sempre renderiza com alinhamento perfeito!')
+                    ->description('Formato 2 linhas ou ChordPro [C]')
                     ->headerActions([
-                        Action::make('convertToChordPro')
-                            ->label('Converter p/ ChordPro [G]')
+                        ActionGroup::make([
+                            Action::make('convertToChordPro')
+                                ->label('Converter para ChordPro [G]')
+                                ->icon(Heroicon::OutlinedArrowsRightLeft)
+                                ->color('amber')
+                                ->tooltip('Converte a cifra de 2 linhas para ChordPro inline ancorando os acordes sobre cada sílaba')
+                                ->action(function ($action, callable $get, callable $set): void {
+                                    $content = (string) $get('chordpro_content');
+                                    if (blank($content)) {
+                                        Notification::make()->title('A cifra está vazia.')->warning()->send();
+
+                                        return;
+                                    }
+
+                                    $converter = app(ChordToChordProConverter::class);
+                                    $converted = $converter->toChordPro($content);
+                                    $set('chordpro_content', $converted);
+
+                                    $livewire = $action->getLivewire();
+                                    if (is_object($livewire) && isset($livewire->data['chordpro_content'])) {
+                                        $livewire->data['chordpro_content'] = $converted;
+                                    }
+
+                                    Notification::make()
+                                        ->title('Cifra convertida para ChordPro!')
+                                        ->body('Os acordes foram ancorados nas sílabas correspondentes.')
+                                        ->success()
+                                        ->send();
+                                }),
+
+                            Action::make('convertToTwoLines')
+                                ->label('Converter para 2 Linhas')
+                                ->icon(Heroicon::OutlinedBars3BottomLeft)
+                                ->color('gray')
+                                ->tooltip('Converte a cifra ChordPro de volta para 2 linhas (acordes acima da letra)')
+                                ->action(function ($action, callable $get, callable $set): void {
+                                    $content = (string) $get('chordpro_content');
+                                    if (blank($content)) {
+                                        Notification::make()->title('A cifra está vazia.')->warning()->send();
+
+                                        return;
+                                    }
+
+                                    $converter = app(ChordToChordProConverter::class);
+                                    $converted = $converter->toTwoLine($content);
+                                    $set('chordpro_content', $converted);
+
+                                    $livewire = $action->getLivewire();
+                                    if (is_object($livewire) && isset($livewire->data['chordpro_content'])) {
+                                        $livewire->data['chordpro_content'] = $converted;
+                                    }
+
+                                    Notification::make()
+                                        ->title('Cifra convertida para 2 linhas!')
+                                        ->body('A cifra agora está no formato visual de acordes acima da letra.')
+                                        ->success()
+                                        ->send();
+                                }),
+                        ])
+                            ->label('Converter')
                             ->icon(Heroicon::OutlinedArrowsRightLeft)
                             ->color('amber')
-                            ->tooltip('Converte a cifra de 2 linhas para ChordPro inline ancorando os acordes sobre cada sílaba')
-                            ->action(function ($action, callable $get, callable $set): void {
-                                $content = (string) $get('chordpro_content');
-                                if (blank($content)) {
-                                    Notification::make()->title('A cifra está vazia.')->warning()->send();
-
-                                    return;
-                                }
-
-                                $converter = app(ChordToChordProConverter::class);
-                                $converted = $converter->toChordPro($content);
-                                $set('chordpro_content', $converted);
-
-                                $livewire = $action->getLivewire();
-                                if (is_object($livewire) && isset($livewire->data['chordpro_content'])) {
-                                    $livewire->data['chordpro_content'] = $converted;
-                                }
-
-                                Notification::make()
-                                    ->title('Cifra convertida para ChordPro!')
-                                    ->body('Os acordes foram ancorados nas sílabas correspondentes.')
-                                    ->success()
-                                    ->send();
-                            }),
-
-                        Action::make('convertToTwoLines')
-                            ->label('Converter p/ 2 Linhas')
-                            ->icon(Heroicon::OutlinedBars3BottomLeft)
-                            ->color('gray')
-                            ->tooltip('Converte a cifra ChordPro de volta para 2 linhas (acordes acima da letra)')
-                            ->action(function ($action, callable $get, callable $set): void {
-                                $content = (string) $get('chordpro_content');
-                                if (blank($content)) {
-                                    Notification::make()->title('A cifra está vazia.')->warning()->send();
-
-                                    return;
-                                }
-
-                                $converter = app(ChordToChordProConverter::class);
-                                $converted = $converter->toTwoLine($content);
-                                $set('chordpro_content', $converted);
-
-                                $livewire = $action->getLivewire();
-                                if (is_object($livewire) && isset($livewire->data['chordpro_content'])) {
-                                    $livewire->data['chordpro_content'] = $converted;
-                                }
-
-                                Notification::make()
-                                    ->title('Cifra convertida para 2 linhas!')
-                                    ->body('A cifra agora está no formato visual de acordes acima da letra.')
-                                    ->success()
-                                    ->send();
-                            }),
+                            ->button(),
 
                         Action::make('previewStage')
-                            ->label('Pré-visualizar no Palco')
+                            ->label('Prévia')
                             ->icon(Heroicon::OutlinedEye)
                             ->color('primary')
                             ->modalHeading('Pré-visualização do Modo Palco')

@@ -189,7 +189,8 @@ class StageChordFormatterService
                 $chordSpan = '<span class="stage-chord-placeholder leading-none font-mono text-[0.85em] select-none opacity-0 pb-1" aria-hidden="true">&nbsp;</span>';
             }
 
-            $lyricText = ($lyric === '') ? '&nbsp;' : e($lyric);
+            $escaped = e($lyric);
+            $lyricText = ($escaped === '') ? '&nbsp;' : str_replace(' ', '&nbsp;', $escaped);
             $lyricSpan = '<span class="stage-lyric text-slate-100 leading-snug whitespace-pre">'.$lyricText.'</span>';
 
             $pairsHtml[] = '<span class="stage-chord-pair inline-flex flex-col justify-end align-bottom">'.$chordSpan.$lyricSpan.'</span>';

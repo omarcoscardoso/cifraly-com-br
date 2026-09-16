@@ -125,6 +125,7 @@
             color: #f1f5f9 !important;
             font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace !important;
             letter-spacing: 0 !important;
+            white-space: pre !important;
         }
 
         /* Estilos dos pares verticais de acorde-sílaba (Modelo Híbrido / ChordPro) */
@@ -145,6 +146,7 @@
             vertical-align: bottom !important;
             min-width: max-content !important;
             font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace !important;
+            white-space: pre !important;
         }
 
         /* Ocultar cifras quando o modo apenas 'Letra' estiver ativo */

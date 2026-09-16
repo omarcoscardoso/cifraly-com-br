@@ -167,7 +167,6 @@ class SongStageViewTest extends TestCase
 
         $response->assertSuccessful();
         $response->assertSee('Tom original');
-        $response->assertSee('Compositor');
         $response->assertSee('Harpa Cristã');
         $response->assertSee('Assistir no YouTube');
         $response->assertSee('https://www.youtube.com/watch?v=sample123');
@@ -196,7 +195,7 @@ class SongStageViewTest extends TestCase
 
         $response->assertSuccessful();
         $response->assertSee('Tom original');
-        $response->assertSee('Compositor');
+        $response->assertSee('Harpa Cristã');
         $response->assertDontSee('Assistir no YouTube');
         $response->assertDontSee('Ouvir no Spotify');
         $response->assertSee('Editar');

@@ -177,15 +177,20 @@
                     x-transition:leave-end="opacity-0 -translate-y-2 scale-95"
                     class="absolute left-0 top-full mt-2 w-72 sm:w-80 rounded-2xl bg-[#12141a]/95 border border-[#1e222c] shadow-2xl shadow-black/90 backdrop-blur-xl p-3.5 z-50 text-left select-none"
                 >
-                    <!-- Header Info: Título e Artista -->
+                    <!-- Header Info: Título e Compositor -->
                     <div class="mb-3 pb-2.5 border-b border-[#1e222c]">
                         <span class="text-[10px] font-mono uppercase tracking-widest text-[#00d2ff] font-bold block mb-0.5">Informações da Cifra</span>
                         <h3 class="text-sm font-black text-white truncate" title="{{ $song->title }}">
                             {{ $song->title }}
                         </h3>
+                        @if ($song->artist)
+                            <p class="text-xs text-slate-400 font-medium truncate mt-0.5" title="{{ $song->artist }}">
+                                {{ $song->artist }}
+                            </p>
+                        @endif
                     </div>
 
-                    <!-- Informações: Tom Original e Compositor -->
+                    <!-- Informações: Tom Original -->
                     <div class="space-y-2 mb-3">
                         <!-- 1 - Tom original -->
                         <div class="flex items-center justify-between px-3 py-2 rounded-xl bg-[#08080a]/70 border border-[#1e222c]">
@@ -195,17 +200,6 @@
                             </div>
                             <span class="font-mono font-black text-xs text-[#00d2ff] px-2 py-0.5 rounded-md bg-[#00d2ff]/10 border border-[#00d2ff]/20">
                                 {{ $song->original_key ?? $songVersion?->base_key ?? 'Não informado' }}
-                            </span>
-                        </div>
-
-                        <!-- 2 - Compositor -->
-                        <div class="flex items-center justify-between px-3 py-2 rounded-xl bg-[#08080a]/70 border border-[#1e222c]">
-                            <div class="flex items-center gap-2 text-xs text-slate-300 font-medium min-w-0">
-                                <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
-                                <span class="shrink-0">Compositor</span>
-                            </div>
-                            <span class="text-xs font-semibold text-slate-200 truncate pl-2 max-w-[145px] text-right" title="{{ $song->artist ?? 'Não informado' }}">
-                                {{ $song->artist ?: 'Não informado' }}
                             </span>
                         </div>
                     </div>
@@ -282,9 +276,11 @@
                     {{ $song->title }}
                 </h1>
             </div>
-            <p class="hidden sm:block text-xs text-[#71788e] truncate font-medium">
-                {{ $song->artist ?? 'Artista não informado' }} • <span class="text-slate-400">{{ $organization->name }}</span>
-            </p>
+            @if ($song->artist)
+                <p class="text-xs text-[#71788e] truncate font-medium">
+                    {{ $song->artist }}
+                </p>
+            @endif
         </div>
 
         <!-- Right: Wake Lock, Metronome Launcher & Fullscreen -->

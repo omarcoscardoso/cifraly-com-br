@@ -200,4 +200,55 @@ class SongStageViewTest extends TestCase
         $response->assertDontSee('Ouvir no Spotify');
         $response->assertSee('Editar');
     }
+
+    public function test_song_stage_view_lists_all_organization_songs_in_dropdown_menu(): void
+    {
+        $song2 = Song::factory()->create([
+            'organization_id' => $this->organization->id,
+            'title' => 'Aclame ao Senhor',
+            'artist' => 'Diante do Trono',
+            'original_key' => 'A',
+        ]);
+
+        $song3 = Song::factory()->create([
+            'organization_id' => $this->organization->id,
+            'title' => 'Vitorioso És',
+            'artist' => 'Gabriel Guedes',
+            'original_key' => 'E',
+        ]);
+
+        $otherOrg = Organization::factory()->create(['slug' => 'outra-org']);
+        $otherSong = Song::factory()->create([
+            'organization_id' => $otherOrg->id,
+            'title' => 'Cifra Proibida de Outra Igreja',
+            'artist' => 'Artista Externo',
+            'original_key' => 'C',
+        ]);
+
+        $response = $this->get(route('songs.stage', [
+            'organization' => $this->organization,
+            'song' => $this->song,
+        ]));
+
+        $response->assertSuccessful();
+        $response->assertSee('Músicas Cadastradas');
+        $response->assertSee('Aclame ao Senhor');
+        $response->assertSee('Diante do Trono');
+        $response->assertSee('Vitorioso És');
+        $response->assertSee('Gabriel Guedes');
+        $response->assertSee('Atual');
+
+        $song2StageUrl = route('songs.stage', [
+            'organization' => $this->organization,
+            'song' => $song2,
+        ]);
+        $song3StageUrl = route('songs.stage', [
+            'organization' => $this->organization,
+            'song' => $song3,
+        ]);
+
+        $response->assertSee($song2StageUrl);
+        $response->assertSee($song3StageUrl);
+        $response->assertDontSee('Cifra Proibida de Outra Igreja');
+    }
 }

@@ -8,6 +8,10 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @livewireStyles
     <style>
+        [x-cloak] {
+            display: none !important;
+        }
+
         /* Custom scrollbar for dark mode */
         ::-webkit-scrollbar {
             width: 6px;

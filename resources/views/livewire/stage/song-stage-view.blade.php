@@ -144,11 +144,129 @@
                 </svg>
             </a>
 
-            <!-- Musical Icon -->
-            <div class="w-10 h-10 rounded-2xl bg-[#12141a] border border-[#1e222c] text-[#00d2ff] flex items-center justify-center shrink-0" title="Repertório de Músicas">
-                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
-                </svg>
+            <!-- Musical Icon & Info Dropdown Menu -->
+            <div 
+                class="relative" 
+                x-data="{ openMenu: false }" 
+                @click.outside="openMenu = false" 
+                @keydown.escape.window="openMenu = false"
+            >
+                <button
+                    type="button"
+                    @click="openMenu = !openMenu"
+                    class="w-10 h-10 rounded-2xl bg-[#12141a] border text-[#00d2ff] hover:text-white flex items-center justify-center shrink-0 tap-scale transition cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#00d2ff]/40"
+                    :class="openMenu ? 'border-[#00d2ff] bg-[#181b24] shadow-[0_0_12px_rgba(0,210,255,0.25)] text-white' : 'border-[#1e222c] hover:border-[#00d2ff]/40'"
+                    title="Informações e atalhos da música"
+                    aria-label="Abrir menu da música"
+                    :aria-expanded="openMenu"
+                >
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
+                    </svg>
+                </button>
+
+                <!-- Dropdown Menu -->
+                <div
+                    x-show="openMenu"
+                    x-cloak
+                    x-transition:enter="transition ease-out duration-150 transform"
+                    x-transition:enter-start="opacity-0 -translate-y-2 scale-95"
+                    x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+                    x-transition:leave="transition ease-in duration-100 transform"
+                    x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+                    x-transition:leave-end="opacity-0 -translate-y-2 scale-95"
+                    class="absolute left-0 top-full mt-2 w-72 sm:w-80 rounded-2xl bg-[#12141a]/95 border border-[#1e222c] shadow-2xl shadow-black/90 backdrop-blur-xl p-3.5 z-50 text-left select-none"
+                >
+                    <!-- Header Info: Título e Artista -->
+                    <div class="mb-3 pb-2.5 border-b border-[#1e222c]">
+                        <span class="text-[10px] font-mono uppercase tracking-widest text-[#00d2ff] font-bold block mb-0.5">Informações da Cifra</span>
+                        <h3 class="text-sm font-black text-white truncate" title="{{ $song->title }}">
+                            {{ $song->title }}
+                        </h3>
+                    </div>
+
+                    <!-- Informações: Tom Original e Compositor -->
+                    <div class="space-y-2 mb-3">
+                        <!-- 1 - Tom original -->
+                        <div class="flex items-center justify-between px-3 py-2 rounded-xl bg-[#08080a]/70 border border-[#1e222c]">
+                            <div class="flex items-center gap-2 text-xs text-slate-300 font-medium">
+                                <span class="w-1.5 h-1.5 rounded-full bg-[#00d2ff]"></span>
+                                <span>Tom original</span>
+                            </div>
+                            <span class="font-mono font-black text-xs text-[#00d2ff] px-2 py-0.5 rounded-md bg-[#00d2ff]/10 border border-[#00d2ff]/20">
+                                {{ $song->original_key ?? $songVersion?->base_key ?? 'Não informado' }}
+                            </span>
+                        </div>
+
+                        <!-- 2 - Compositor -->
+                        <div class="flex items-center justify-between px-3 py-2 rounded-xl bg-[#08080a]/70 border border-[#1e222c]">
+                            <div class="flex items-center gap-2 text-xs text-slate-300 font-medium min-w-0">
+                                <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
+                                <span class="shrink-0">Compositor</span>
+                            </div>
+                            <span class="text-xs font-semibold text-slate-200 truncate pl-2 max-w-[145px] text-right" title="{{ $song->artist ?? 'Não informado' }}">
+                                {{ $song->artist ?: 'Não informado' }}
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- 3 e 4 - Links Externos: YouTube e Spotify (quando houver) -->
+                    @if ($song->youtube_url || $song->spotify_url)
+                        <div class="border-t border-[#1e222c] pt-2.5 mb-2.5 space-y-1.5">
+                            @if ($song->youtube_url)
+                                <a
+                                    href="{{ $song->youtube_url }}"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    class="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold text-slate-200 hover:text-white bg-[#181b24]/40 hover:bg-red-500/10 border border-[#1e222c]/60 hover:border-red-500/30 transition tap-scale group"
+                                >
+                                    <div class="flex items-center gap-2.5 min-w-0">
+                                        <svg class="w-4 h-4 text-red-500 group-hover:scale-110 transition shrink-0" viewBox="0 0 24 24" fill="currentColor">
+                                            <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                                        </svg>
+                                        <span class="truncate">Assistir no YouTube</span>
+                                    </div>
+                                    <svg class="w-3.5 h-3.5 text-slate-500 group-hover:text-red-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                    </svg>
+                                </a>
+                            @endif
+
+                            @if ($song->spotify_url)
+                                <a
+                                    href="{{ $song->spotify_url }}"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    class="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold text-slate-200 hover:text-white bg-[#181b24]/40 hover:bg-emerald-500/10 border border-[#1e222c]/60 hover:border-emerald-500/30 transition tap-scale group"
+                                >
+                                    <div class="flex items-center gap-2.5 min-w-0">
+                                        <svg class="w-4 h-4 text-[#1db954] group-hover:scale-110 transition shrink-0" viewBox="0 0 24 24" fill="currentColor">
+                                            <path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/>
+                                        </svg>
+                                        <span class="truncate">Ouvir no Spotify</span>
+                                    </div>
+                                    <svg class="w-3.5 h-3.5 text-slate-500 group-hover:text-emerald-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                    </svg>
+                                </a>
+                            @endif
+                        </div>
+                    @endif
+
+                    <!-- 5 - Botão "Editar" -->
+                    <div class="border-t border-[#1e222c] pt-2.5">
+                        <a
+                            href="{{ route('filament.app.resources.songs.edit', ['tenant' => $organization, 'record' => $song]) }}"
+                            class="flex items-center justify-center gap-2 w-full px-3 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider text-white hover:text-[#00d2ff] bg-[#181b24] hover:bg-[#1e222c] border border-[#1e222c] hover:border-[#00d2ff]/40 shadow-sm transition tap-scale cursor-pointer"
+                            title="Editar Música no Painel"
+                        >
+                            <svg class="w-4 h-4 text-[#00d2ff]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                            </svg>
+                            <span>Editar</span>
+                        </a>
+                    </div>
+                </div>
             </div>
         </div>
 

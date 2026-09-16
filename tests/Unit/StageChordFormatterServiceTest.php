@@ -35,12 +35,40 @@ class StageChordFormatterServiceTest extends TestCase
         $html = $this->formatter->transposeAndFormat($content, 'C', 'D');
 
         $result = $html->toHtml();
+        $this->assertStringContainsString('stage-chord-pair', $result);
         $this->assertStringContainsString('stage-chord', $result);
         $this->assertStringContainsString('D', $result);
         $this->assertStringContainsString('A', $result);
         $this->assertStringContainsString('Bm', $result);
         $this->assertStringContainsString('G', $result);
-        $this->assertStringContainsString('Deus é bom todo tempo', $result);
+        $this->assertStringContainsString('Deus', $result);
+        $this->assertStringContainsString('bom', $result);
+    }
+
+    public function test_formats_inline_chordpro_into_responsive_chord_pairs(): void
+    {
+        $content = "[C]Graça [G]maravilhosa\n[Am]Que me alcan[F]çou";
+        $html = $this->formatter->formatForStageHtml($content);
+
+        $result = $html->toHtml();
+        $this->assertStringContainsString('stage-chord-pair', $result);
+        $this->assertStringContainsString('stage-lyric-chord-line', $result);
+        $this->assertStringContainsString('C', $result);
+        $this->assertStringContainsString('G', $result);
+        $this->assertStringContainsString('Graça', $result);
+        $this->assertStringContainsString('maravilhosa', $result);
+    }
+
+    public function test_formats_instrumental_chord_lines(): void
+    {
+        $content = "[Intro]\nC   G   Am   F";
+        $html = $this->formatter->formatForStageHtml($content);
+
+        $result = $html->toHtml();
+        $this->assertStringContainsString('stage-section-badge', $result);
+        $this->assertStringContainsString('stage-chord-line', $result);
+        $this->assertStringContainsString('C', $result);
+        $this->assertStringContainsString('F', $result);
     }
 
     public function test_formats_structural_sections_correctly(): void

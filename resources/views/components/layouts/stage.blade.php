@@ -110,17 +110,55 @@
         .stage-chord {
             color: #fbbf24 !important;
             font-weight: 700 !important;
+            font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace !important;
+            letter-spacing: 0 !important;
         }
         .stage-chord-token {
             color: #fde68a !important;
+            font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace !important;
+        }
+        .stage-chord-placeholder {
+            font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace !important;
+            letter-spacing: 0 !important;
+        }
+        .stage-lyric {
+            color: #f1f5f9 !important;
+            font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace !important;
+            letter-spacing: 0 !important;
+        }
+
+        /* Estilos dos pares verticais de acorde-sílaba (Modelo Híbrido / ChordPro) */
+        .stage-lyric-chord-line {
+            display: flex !important;
+            flex-wrap: wrap !important;
+            align-items: flex-end !important;
+            margin-top: 0.25rem !important;
+            margin-bottom: 0.5rem !important;
+            line-height: normal !important;
+            break-inside: avoid;
+            page-break-inside: avoid;
+        }
+        .stage-chord-pair {
+            display: inline-flex !important;
+            flex-direction: column !important;
+            justify-content: flex-end !important;
+            vertical-align: bottom !important;
+            min-width: max-content !important;
+            font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace !important;
         }
 
         /* Ocultar cifras quando o modo apenas 'Letra' estiver ativo */
-        .hide-chords .stage-chord-line {
+        .hide-chords .stage-chord-line,
+        .hide-chords .stage-chord,
+        .hide-chords .stage-chord-placeholder {
             display: none !important;
         }
         .hide-chords .stage-lyric-line {
             margin-bottom: 0.4rem !important;
+        }
+        .hide-chords .stage-lyric-chord-line {
+            margin-bottom: 0.35rem !important;
+            margin-top: 0 !important;
         }
 
         /* Modo 2 Colunas para Telas Médias/Grandes (Tablets, iPads e Desktops) */
@@ -136,7 +174,10 @@
         }
         .stage-section-badge,
         .stage-section-chorus,
-        .stage-section-tag {
+        .stage-section-tag,
+        .stage-chord-line,
+        .stage-lyric-line,
+        .stage-lyric-chord-line {
             break-inside: avoid;
             page-break-inside: avoid;
         }

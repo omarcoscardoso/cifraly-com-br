@@ -215,7 +215,9 @@ class StageAndConfirmationTest extends TestCase
             ->assertSee('D')
             ->assertSee('Em')
             ->assertSee('C')
-            ->assertSee('Santo Espírito és bem-vindo aqui');
+            ->assertSee('Santo')
+            ->assertSee('Espírito')
+            ->assertSee('bem-vindo');
     }
 
     public function test_stage_view_interactive_transposition_and_song_navigation(): void
@@ -359,8 +361,7 @@ class StageAndConfirmationTest extends TestCase
             ])
             ->assertSeeHtml('stage-section-badge')
             ->assertSeeHtml('stage-chord-line')
-            ->assertSeeHtml('stage-lyric-line')
-            ->assertSeeHtml('white-space: pre;')
+            ->assertSeeHtml('stage-chord-pair')
             ->assertSeeHtml('stage-chord text-amber-400')
             ->assertSee('[Intro]')
             ->assertSee('[Verso 1]');

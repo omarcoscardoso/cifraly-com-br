@@ -11,6 +11,8 @@ use App\Models\Organization;
 use App\Models\Song;
 use App\Models\SongVersion;
 use App\Models\User;
+use App\Services\Music\ChordToChordProConverter;
+use App\Services\Music\StageChordFormatterService;
 use Filament\Facades\Filament;
 use Filament\Support\Enums\FontWeight;
 use Filament\Support\Enums\TextSize;
@@ -221,6 +223,33 @@ class SongResourceTest extends TestCase
         $this->assertSame('D', $version->fresh()->base_key);
     }
 
+    public function test_changing_original_key_in_edit_form_transposes_chord_content_reactively(): void
+    {
+        $song = Song::factory()->create([
+            'organization_id' => $this->organization->id,
+            'title' => 'Música Transposição',
+            'original_key' => 'C',
+        ]);
+
+        SongVersion::factory()->create([
+            'song_id' => $song->id,
+            'base_key' => 'C',
+            'chordpro_content' => "C   G   Am   F\nPrimeira linha",
+            'is_default' => true,
+        ]);
+
+        Livewire::actingAs($this->user)
+            ->test(EditSong::class, ['record' => $song->getRouteKey()])
+            ->assertFormFieldExists('original_key')
+            ->fillForm([
+                'original_key' => 'D',
+            ])
+            ->assertFormSet([
+                'original_key' => 'D',
+                'chordpro_content' => "D   A   Bm   G\nPrimeira linha",
+            ]);
+    }
+
     public function test_songs_table_row_click_links_to_song_stage_view(): void
     {
         $song = Song::factory()->create([
@@ -287,5 +316,53 @@ class SongResourceTest extends TestCase
         $version = $song->defaultVersion;
         $this->assertNotNull($version);
         $this->assertSame(2, $version->capo_fret);
+    }
+
+    public function test_can_save_and_convert_two_line_and_chordpro_chords(): void
+    {
+        $song = Song::factory()->create([
+            'organization_id' => $this->organization->id,
+            'title' => 'Perto Quero Estar',
+            'original_key' => 'F',
+        ]);
+
+        $twoLineContent = "F           Gm\nPerto quero estar\nC           Dm\nJunto aos Teus pés";
+
+        // Cria versão inicial com formato tradicional de 2 linhas
+        SongVersion::factory()->create([
+            'song_id' => $song->id,
+            'base_key' => 'F',
+            'chordpro_content' => $twoLineContent,
+            'is_default' => true,
+        ]);
+
+        // Edita a música e salva no formato ChordPro
+        $converter = app(ChordToChordProConverter::class);
+        $chordProContent = $converter->toChordPro($twoLineContent);
+
+        Livewire::actingAs($this->user)
+            ->test(EditSong::class, ['record' => $song->id])
+            ->assertSchemaStateSet([
+                'chordpro_content' => $twoLineContent,
+            ])
+            ->fillForm([
+                'chordpro_content' => $chordProContent,
+            ])
+            ->call('save')
+            ->assertHasNoFormErrors();
+
+        $version = $song->fresh()->defaultVersion;
+        $this->assertSame($chordProContent, $version->chordpro_content);
+        $this->assertStringContainsString('[F]Perto quero [Gm]estar', $version->chordpro_content);
+
+        // O StageChordFormatterService deve renderizar ambos os formatos com blocos perfeitos
+        $formatter = app(StageChordFormatterService::class);
+        $htmlFromChordPro = $formatter->transposeAndFormat($chordProContent, 'F', 'F')->toHtml();
+        $htmlFromTwoLine = $formatter->transposeAndFormat($twoLineContent, 'F', 'F')->toHtml();
+
+        $this->assertStringContainsString('stage-chord-pair', $htmlFromChordPro);
+        $this->assertStringContainsString('stage-chord-pair', $htmlFromTwoLine);
+        $this->assertStringContainsString('F', $htmlFromChordPro);
+        $this->assertStringContainsString('Gm', $htmlFromChordPro);
     }
 }

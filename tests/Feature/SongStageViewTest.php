@@ -152,4 +152,52 @@ class SongStageViewTest extends TestCase
         $response->assertSee('Letra');
         $response->assertSee('Refrão');
     }
+
+    public function test_song_stage_view_renders_musical_menu_with_shortcuts_and_info(): void
+    {
+        $this->song->update([
+            'youtube_url' => 'https://www.youtube.com/watch?v=sample123',
+            'spotify_url' => 'https://open.spotify.com/track/sample456',
+        ]);
+
+        $response = $this->get(route('songs.stage', [
+            'organization' => $this->organization,
+            'song' => $this->song,
+        ]));
+
+        $response->assertSuccessful();
+        $response->assertSee('Tom original');
+        $response->assertSee('Harpa Cristã');
+        $response->assertSee('Assistir no YouTube');
+        $response->assertSee('https://www.youtube.com/watch?v=sample123');
+        $response->assertSee('Ouvir no Spotify');
+        $response->assertSee('https://open.spotify.com/track/sample456');
+        $response->assertSee('Editar');
+
+        $editUrl = route('filament.app.resources.songs.edit', [
+            'tenant' => $this->organization,
+            'record' => $this->song,
+        ]);
+        $response->assertSee($editUrl);
+    }
+
+    public function test_song_stage_view_omits_youtube_and_spotify_links_when_not_provided(): void
+    {
+        $this->song->update([
+            'youtube_url' => null,
+            'spotify_url' => null,
+        ]);
+
+        $response = $this->get(route('songs.stage', [
+            'organization' => $this->organization,
+            'song' => $this->song,
+        ]));
+
+        $response->assertSuccessful();
+        $response->assertSee('Tom original');
+        $response->assertSee('Harpa Cristã');
+        $response->assertDontSee('Assistir no YouTube');
+        $response->assertDontSee('Ouvir no Spotify');
+        $response->assertSee('Editar');
+    }
 }

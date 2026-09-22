@@ -47,6 +47,7 @@ class SongsRelationManager extends RelationManager
         return $table
             ->reorderable('order_index')
             ->defaultSort('order_index', 'asc')
+            ->searchable(false)
             ->stackedOnMobile()
             ->columns([
                 TextColumn::make('order_index')
@@ -56,7 +57,6 @@ class SongsRelationManager extends RelationManager
 
                 TextColumn::make('song.title')
                     ->label('Música')
-                    ->searchable()
                     ->sortable()
                     ->weight('medium'),
 
@@ -64,22 +64,26 @@ class SongsRelationManager extends RelationManager
                     ->label('Tom Original')
                     ->badge()
                     ->color('gray')
-                    ->sortable(),
+                    ->sortable()
+                    ->visibleFrom('md'),
 
                 TextColumn::make('target_key')
                     ->label('Tom no Evento')
                     ->badge()
                     ->color('primary')
-                    ->sortable(),
+                    ->sortable()
+                    ->visibleFrom('md'),
 
                 TextColumn::make('song.bpm')
                     ->label('BPM')
-                    ->placeholder('-'),
+                    ->placeholder('-')
+                    ->visibleFrom('md'),
 
                 TextColumn::make('arrangement_notes')
                     ->label('Arranjo')
                     ->placeholder('-')
-                    ->limit(50),
+                    ->limit(50)
+                    ->visibleFrom('md'),
             ])
             ->headerActions([
                 CreateAction::make()

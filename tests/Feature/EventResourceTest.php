@@ -22,6 +22,7 @@ use App\Models\TeamMember;
 use App\Models\User;
 use Filament\Facades\Filament;
 use Filament\Support\Enums\Width;
+use Filament\Tables\Table;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use Tests\TestCase;
@@ -753,5 +754,30 @@ class EventResourceTest extends TestCase
 
         $this->assertSame(1, $eventSong2->fresh()->order_index);
         $this->assertSame(2, $eventSong1->fresh()->order_index);
+    }
+
+    public function test_songs_relation_manager_table_is_not_searchable_and_secondary_columns_are_visible_only_from_md(): void
+    {
+        $event = Event::factory()->create([
+            'organization_id' => $this->organization->id,
+        ]);
+
+        $component = Livewire::test(SongsRelationManager::class, [
+            'ownerRecord' => $event,
+            'pageClass' => EditEvent::class,
+        ]);
+
+        /** @var Table $table */
+        $table = $component->instance()->getTable();
+
+        $this->assertFalse($table->isSearchable());
+
+        $columns = $table->getColumns();
+        $this->assertNull($columns['order_index']->getVisibleFrom());
+        $this->assertNull($columns['song.title']->getVisibleFrom());
+        $this->assertSame('md', $columns['song.original_key']->getVisibleFrom());
+        $this->assertSame('md', $columns['target_key']->getVisibleFrom());
+        $this->assertSame('md', $columns['song.bpm']->getVisibleFrom());
+        $this->assertSame('md', $columns['arrangement_notes']->getVisibleFrom());
     }
 }

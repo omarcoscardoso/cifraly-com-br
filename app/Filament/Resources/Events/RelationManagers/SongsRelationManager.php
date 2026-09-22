@@ -9,10 +9,8 @@ use App\Models\Event;
 use App\Models\Song;
 use App\Models\SongVersion;
 use BackedEnum;
-use Filament\Actions\BulkActionGroup;
 use Filament\Actions\CreateAction;
 use Filament\Actions\DeleteAction;
-use Filament\Actions\DeleteBulkAction;
 use Filament\Facades\Filament;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
@@ -48,6 +46,7 @@ class SongsRelationManager extends RelationManager
             ->reorderable('order_index')
             ->defaultSort('order_index', 'asc')
             ->searchable(false)
+            ->selectable(false)
             ->stackedOnMobile()
             ->extraAttributes([
                 'class' => 'setlist-table-compact',
@@ -155,11 +154,6 @@ class SongsRelationManager extends RelationManager
             ->recordActions([
                 DeleteAction::make()
                     ->label('Remover'),
-            ])
-            ->toolbarActions([
-                BulkActionGroup::make([
-                    DeleteBulkAction::make(),
-                ]),
             ]);
     }
 }

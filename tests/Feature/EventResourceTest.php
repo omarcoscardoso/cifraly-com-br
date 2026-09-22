@@ -756,7 +756,7 @@ class EventResourceTest extends TestCase
         $this->assertSame(2, $eventSong1->fresh()->order_index);
     }
 
-    public function test_songs_relation_manager_table_has_only_order_and_title_columns_and_is_not_sortable(): void
+    public function test_songs_relation_manager_table_has_only_order_and_title_columns_and_is_not_sortable_or_selectable(): void
     {
         $event = Event::factory()->create([
             'organization_id' => $this->organization->id,
@@ -771,6 +771,7 @@ class EventResourceTest extends TestCase
         $table = $component->instance()->getTable();
 
         $this->assertFalse($table->isSearchable());
+        $this->assertFalse($table->isSelectionEnabled());
 
         $columns = $table->getColumns();
         $this->assertArrayHasKey('order_index', $columns);

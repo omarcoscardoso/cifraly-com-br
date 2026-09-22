@@ -49,16 +49,21 @@ class SongsRelationManager extends RelationManager
             ->defaultSort('order_index', 'asc')
             ->searchable(false)
             ->stackedOnMobile()
+            ->extraAttributes([
+                'class' => 'setlist-table-compact',
+            ])
             ->columns([
                 TextColumn::make('order_index')
                     ->label('#')
                     ->sortable()
-                    ->weight('bold'),
+                    ->weight('bold')
+                    ->extraAttributes(['class' => 'setlist-col-order']),
 
                 TextColumn::make('song.title')
                     ->label('Música')
                     ->sortable()
-                    ->weight('medium'),
+                    ->weight('medium')
+                    ->extraAttributes(['class' => 'setlist-col-song']),
 
                 TextColumn::make('song.original_key')
                     ->label('Tom Original')

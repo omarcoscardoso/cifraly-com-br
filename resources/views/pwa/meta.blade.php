@@ -309,4 +309,95 @@
         max-width: 2.25rem !important;
         max-height: 2.25rem !important;
     }
+
+    /* =====================================================
+       SETLIST DO REPERTÓRIO: CARDS DE LINHA ÚNICA NO MOBILE
+       ===================================================== */
+    @media (max-width: 767px) {
+        /* Oculta os rótulos de coluna gerados pelo stackedOnMobile */
+        .setlist-table-compact .fi-ta-cell-label {
+            display: none !important;
+        }
+
+        /* Transforma cada linha do setlist em um card horizontal de linha única */
+        .setlist-table-compact .fi-ta-table-stacked-on-mobile > tbody > tr {
+            display: flex !important;
+            flex-direction: row !important;
+            align-items: center !important;
+            justify-content: flex-start !important;
+            padding: 0.5rem 0.75rem !important;
+            margin-bottom: 0.375rem !important;
+            border-radius: 0.5rem !important;
+            background-color: rgba(255, 255, 255, 0.03) !important;
+            border: 1px solid rgba(255, 255, 255, 0.08) !important;
+            gap: 0.5rem !important;
+        }
+
+        /* Cada célula no card fica como item inline-flex sem quebrar de linha */
+        .setlist-table-compact .fi-ta-table-stacked-on-mobile > tbody > tr > .fi-ta-cell {
+            display: inline-flex !important;
+            align-items: center !important;
+            padding: 0 !important;
+            border: none !important;
+        }
+
+        /* Drag handle de reordenação */
+        .setlist-table-compact .fi-ta-reorder-handle {
+            margin-right: 0.125rem !important;
+            flex-shrink: 0 !important;
+        }
+
+        /* Coluna da Ordem (#) */
+        .setlist-table-compact .setlist-col-order {
+            flex-shrink: 0 !important;
+            min-width: 1.5rem !important;
+        }
+
+        .setlist-table-compact .setlist-col-order .fi-ta-cell-content {
+            font-weight: 700 !important;
+            font-size: 0.95rem !important;
+            color: #00d2ff !important;
+        }
+
+        /* Coluna do Nome da Música */
+        .setlist-table-compact .setlist-col-song {
+            flex: 1 1 auto !important;
+            min-width: 0 !important;
+            overflow: hidden !important;
+        }
+
+        .setlist-table-compact .setlist-col-song .fi-ta-cell-content,
+        .setlist-table-compact .setlist-col-song .fi-ta-col {
+            width: 100% !important;
+            min-width: 0 !important;
+            overflow: hidden !important;
+        }
+
+        .setlist-table-compact .setlist-col-song .fi-ta-text-item-label {
+            display: block !important;
+            white-space: nowrap !important;
+            overflow: hidden !important;
+            text-overflow: ellipsis !important;
+            font-weight: 500 !important;
+            font-size: 0.875rem !important;
+        }
+
+        /* Coluna de Ações (Remover) alinhada à direita */
+        .setlist-table-compact .fi-ta-table-stacked-on-mobile > tbody > tr > .fi-ta-cell:last-child {
+            margin-left: auto !important;
+            flex-shrink: 0 !important;
+        }
+
+        .setlist-table-compact .fi-ta-actions {
+            width: auto !important;
+            justify-content: flex-end !important;
+            gap: 0.25rem !important;
+        }
+
+        .setlist-table-compact .fi-ta-actions button,
+        .setlist-table-compact .fi-ta-actions .fi-btn {
+            padding: 0.25rem 0.5rem !important;
+            font-size: 0.75rem !important;
+        }
+    }
 </style>

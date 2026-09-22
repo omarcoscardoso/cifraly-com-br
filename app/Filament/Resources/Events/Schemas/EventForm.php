@@ -39,6 +39,7 @@ class EventForm
             return $schema
                 ->components([
                     Tabs::make('EventCreateTabs')
+                        ->columnSpanFull()
                         ->tabs([
                             Tab::make('Dados do Evento')
                                 ->icon(Heroicon::OutlinedCalendarDays)
@@ -197,6 +198,7 @@ class EventForm
     {
         return [
             Section::make('Dados do Evento')
+                ->columnSpanFull()
                 ->description('Informações gerais, data, horário e equipe do evento')
                 ->schema([
                     Grid::make(2)->schema([

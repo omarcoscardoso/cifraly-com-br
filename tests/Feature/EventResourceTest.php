@@ -21,6 +21,7 @@ use App\Models\Team;
 use App\Models\TeamMember;
 use App\Models\User;
 use Filament\Facades\Filament;
+use Filament\Support\Enums\Width;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use Tests\TestCase;
@@ -703,5 +704,18 @@ class EventResourceTest extends TestCase
 
         $this->assertSame('1', SongsRelationManager::getBadge($event, EditEvent::class));
         $this->assertSame('1', RostersRelationManager::getBadge($event, EditEvent::class));
+    }
+
+    public function test_event_create_and_edit_pages_use_full_content_width(): void
+    {
+        $event = Event::factory()->create([
+            'organization_id' => $this->organization->id,
+        ]);
+
+        $createComponent = Livewire::test(CreateEvent::class);
+        $this->assertSame(Width::Full, $createComponent->instance()->getMaxContentWidth());
+
+        $editComponent = Livewire::test(EditEvent::class, ['record' => $event->getRouteKey()]);
+        $this->assertSame(Width::Full, $editComponent->instance()->getMaxContentWidth());
     }
 }

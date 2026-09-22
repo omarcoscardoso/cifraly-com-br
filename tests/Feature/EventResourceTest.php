@@ -718,4 +718,40 @@ class EventResourceTest extends TestCase
         $editComponent = Livewire::test(EditEvent::class, ['record' => $event->getRouteKey()]);
         $this->assertSame(Width::Full, $editComponent->instance()->getMaxContentWidth());
     }
+
+    public function test_can_reorder_songs_in_setlist_table_using_drag_and_drop(): void
+    {
+        $event = Event::factory()->create([
+            'organization_id' => $this->organization->id,
+        ]);
+
+        $song1 = Song::factory()->create(['organization_id' => $this->organization->id, 'title' => 'Música 1']);
+        $song2 = Song::factory()->create(['organization_id' => $this->organization->id, 'title' => 'Música 2']);
+
+        $eventSong1 = EventSong::factory()->create([
+            'organization_id' => $this->organization->id,
+            'event_id' => $event->id,
+            'song_id' => $song1->id,
+            'target_key' => 'C',
+            'order_index' => 1,
+        ]);
+
+        $eventSong2 = EventSong::factory()->create([
+            'organization_id' => $this->organization->id,
+            'event_id' => $event->id,
+            'song_id' => $song2->id,
+            'target_key' => 'D',
+            'order_index' => 2,
+        ]);
+
+        Livewire::test(SongsRelationManager::class, [
+            'ownerRecord' => $event,
+            'pageClass' => EditEvent::class,
+        ])
+            ->call('reorderTable', [(string) $eventSong2->id, (string) $eventSong1->id])
+            ->assertHasNoErrors();
+
+        $this->assertSame(1, $eventSong2->fresh()->order_index);
+        $this->assertSame(2, $eventSong1->fresh()->order_index);
+    }
 }

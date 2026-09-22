@@ -6,23 +6,17 @@ namespace App\Filament\Resources\Events\RelationManagers;
 
 use App\Filament\Resources\Songs\SongResource;
 use App\Models\Event;
-use App\Models\EventSong;
 use App\Models\Song;
 use App\Models\SongVersion;
-use App\Services\Music\ChordTransposerService;
 use BackedEnum;
-use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\CreateAction;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
-use Filament\Actions\EditAction;
 use Filament\Facades\Filament;
 use Filament\Forms\Components\Select;
-use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Resources\RelationManagers\RelationManager;
-use Filament\Schemas\Components\Grid;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
@@ -51,6 +45,8 @@ class SongsRelationManager extends RelationManager
     public function table(Table $table): Table
     {
         return $table
+            ->reorderable('order_index')
+            ->defaultSort('order_index', 'asc')
             ->stackedOnMobile()
             ->columns([
                 TextColumn::make('order_index')
@@ -175,85 +171,6 @@ class SongsRelationManager extends RelationManager
                     }),
             ])
             ->recordActions([
-                Action::make('viewTransposedChord')
-                    ->label('Ver Cifra no Tom')
-                    ->icon(Heroicon::OutlinedMusicalNote)
-                    ->color('info')
-                    ->modalHeading(function (EventSong $record): string {
-                        $songTitle = $record->song?->title ?? 'Música';
-                        $key = $record->target_key;
-
-                        return "Cifra: {$songTitle} (Tom: {$key})";
-                    })
-                    ->modalWidth('4xl')
-                    ->modalSubmitAction(false)
-                    ->modalCancelActionLabel('Fechar')
-                    ->form(function (EventSong $record): array {
-                        $song = $record->song;
-                        $version = $record->songVersion ?? $song?->defaultVersion ?? $song?->versions()->first();
-                        $content = $version?->chordpro_content ?? '';
-                        $fromKey = $version?->base_key ?? $song?->original_key ?? 'C';
-                        $toKey = $record->target_key ?? $fromKey;
-
-                        $transposed = $content;
-
-                        if (! empty($content) && $fromKey !== $toKey) {
-                            $transposer = app(ChordTransposerService::class);
-
-                            try {
-                                $transposed = $transposer->transpose($content, $fromKey, $toKey);
-                            } catch (\Throwable) {
-                                $transposed = $content;
-                            }
-                        }
-
-                        return [
-                            Grid::make(3)->schema([
-                                TextInput::make('from_key')
-                                    ->label('Tom Original')
-                                    ->default($fromKey)
-                                    ->disabled(),
-
-                                TextInput::make('target_key_display')
-                                    ->label('Tom no Evento')
-                                    ->default($toKey)
-                                    ->disabled(),
-
-                                TextInput::make('version_label')
-                                    ->label('Versão')
-                                    ->default($version?->label ?? 'Padrão')
-                                    ->disabled(),
-                            ]),
-
-                            Textarea::make('chord_content')
-                                ->label('Cifra Transposta (Acordes sobre a Letra)')
-                                ->rows(18)
-                                ->default($transposed)
-                                ->readOnly()
-                                ->extraInputAttributes(['class' => 'font-mono text-sm leading-relaxed bg-gray-50 dark:bg-gray-900']),
-                        ];
-                    }),
-
-                EditAction::make()
-                    ->label('Editar')
-                    ->form([
-                        Select::make('target_key')
-                            ->label('Tom no Evento')
-                            ->options(SongResource::KEY_OPTIONS)
-                            ->required()
-                            ->searchable(),
-
-                        TextInput::make('order_index')
-                            ->label('Ordem (#)')
-                            ->numeric()
-                            ->required(),
-
-                        TextInput::make('arrangement_notes')
-                            ->label('Arranjo / Observações')
-                            ->maxLength(255)
-                            ->nullable(),
-                    ]),
-
                 DeleteAction::make()
                     ->label('Remover'),
             ])
@@ -261,7 +178,6 @@ class SongsRelationManager extends RelationManager
                 BulkActionGroup::make([
                     DeleteBulkAction::make(),
                 ]),
-            ])
-            ->defaultSort('order_index', 'asc');
+            ]);
     }
 }

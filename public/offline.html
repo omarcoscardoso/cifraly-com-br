@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="h-full bg-slate-950">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#090d16">
+    <title>Sem Conexão - Cifraly</title>
+    <link rel="icon" type="image/svg+xml" href="/icons/icon.svg">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #090d16;
+            color: #f8fafc;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: env(safe-area-inset-top, 24px) env(safe-area-inset-right, 24px) env(safe-area-inset-bottom, 24px) env(safe-area-inset-left, 24px);
+            text-align: center;
+        }
+        .container {
+            max-width: 420px;
+            width: 100%;
+            padding: 32px 24px;
+            background: linear-gradient(180deg, rgba(30, 41, 59, 0.5) 0%, rgba(15, 23, 42, 0.7) 100%);
+            border: 1px solid rgba(51, 65, 85, 0.6);
+            border-radius: 28px;
+            box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+        .icon-box {
+            width: 84px;
+            height: 84px;
+            margin: 0 auto 24px;
+            border-radius: 22px;
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.2) 0%, rgba(217, 119, 6, 0.05) 100%);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 30px rgba(245, 158, 11, 0.15);
+        }
+        .icon-box svg {
+            width: 44px;
+            height: 44px;
+            color: #fbbf24;
+        }
+        h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #ffffff;
+            margin-bottom: 12px;
+            letter-spacing: -0.02em;
+        }
+        p {
+            font-size: 0.95rem;
+            color: #94a3b8;
+            line-height: 1.55;
+            margin-bottom: 28px;
+        }
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
+            padding: 14px 20px;
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            color: #090d16;
+            font-weight: 600;
+            font-size: 1rem;
+            border-radius: 16px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 14px rgba(245, 158, 11, 0.35);
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .btn:active {
+            transform: scale(0.97);
+            filter: brightness(0.9);
+        }
+        .btn svg {
+            width: 18px;
+            height: 18px;
+        }
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 12px;
+            border-radius: 9999px;
+            background: rgba(239, 68, 68, 0.15);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: #f87171;
+            font-size: 0.8rem;
+            font-weight: 500;
+            margin-bottom: 16px;
+        }
+        .pulse-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background-color: #ef4444;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div style="display: flex; justify-content: center; margin-bottom: 16px;">
+            <img src="/icons/icon.svg" alt="Cifraly" style="width: 56px; height: 56px; border-radius: 14px; box-shadow: 0 8px 24px rgba(0,0,0,0.4);" />
+        </div>
+
+        <div class="status-badge">
+            <span class="pulse-dot"></span>
+            Modo Desconectado
+        </div>
+
+        <div class="icon-box">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M18.364 5.636a9 9 0 010 12.728m0 0l-2.829-2.829m2.829 2.829L21 21M15.536 8.464a5 5 0 010 7.072m0 0l-2.829-2.829m-4.243 4.243a9 9 0 01-2.828-5.657m0 0a9 9 0 012.828-5.657m0 0l2.829 2.829m-2.829-2.829L3 3m6.364 6.364a5 5 0 017.072 0" />
+            </svg>
+        </div>
+
+        <h1>Você está offline</h1>
+        <p>Não foi possível conectar aos servidores do <strong>Cifraly</strong>. Verifique sua conexão Wi-Fi ou dados móveis para continuar navegando.</p>
+
+        <button class="btn" onclick="retryConnection()">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+            Tentar Novamente
+        </button>
+    </div>
+
+    <script>
+        function retryConnection() {
+            if (navigator.onLine) {
+                window.location.reload();
+            } else {
+                const btn = document.querySelector('.btn');
+                btn.style.opacity = '0.7';
+                btn.innerText = 'Verificando conexão...';
+                setTimeout(() => {
+                    btn.style.opacity = '1';
+                    btn.innerHTML = `
+                        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                        </svg>
+                        Tentar Novamente
+                    `;
+                }, 1000);
+            }
+        }
+
+        window.addEventListener('online', () => {
+            window.location.reload();
+        });
+    </script>
+</body>
+</html>

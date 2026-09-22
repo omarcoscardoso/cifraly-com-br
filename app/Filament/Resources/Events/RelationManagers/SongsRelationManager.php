@@ -10,6 +10,7 @@ use App\Models\EventSong;
 use App\Models\Song;
 use App\Models\SongVersion;
 use App\Services\Music\ChordTransposerService;
+use BackedEnum;
 use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\CreateAction;
@@ -25,6 +26,7 @@ use Filament\Schemas\Components\Grid;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Model;
 
 class SongsRelationManager extends RelationManager
 {
@@ -35,6 +37,16 @@ class SongsRelationManager extends RelationManager
     protected static ?string $modelLabel = 'Música no Repertório';
 
     protected static ?string $pluralModelLabel = 'Setlist do Repertório';
+
+    protected static string|BackedEnum|null $icon = Heroicon::OutlinedMusicalNote;
+
+    public static function getBadge(Model $ownerRecord, string $pageClass): ?string
+    {
+        /** @var Event $ownerRecord */
+        $count = $ownerRecord->eventSongs()->count();
+
+        return $count > 0 ? (string) $count : null;
+    }
 
     public function table(Table $table): Table
     {

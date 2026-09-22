@@ -11,6 +11,7 @@ use App\Models\Role;
 use App\Models\Team;
 use App\Models\TeamMember;
 use App\Models\User;
+use BackedEnum;
 use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\CreateAction;
@@ -27,6 +28,7 @@ use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
 
 class RostersRelationManager extends RelationManager
@@ -38,6 +40,16 @@ class RostersRelationManager extends RelationManager
     protected static ?string $modelLabel = 'Membro Escalado';
 
     protected static ?string $pluralModelLabel = 'Escala de Membros';
+
+    protected static string|BackedEnum|null $icon = Heroicon::OutlinedUserGroup;
+
+    public static function getBadge(Model $ownerRecord, string $pageClass): ?string
+    {
+        /** @var Event $ownerRecord */
+        $count = $ownerRecord->rosters()->count();
+
+        return $count > 0 ? (string) $count : null;
+    }
 
     public function table(Table $table): Table
     {

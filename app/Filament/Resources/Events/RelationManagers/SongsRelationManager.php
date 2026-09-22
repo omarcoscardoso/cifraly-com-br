@@ -55,40 +55,13 @@ class SongsRelationManager extends RelationManager
             ->columns([
                 TextColumn::make('order_index')
                     ->label('#')
-                    ->sortable()
                     ->weight('bold')
                     ->extraAttributes(['class' => 'setlist-col-order']),
 
                 TextColumn::make('song.title')
                     ->label('Música')
-                    ->sortable()
                     ->weight('medium')
                     ->extraAttributes(['class' => 'setlist-col-song']),
-
-                TextColumn::make('song.original_key')
-                    ->label('Tom Original')
-                    ->badge()
-                    ->color('gray')
-                    ->sortable()
-                    ->visibleFrom('md'),
-
-                TextColumn::make('target_key')
-                    ->label('Tom no Evento')
-                    ->badge()
-                    ->color('primary')
-                    ->sortable()
-                    ->visibleFrom('md'),
-
-                TextColumn::make('song.bpm')
-                    ->label('BPM')
-                    ->placeholder('-')
-                    ->visibleFrom('md'),
-
-                TextColumn::make('arrangement_notes')
-                    ->label('Arranjo')
-                    ->placeholder('-')
-                    ->limit(50)
-                    ->visibleFrom('md'),
             ])
             ->headerActions([
                 CreateAction::make()

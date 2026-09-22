@@ -756,7 +756,7 @@ class EventResourceTest extends TestCase
         $this->assertSame(2, $eventSong1->fresh()->order_index);
     }
 
-    public function test_songs_relation_manager_table_is_not_searchable_and_secondary_columns_are_visible_only_from_md(): void
+    public function test_songs_relation_manager_table_has_only_order_and_title_columns_and_is_not_sortable(): void
     {
         $event = Event::factory()->create([
             'organization_id' => $this->organization->id,
@@ -773,11 +773,14 @@ class EventResourceTest extends TestCase
         $this->assertFalse($table->isSearchable());
 
         $columns = $table->getColumns();
-        $this->assertNull($columns['order_index']->getVisibleFrom());
-        $this->assertNull($columns['song.title']->getVisibleFrom());
-        $this->assertSame('md', $columns['song.original_key']->getVisibleFrom());
-        $this->assertSame('md', $columns['target_key']->getVisibleFrom());
-        $this->assertSame('md', $columns['song.bpm']->getVisibleFrom());
-        $this->assertSame('md', $columns['arrangement_notes']->getVisibleFrom());
+        $this->assertArrayHasKey('order_index', $columns);
+        $this->assertArrayHasKey('song.title', $columns);
+        $this->assertArrayNotHasKey('song.original_key', $columns);
+        $this->assertArrayNotHasKey('target_key', $columns);
+        $this->assertArrayNotHasKey('song.bpm', $columns);
+        $this->assertArrayNotHasKey('arrangement_notes', $columns);
+
+        $this->assertFalse($columns['order_index']->isSortable());
+        $this->assertFalse($columns['song.title']->isSortable());
     }
 }

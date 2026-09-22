@@ -104,7 +104,7 @@ O Cifraly adota estritamente os princípios de Clean Architecture e SOLID:
 
 1. **Clonar o Repositório**:
    ```bash
-   git clone https://github.com/seu-usuario/cifraly-com-br.git
+   git clone https://github.com/omarcoscardoso/cifraly-com-br.git
    cd cifraly-com-br
    ```
 
@@ -137,8 +137,8 @@ O Cifraly adota estritamente os princípios de Clean Architecture e SOLID:
    ```
 
 7. **Acessar a Aplicação**:
-   - Painel Administrativo: `http://localhost:8000/admin`
-   - Registro de Nova Organização: `http://localhost:8000/admin/new`
+   - Painel da Aplicação: `http://localhost:8000/app`
+   - Registro de Nova Organização: `http://localhost:8000/app/new`
 
 ---
 

@@ -43,8 +43,8 @@ class EventResource extends Resource
     public static function getRelations(): array
     {
         return [
-            RostersRelationManager::class,
             SongsRelationManager::class,
+            RostersRelationManager::class,
         ];
     }
 

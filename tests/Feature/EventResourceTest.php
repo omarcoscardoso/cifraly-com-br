@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
+use App\Filament\Resources\Events\EventResource;
 use App\Filament\Resources\Events\Pages\CreateEvent;
 use App\Filament\Resources\Events\Pages\EditEvent;
 use App\Filament\Resources\Events\Pages\ListEvents;
@@ -20,6 +21,8 @@ use App\Models\Team;
 use App\Models\TeamMember;
 use App\Models\User;
 use Filament\Facades\Filament;
+use Filament\Support\Enums\Width;
+use Filament\Tables\Table;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use Tests\TestCase;
@@ -581,5 +584,204 @@ class EventResourceTest extends TestCase
         Livewire::test(ListEvents::class)
             ->assertCanSeeTableRecords([$event])
             ->assertSee('2/3 confirmados');
+    }
+
+    public function test_can_create_event_with_songs_and_rosters_in_tabs(): void
+    {
+        $song1 = Song::factory()->create([
+            'organization_id' => $this->organization->id,
+            'title' => 'Ao Único',
+            'original_key' => 'F',
+        ]);
+
+        $song2 = Song::factory()->create([
+            'organization_id' => $this->organization->id,
+            'title' => 'Vim Para Adorar-te',
+            'original_key' => 'E',
+        ]);
+
+        $volunteer = User::factory()->create(['name' => 'Marcos Tecladista']);
+        $volunteer->organizations()->attach($this->organization);
+
+        $role = Role::factory()->create([
+            'organization_id' => $this->organization->id,
+            'name' => 'Teclado',
+        ]);
+
+        Livewire::test(CreateEvent::class)
+            ->fillForm([
+                'title' => 'Culto com Repertório e Escala na Criação',
+                'status' => Event::STATUS_PUBLISHED,
+                'starts_at' => '2026-12-25 19:00:00',
+                'eventSongs' => [
+                    [
+                        'song_id' => $song1->id,
+                        'target_key' => 'F',
+                        'arrangement_notes' => 'Introdução no piano',
+                    ],
+                    [
+                        'song_id' => $song2->id,
+                        'target_key' => 'E',
+                        'arrangement_notes' => 'Transição suave',
+                    ],
+                ],
+                'rosters' => [
+                    [
+                        'user_id' => $volunteer->id,
+                        'role_id' => $role->id,
+                        'status' => EventRoster::STATUS_PENDING,
+                    ],
+                ],
+            ])
+            ->call('create')
+            ->assertHasNoFormErrors();
+
+        $event = Event::where('title', 'Culto com Repertório e Escala na Criação')->first();
+        $this->assertNotNull($event);
+
+        // Verify songs saved
+        $eventSongs = $event->eventSongs()->with('song')->get();
+        $this->assertCount(2, $eventSongs);
+        $this->assertSame($song1->id, $eventSongs[0]->song_id);
+        $this->assertSame('F', $eventSongs[0]->target_key);
+        $this->assertSame('Introdução no piano', $eventSongs[0]->arrangement_notes);
+        $this->assertSame($song2->id, $eventSongs[1]->song_id);
+
+        // Verify roster saved
+        $rosters = $event->rosters()->with('user', 'role')->get();
+        $this->assertCount(1, $rosters);
+        $this->assertSame($volunteer->id, $rosters[0]->user_id);
+        $this->assertSame($role->id, $rosters[0]->role_id);
+        $this->assertNotEmpty($rosters[0]->confirmation_token);
+    }
+
+    public function test_edit_event_page_has_combined_tabs_configured(): void
+    {
+        $event = Event::factory()->create([
+            'organization_id' => $this->organization->id,
+            'title' => 'Culto com Abas no Edit',
+        ]);
+
+        $relations = EventResource::getRelations();
+        $this->assertSame(
+            [
+                SongsRelationManager::class,
+                RostersRelationManager::class,
+            ],
+            $relations,
+        );
+
+        $component = Livewire::test(EditEvent::class, ['record' => $event->getRouteKey()]);
+        $component->assertSuccessful();
+
+        $instance = $component->instance();
+        $this->assertTrue($instance->hasCombinedRelationManagerTabsWithContent());
+        $this->assertSame('Dados do Evento', $instance->getContentTabLabel());
+    }
+
+    public function test_relation_managers_badges_reflect_record_counts(): void
+    {
+        $event = Event::factory()->create([
+            'organization_id' => $this->organization->id,
+        ]);
+
+        $song = Song::factory()->create(['organization_id' => $this->organization->id]);
+        EventSong::factory()->create([
+            'organization_id' => $this->organization->id,
+            'event_id' => $event->id,
+            'song_id' => $song->id,
+            'target_key' => 'C',
+        ]);
+
+        $volunteer = User::factory()->create();
+        $volunteer->organizations()->attach($this->organization);
+        $role = Role::factory()->create(['organization_id' => $this->organization->id]);
+        EventRoster::factory()->create([
+            'organization_id' => $this->organization->id,
+            'event_id' => $event->id,
+            'user_id' => $volunteer->id,
+            'role_id' => $role->id,
+        ]);
+
+        $this->assertSame('1', SongsRelationManager::getBadge($event, EditEvent::class));
+        $this->assertSame('1', RostersRelationManager::getBadge($event, EditEvent::class));
+    }
+
+    public function test_event_create_and_edit_pages_use_full_content_width(): void
+    {
+        $event = Event::factory()->create([
+            'organization_id' => $this->organization->id,
+        ]);
+
+        $createComponent = Livewire::test(CreateEvent::class);
+        $this->assertSame(Width::Full, $createComponent->instance()->getMaxContentWidth());
+
+        $editComponent = Livewire::test(EditEvent::class, ['record' => $event->getRouteKey()]);
+        $this->assertSame(Width::Full, $editComponent->instance()->getMaxContentWidth());
+    }
+
+    public function test_can_reorder_songs_in_setlist_table_using_drag_and_drop(): void
+    {
+        $event = Event::factory()->create([
+            'organization_id' => $this->organization->id,
+        ]);
+
+        $song1 = Song::factory()->create(['organization_id' => $this->organization->id, 'title' => 'Música 1']);
+        $song2 = Song::factory()->create(['organization_id' => $this->organization->id, 'title' => 'Música 2']);
+
+        $eventSong1 = EventSong::factory()->create([
+            'organization_id' => $this->organization->id,
+            'event_id' => $event->id,
+            'song_id' => $song1->id,
+            'target_key' => 'C',
+            'order_index' => 1,
+        ]);
+
+        $eventSong2 = EventSong::factory()->create([
+            'organization_id' => $this->organization->id,
+            'event_id' => $event->id,
+            'song_id' => $song2->id,
+            'target_key' => 'D',
+            'order_index' => 2,
+        ]);
+
+        Livewire::test(SongsRelationManager::class, [
+            'ownerRecord' => $event,
+            'pageClass' => EditEvent::class,
+        ])
+            ->call('reorderTable', [(string) $eventSong2->id, (string) $eventSong1->id])
+            ->assertHasNoErrors();
+
+        $this->assertSame(1, $eventSong2->fresh()->order_index);
+        $this->assertSame(2, $eventSong1->fresh()->order_index);
+    }
+
+    public function test_songs_relation_manager_table_has_only_order_and_title_columns_and_is_not_sortable_or_selectable(): void
+    {
+        $event = Event::factory()->create([
+            'organization_id' => $this->organization->id,
+        ]);
+
+        $component = Livewire::test(SongsRelationManager::class, [
+            'ownerRecord' => $event,
+            'pageClass' => EditEvent::class,
+        ]);
+
+        /** @var Table $table */
+        $table = $component->instance()->getTable();
+
+        $this->assertFalse($table->isSearchable());
+        $this->assertFalse($table->isSelectionEnabled());
+
+        $columns = $table->getColumns();
+        $this->assertArrayHasKey('order_index', $columns);
+        $this->assertArrayHasKey('song.title', $columns);
+        $this->assertArrayNotHasKey('song.original_key', $columns);
+        $this->assertArrayNotHasKey('target_key', $columns);
+        $this->assertArrayNotHasKey('song.bpm', $columns);
+        $this->assertArrayNotHasKey('arrangement_notes', $columns);
+
+        $this->assertFalse($columns['order_index']->isSortable());
+        $this->assertFalse($columns['song.title']->isSortable());
     }
 }

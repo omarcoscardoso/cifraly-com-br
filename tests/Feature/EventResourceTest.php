@@ -676,7 +676,7 @@ class EventResourceTest extends TestCase
 
         $instance = $component->instance();
         $this->assertTrue($instance->hasCombinedRelationManagerTabsWithContent());
-        $this->assertSame('Dados do Evento', $instance->getContentTabLabel());
+        $this->assertSame('Evento', $instance->getContentTabLabel());
     }
 
     public function test_relation_managers_badges_reflect_record_counts(): void

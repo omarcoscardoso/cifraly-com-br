@@ -341,38 +341,76 @@
             border: none !important;
         }
 
-        /* Drag handle de reordenação */
+        /* Célula e botão de reordenação (drag handle) */
+        .setlist-table-compact .fi-ta-table-stacked-on-mobile > tbody > tr > .fi-ta-cell:has(.fi-ta-reorder-handle),
+        .setlist-table-compact .fi-ta-table-stacked-on-mobile > tbody > tr > .fi-ta-cell:not(.setlist-col-order-cell):not(.setlist-col-song-cell):first-child {
+            width: auto !important;
+            min-width: 2rem !important;
+            flex-shrink: 0 !important;
+            justify-content: center !important;
+            margin-right: 0.25rem !important;
+        }
+
         .setlist-table-compact .fi-ta-reorder-handle {
-            margin-right: 0.125rem !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            width: 1.75rem !important;
+            height: 1.75rem !important;
+            min-width: 1.75rem !important;
+            min-height: 1.75rem !important;
+            flex-shrink: 0 !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            color: #94a3b8 !important;
+        }
+
+        .setlist-table-compact .fi-ta-reorder-handle svg {
+            width: 1.25rem !important;
+            height: 1.25rem !important;
+            max-width: 1.25rem !important;
+            max-height: 1.25rem !important;
             flex-shrink: 0 !important;
         }
 
         /* Coluna da Ordem (#) */
+        .setlist-table-compact .setlist-col-order-cell,
         .setlist-table-compact .setlist-col-order {
             flex-shrink: 0 !important;
-            min-width: 1.5rem !important;
+            min-width: 1.75rem !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            text-align: center !important;
         }
 
-        .setlist-table-compact .setlist-col-order .fi-ta-cell-content {
+        .setlist-table-compact .setlist-col-order-cell .fi-ta-cell-content,
+        .setlist-table-compact .setlist-col-order .fi-ta-cell-content,
+        .setlist-table-compact .setlist-col-order-cell .fi-ta-text-item-label,
+        .setlist-table-compact .setlist-col-order .fi-ta-text-item-label {
             font-weight: 700 !important;
             font-size: 0.95rem !important;
             color: #00d2ff !important;
         }
 
         /* Coluna do Nome da Música */
+        .setlist-table-compact .setlist-col-song-cell,
         .setlist-table-compact .setlist-col-song {
             flex: 1 1 auto !important;
             min-width: 0 !important;
             overflow: hidden !important;
         }
 
+        .setlist-table-compact .setlist-col-song-cell .fi-ta-cell-content,
         .setlist-table-compact .setlist-col-song .fi-ta-cell-content,
+        .setlist-table-compact .setlist-col-song-cell .fi-ta-col,
         .setlist-table-compact .setlist-col-song .fi-ta-col {
             width: 100% !important;
             min-width: 0 !important;
             overflow: hidden !important;
         }
 
+        .setlist-table-compact .setlist-col-song-cell .fi-ta-text-item-label,
         .setlist-table-compact .setlist-col-song .fi-ta-text-item-label {
             display: block !important;
             white-space: nowrap !important;

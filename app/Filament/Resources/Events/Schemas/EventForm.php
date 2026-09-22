@@ -41,11 +41,11 @@ class EventForm
                     Tabs::make('EventCreateTabs')
                         ->columnSpanFull()
                         ->tabs([
-                            Tab::make('Dados do Evento')
+                            Tab::make('Evento')
                                 ->icon(Heroicon::OutlinedCalendarDays)
                                 ->schema(static::getEventDetailsSchema()),
 
-                            Tab::make('Setlist do Repertório')
+                            Tab::make('Setlist')
                                 ->icon(Heroicon::OutlinedMusicalNote)
                                 ->schema([
                                     Callout::make('Repertório do Evento')
@@ -116,10 +116,10 @@ class EventForm
                                         ->addActionLabel('Adicionar Música ao Repertório'),
                                 ]),
 
-                            Tab::make('Escala de Membros')
+                            Tab::make('Escala')
                                 ->icon(Heroicon::OutlinedUserGroup)
                                 ->schema([
-                                    Callout::make('Escala de Membros')
+                                    Callout::make('Escala')
                                         ->description('Se você selecionou uma Equipe na aba "Dados do Evento", todos os seus membros serão escalados automaticamente com suas funções padrão. Se desejar, você também pode adicionar voluntários extras abaixo.')
                                         ->info(),
 
@@ -197,14 +197,14 @@ class EventForm
     public static function getEventDetailsSchema(): array
     {
         return [
-            Section::make('Dados do Evento')
+            Section::make()
+                ->compact()
                 ->columnSpanFull()
-                ->description('Informações gerais, data, horário e equipe do evento')
                 ->schema([
-                    Grid::make(2)->schema([
+                    Grid::make(['default' => 1, 'md' => 2])->schema([
                         TextInput::make('title')
                             ->label('Título do Evento')
-                            ->placeholder('Ex: Culto de Domingo - Manhã, Show Acústico')
+                            ->placeholder('Ex: Culto de Domingo, Show Acústico')
                             ->required()
                             ->maxLength(150),
 
@@ -221,11 +221,10 @@ class EventForm
                                 return Team::where('organization_id', $tenant->id)->pluck('name', 'id')->toArray();
                             })
                             ->searchable()
-                            ->helperText('Ao selecionar uma equipe, todos os membros serão incluídos automaticamente na escala.')
                             ->nullable(),
                     ]),
 
-                    Grid::make(3)->schema([
+                    Grid::make(['default' => 1, 'sm' => 2, 'lg' => 3])->schema([
                         Select::make('status')
                             ->label('Status')
                             ->options(Event::STATUS_OPTIONS)
@@ -250,7 +249,8 @@ class EventForm
                     Textarea::make('notes')
                         ->label('Observações Gerais')
                         ->placeholder('Instruções adicionais para a equipe e voluntários...')
-                        ->rows(3)
+                        ->rows(2)
+                        ->autosize()
                         ->nullable(),
                 ]),
         ];

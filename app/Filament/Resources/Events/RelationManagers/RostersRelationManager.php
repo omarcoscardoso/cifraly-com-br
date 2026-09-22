@@ -35,11 +35,11 @@ class RostersRelationManager extends RelationManager
 {
     protected static string $relationship = 'rosters';
 
-    protected static ?string $title = 'Escala de Membros';
+    protected static ?string $title = 'Escala';
 
     protected static ?string $modelLabel = 'Membro Escalado';
 
-    protected static ?string $pluralModelLabel = 'Escala de Membros';
+    protected static ?string $pluralModelLabel = 'Escala';
 
     protected static string|BackedEnum|null $icon = Heroicon::OutlinedUserGroup;
 

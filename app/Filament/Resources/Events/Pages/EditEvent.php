@@ -30,7 +30,7 @@ class EditEvent extends EditRecord
 
     public function getContentTabLabel(): ?string
     {
-        return 'Dados do Evento';
+        return 'Evento';
     }
 
     public function getContentTabIcon(): string|BackedEnum|Htmlable|null

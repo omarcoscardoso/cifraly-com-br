@@ -24,11 +24,11 @@ class SongsRelationManager extends RelationManager
 {
     protected static string $relationship = 'eventSongs';
 
-    protected static ?string $title = 'Setlist do Repertório';
+    protected static ?string $title = 'Setlist';
 
     protected static ?string $modelLabel = 'Música no Repertório';
 
-    protected static ?string $pluralModelLabel = 'Setlist do Repertório';
+    protected static ?string $pluralModelLabel = 'Setlist';
 
     protected static string|BackedEnum|null $icon = Heroicon::OutlinedMusicalNote;
 
@@ -55,12 +55,14 @@ class SongsRelationManager extends RelationManager
                 TextColumn::make('order_index')
                     ->label('#')
                     ->weight('bold')
-                    ->extraAttributes(['class' => 'setlist-col-order']),
+                    ->extraAttributes(['class' => 'setlist-col-order'])
+                    ->extraCellAttributes(['class' => 'setlist-col-order-cell']),
 
                 TextColumn::make('song.title')
                     ->label('Música')
                     ->weight('medium')
-                    ->extraAttributes(['class' => 'setlist-col-song']),
+                    ->extraAttributes(['class' => 'setlist-col-song'])
+                    ->extraCellAttributes(['class' => 'setlist-col-song-cell']),
             ])
             ->headerActions([
                 CreateAction::make()

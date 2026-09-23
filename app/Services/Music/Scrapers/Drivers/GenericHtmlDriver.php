@@ -34,9 +34,11 @@ class GenericHtmlDriver implements ChordScraperDriverInterface
         $maxRedirects = 3;
 
         for ($i = 0; $i <= $maxRedirects; $i++) {
-            $response = Http::withoutRedirecting()->withHeaders([
-                'User-Agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-            ])->timeout(12)->get($currentUrl);
+            $response = Http::withoutRedirecting()
+                ->withHeaders($this->getHeaders())
+                ->withOptions($this->getHttpOptions())
+                ->timeout(12)
+                ->get($currentUrl);
 
             if ($response->redirect()) {
                 $location = $response->header('Location');
@@ -172,5 +174,35 @@ class GenericHtmlDriver implements ChordScraperDriverInterface
             capoFret: $capoFret,
             sourceUrl: $url ?: null,
         );
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    protected function getHeaders(): array
+    {
+        return [
+            'User-Agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36',
+            'Accept' => 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
+            'Accept-Language' => 'pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7',
+            'sec-ch-ua' => '"Not(A:Brand";v="99", "Google Chrome";v="133", "Chromium";v="133"',
+            'sec-ch-ua-mobile' => '?0',
+            'sec-ch-ua-platform' => '"Windows"',
+            'sec-fetch-dest' => 'document',
+            'sec-fetch-mode' => 'navigate',
+            'sec-fetch-site' => 'none',
+            'sec-fetch-user' => '?1',
+            'upgrade-insecure-requests' => '1',
+        ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    protected function getHttpOptions(): array
+    {
+        return [
+            'version' => 2.0,
+        ];
     }
 }

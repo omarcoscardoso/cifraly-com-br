@@ -7,6 +7,7 @@ namespace Tests\Unit;
 use App\Services\Music\ChordScraperService;
 use App\Services\Music\ChordToChordProConverter;
 use App\Services\Music\ChordTransposerService;
+use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
 
@@ -251,5 +252,30 @@ HTML, 200),
     {
         $this->expectException(\InvalidArgumentException::class);
         $this->scraper->importFromUrl('http://169.254.169.254/latest/meta-data');
+    }
+
+    public function test_import_from_url_sends_waf_bypass_headers_and_options(): void
+    {
+        Http::fake([
+            'https://www.cifraclub.com.br/test-artist/test-song/' => Http::response(<<<'HTML'
+<!DOCTYPE html>
+<html>
+<head><title>Test Song - Test Artist - Cifra Club</title></head>
+<body>
+    <span id="cifra_tom">Tom: <a>C</a></span>
+    <pre>C G</pre>
+</body>
+</html>
+HTML, 200),
+        ]);
+
+        $this->scraper->importFromUrl('https://www.cifraclub.com.br/test-artist/test-song/');
+
+        Http::assertSent(function (Request $request) {
+            return $request->url() === 'https://www.cifraclub.com.br/test-artist/test-song/'
+                && $request->hasHeader('sec-ch-ua')
+                && $request->hasHeader('upgrade-insecure-requests')
+                && str_contains($request->header('User-Agent')[0], 'Chrome/133');
+        });
     }
 }

@@ -275,6 +275,7 @@ HTML, 200),
             return $request->url() === 'https://www.cifraclub.com.br/test-artist/test-song/'
                 && $request->hasHeader('sec-ch-ua')
                 && $request->hasHeader('upgrade-insecure-requests')
+                && $request->hasHeader('Accept-Encoding')
                 && str_contains($request->header('User-Agent')[0], 'Chrome/133');
         });
     }

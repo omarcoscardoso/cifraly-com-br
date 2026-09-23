@@ -279,4 +279,39 @@ HTML, 200),
                 && str_contains($request->header('User-Agent')[0], 'Chrome/133');
         });
     }
+
+    public function test_can_fallback_to_edge_reader_when_direct_scraping_fails_with_403(): void
+    {
+        Http::fake([
+            'https://r.jina.ai/*' => Http::response(<<<'HTML'
+<!DOCTYPE html>
+<html>
+<head><title>Nada Mais - Florianópolis House Of Prayer - Cifra Club</title></head>
+<body>
+    <div class="ebNp"><div class="IERZz"><span>Tom<!-- -->: </span> <button type="button" class="eVroG" data-anchor="--chord-tone">Em</button></div></div>
+    <p>68 bpm</p>
+    <pre>
+[Intro] Em7  G  D  D4
+
+[Primeira Parte]
+
+                   Em7
+Envolto em Tua presença
+G                D
+  Aos Teus pés é onde eu quero estar
+    </pre>
+</body>
+</html>
+HTML, 200),
+            'https://www.cifraclub.com.br/florianopolis-house-of-prayer/nada-mais/' => Http::response('Access Denied', 403),
+        ]);
+
+        $result = $this->scraper->importFromUrl('https://www.cifraclub.com.br/florianopolis-house-of-prayer/nada-mais/');
+
+        $this->assertSame('Nada Mais', $result['title']);
+        $this->assertSame('Florianópolis House Of Prayer', $result['artist']);
+        $this->assertSame('Em', $result['original_key']);
+        $this->assertSame(68, $result['bpm']);
+        $this->assertStringContainsString('Envolto em Tua presença', $result['chordpro_content']);
+    }
 }

@@ -129,16 +129,38 @@ class CifraClubDriver implements ChordScraperDriverInterface
 
     public function scrape(string $url): ScrapedChordData
     {
-        $response = Http::withHeaders($this->getHeaders())
-            ->withOptions($this->getHttpOptions())
-            ->timeout(12)
-            ->get($url);
+        $lastException = null;
 
-        if (! $response->successful()) {
-            throw new \RuntimeException("Falha ao carregar cifra do Cifra Club (HTTP {$response->status()}).");
+        // 1. Direct attempt
+        try {
+            $response = Http::withHeaders($this->getHeaders())
+                ->withOptions($this->getHttpOptions())
+                ->timeout(10)
+                ->get($url);
+
+            if ($response->successful()) {
+                return $this->parseHtml($response->body(), $url);
+            }
+
+            $lastException = new \RuntimeException("Falha ao carregar cifra do Cifra Club (HTTP {$response->status()}).");
+        } catch (Throwable $e) {
+            $lastException = $e;
         }
 
-        return $this->parseHtml($response->body(), $url);
+        // 2. Fallback via Edge Reader (r.jina.ai) to bypass Akamai IP blocks on Cloud Run / datacenter IPs
+        try {
+            $readerResponse = Http::withHeaders([
+                'X-Respond-With' => 'html',
+            ])->timeout(15)->get('https://r.jina.ai/'.$url);
+
+            if ($readerResponse->successful()) {
+                return $this->parseHtml($readerResponse->body(), $url);
+            }
+        } catch (Throwable) {
+            // Silently fall through to throw lastException
+        }
+
+        throw $lastException ?? new \RuntimeException('Falha ao carregar cifra do Cifra Club.');
     }
 
     public function parseHtml(string $html, string $url = ''): ScrapedChordData
@@ -208,8 +230,14 @@ class CifraClubDriver implements ChordScraperDriverInterface
             $artist = html_entity_decode(trim(strip_tags($h2Match[1])));
         }
 
+        // 0. Layout moderno com botão anchor --chord-tone (ou Tom<!-- -->: <button>)
+        if (preg_match('/data-anchor=["\']--chord-tone["\'][^>]*>([A-G][#b♭♯]?(?:m|maj|min)?)/si', $html, $tomMatch)) {
+            $key = $this->transposer->normalizeKey($tomMatch[1]);
+        } elseif (preg_match('/(?:Tom|tom)(?:<!--.*?-->|\s)*:\s*<\/[^>]+>\s*<button[^>]*>([A-G][#b♭♯]?(?:m|maj|min)?)/si', $html, $tomMatch)) {
+            $key = $this->transposer->normalizeKey($tomMatch[1]);
+        }
         // 1. Layout Bento (novo) do Cifra Club: elemento com id="key"
-        if (preg_match('/id=["\']key["\'][^>]*>.*?<button[^>]*aria-label=["\'](?:Diminuir tom|Aumentar tom)["\'][^>]*>.*?<p[^>]*>([A-G][#b♭♯]?(?:m|maj|min)?)/si', $html, $tomMatch)) {
+        elseif (preg_match('/id=["\']key["\'][^>]*>.*?<button[^>]*aria-label=["\'](?:Diminuir tom|Aumentar tom)["\'][^>]*>.*?<p[^>]*>([A-G][#b♭♯]?(?:m|maj|min)?)/si', $html, $tomMatch)) {
             $key = $this->transposer->normalizeKey($tomMatch[1]);
         } elseif (preg_match('/id=["\']key["\'][^>]*>.*?<p[^>]*>([A-G][#b♭♯]?(?:m|maj|min)?)(?:<\/p>|\s|<)/si', $html, $tomMatch)) {
             $key = $this->transposer->normalizeKey($tomMatch[1]);
@@ -235,6 +263,11 @@ class CifraClubDriver implements ChordScraperDriverInterface
                 $bpm = $parsedBpm;
             }
         } elseif (preg_match('/(?:bpm|tempo|andamento):\s*(\d+)/i', $html, $bpmMatch)) {
+            $parsedBpm = (int) $bpmMatch[1];
+            if ($parsedBpm >= 30 && $parsedBpm <= 300) {
+                $bpm = $parsedBpm;
+            }
+        } elseif (preg_match('/(\d+)\s*bpm/i', $html, $bpmMatch)) {
             $parsedBpm = (int) $bpmMatch[1];
             if ($parsedBpm >= 30 && $parsedBpm <= 300) {
                 $bpm = $parsedBpm;

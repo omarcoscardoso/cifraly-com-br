@@ -37,6 +37,7 @@ class CifraClubDriver implements ChordScraperDriverInterface
         try {
             $solrUrl = 'https://solr.sscdn.co/cifraclub/ac/?q='.urlencode($trimmed);
             $response = Http::withHeaders($this->getHeaders())
+                ->withOptions($this->getHttpOptions())
                 ->timeout(5)
                 ->get($solrUrl);
 
@@ -97,6 +98,7 @@ class CifraClubDriver implements ChordScraperDriverInterface
 
                     try {
                         $response = Http::withHeaders($this->getHeaders())
+                            ->withOptions($this->getHttpOptions())
                             ->timeout(3)
                             ->get($testUrl);
 
@@ -128,6 +130,7 @@ class CifraClubDriver implements ChordScraperDriverInterface
     public function scrape(string $url): ScrapedChordData
     {
         $response = Http::withHeaders($this->getHeaders())
+            ->withOptions($this->getHttpOptions())
             ->timeout(12)
             ->get($url);
 
@@ -145,6 +148,8 @@ class CifraClubDriver implements ChordScraperDriverInterface
 
         if (preg_match('/<pre[^>]*>(.*?)<\/pre>/si', $html, $preMatch)) {
             $rawChords = html_entity_decode(strip_tags($preMatch[1]));
+        } elseif (preg_match('/<div[^>]*id=["\']cifra_conteudo["\'][^>]*>(.*?)<\/div>/si', $html, $divMatch)) {
+            $rawChords = html_entity_decode(strip_tags($divMatch[1]));
         }
 
         $key = $metadata['original_key'];
@@ -311,8 +316,27 @@ class CifraClubDriver implements ChordScraperDriverInterface
     protected function getHeaders(): array
     {
         return [
-            'User-Agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+            'User-Agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36',
+            'Accept' => 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
             'Accept-Language' => 'pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7',
+            'sec-ch-ua' => '"Not(A:Brand";v="99", "Google Chrome";v="133", "Chromium";v="133"',
+            'sec-ch-ua-mobile' => '?0',
+            'sec-ch-ua-platform' => '"Windows"',
+            'sec-fetch-dest' => 'document',
+            'sec-fetch-mode' => 'navigate',
+            'sec-fetch-site' => 'none',
+            'sec-fetch-user' => '?1',
+            'upgrade-insecure-requests' => '1',
+        ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    protected function getHttpOptions(): array
+    {
+        return [
+            'version' => 2.0,
         ];
     }
 }

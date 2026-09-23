@@ -185,6 +185,7 @@ class GenericHtmlDriver implements ChordScraperDriverInterface
             'User-Agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36',
             'Accept' => 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
             'Accept-Language' => 'pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7',
+            'Accept-Encoding' => 'gzip, deflate, br, zstd',
             'sec-ch-ua' => '"Not(A:Brand";v="99", "Google Chrome";v="133", "Chromium";v="133"',
             'sec-ch-ua-mobile' => '?0',
             'sec-ch-ua-platform' => '"Windows"',
@@ -203,6 +204,10 @@ class GenericHtmlDriver implements ChordScraperDriverInterface
     {
         return [
             'version' => 2.0,
+            'decode_content' => true,
+            'curl' => [
+                CURLOPT_ENCODING => '',
+            ],
         ];
     }
 }

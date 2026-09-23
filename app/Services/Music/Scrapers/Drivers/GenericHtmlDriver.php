@@ -59,6 +59,18 @@ class GenericHtmlDriver implements ChordScraperDriverInterface
             }
 
             if (! $response->successful()) {
+                try {
+                    $readerResponse = Http::withHeaders([
+                        'X-Respond-With' => 'html',
+                    ])->timeout(15)->get('https://r.jina.ai/'.$currentUrl);
+
+                    if ($readerResponse->successful()) {
+                        return $this->parseHtml($readerResponse->body(), $currentUrl);
+                    }
+                } catch (\Throwable) {
+                    // Ignore and throw original exception below
+                }
+
                 throw new \RuntimeException("Falha ao carregar a página (HTTP {$response->status()}).");
             }
 
@@ -89,8 +101,14 @@ class GenericHtmlDriver implements ChordScraperDriverInterface
             }
         }
 
-        $key = 'C';
-        if (preg_match('/id=["\']key["\'][^>]*>.*?<button[^>]*aria-label=["\'](?:Diminuir tom|Aumentar tom)["\'][^>]*>.*?<p[^>]*>([A-G][#b♭♯]?(?:m|maj|min)?)/si', $html, $tomMatch)) {
+        // 0. Layout moderno com botão anchor --chord-tone (ou Tom<!-- -->: <button>)
+        if (preg_match('/data-anchor=["\']--chord-tone["\'][^>]*>([A-G][#b♭♯]?(?:m|maj|min)?)/si', $html, $tomMatch)) {
+            $key = $this->transposer->normalizeKey($tomMatch[1]);
+        } elseif (preg_match('/(?:Tom|tom)(?:<!--.*?-->|\s)*:\s*<\/[^>]+>\s*<button[^>]*>([A-G][#b♭♯]?(?:m|maj|min)?)/si', $html, $tomMatch)) {
+            $key = $this->transposer->normalizeKey($tomMatch[1]);
+        }
+        // 1. Layout Bento (novo) do Cifra Club: elemento com id="key"
+        elseif (preg_match('/id=["\']key["\'][^>]*>.*?<button[^>]*aria-label=["\'](?:Diminuir tom|Aumentar tom)["\'][^>]*>.*?<p[^>]*>([A-G][#b♭♯]?(?:m|maj|min)?)/si', $html, $tomMatch)) {
             $key = $this->transposer->normalizeKey($tomMatch[1]);
         } elseif (preg_match('/id=["\']key["\'][^>]*>.*?<p[^>]*>([A-G][#b♭♯]?(?:m|maj|min)?)(?:<\/p>|\s|<)/si', $html, $tomMatch)) {
             $key = $this->transposer->normalizeKey($tomMatch[1]);
@@ -114,6 +132,11 @@ class GenericHtmlDriver implements ChordScraperDriverInterface
                 $bpm = $parsedBpm;
             }
         } elseif (preg_match('/(?:bpm|tempo|andamento):\s*(\d+)/i', $html.' '.$rawChords, $bpmMatch)) {
+            $parsedBpm = (int) $bpmMatch[1];
+            if ($parsedBpm >= 30 && $parsedBpm <= 300) {
+                $bpm = $parsedBpm;
+            }
+        } elseif (preg_match('/(\d+)\s*bpm/i', $html.' '.$rawChords, $bpmMatch)) {
             $parsedBpm = (int) $bpmMatch[1];
             if ($parsedBpm >= 30 && $parsedBpm <= 300) {
                 $bpm = $parsedBpm;

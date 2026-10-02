@@ -188,9 +188,19 @@
         .tap-scale {
             transition: transform 0.12s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.15s ease, border-color 0.15s ease, opacity 0.15s ease;
             touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
         }
         .tap-scale:active {
             transform: scale(0.94);
+        }
+
+        /* Prevenção de seleção e callout acidental no palco */
+        .select-none {
+            -webkit-user-select: none !important;
+            -moz-user-select: none !important;
+            -ms-user-select: none !important;
+            user-select: none !important;
+            -webkit-touch-callout: none !important;
         }
 
         /* Safe area insets para iPhone / Android */

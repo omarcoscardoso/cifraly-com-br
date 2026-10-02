@@ -2,14 +2,88 @@
     class="h-screen w-screen flex flex-col bg-[#08080a] text-slate-100 overflow-hidden select-none font-sans"
     x-data="{
         scrollInterval: null,
-        isAutoScrolling: @entangle('isAutoScrolling'),
-        scrollSpeed: @entangle('scrollSpeed'),
+        isAutoScrolling: false,
+        scrollSpeed: 3,
         showLyricsOnly: false,
         twoColumns: false,
         isFullscreen: false,
+        isDrawerOpen: false,
+        fontSize: parseInt(localStorage.getItem('cifraly_stage_font_size') || '18', 10),
         wakeLock: null,
         wakeLockActive: false,
+        touchStartX: 0,
+        touchStartY: 0,
+        initialPinchDist: 0,
+        initialFontSize: 18,
+        lastTapTime: 0,
+
+        increaseFontSize() {
+            this.fontSize = Math.min(36, this.fontSize + 2);
+            localStorage.setItem('cifraly_stage_font_size', this.fontSize);
+        },
+        decreaseFontSize() {
+            this.fontSize = Math.max(12, this.fontSize - 2);
+            localStorage.setItem('cifraly_stage_font_size', this.fontSize);
+        },
+        handleTouchStart(e) {
+            if (e.touches.length === 1) {
+                this.touchStartX = e.touches[0].clientX;
+                this.touchStartY = e.touches[0].clientY;
+            } else if (e.touches.length === 2) {
+                this.initialPinchDist = Math.hypot(
+                    e.touches[0].clientX - e.touches[1].clientX,
+                    e.touches[0].clientY - e.touches[1].clientY
+                );
+                this.initialFontSize = this.fontSize;
+            }
+        },
+        handleTouchMove(e) {
+            if (e.touches.length === 2 && this.initialPinchDist > 0) {
+                const dist = Math.hypot(
+                    e.touches[0].clientX - e.touches[1].clientX,
+                    e.touches[0].clientY - e.touches[1].clientY
+                );
+                const delta = (dist - this.initialPinchDist) / 28;
+                const newSize = Math.min(36, Math.max(12, Math.round(this.initialFontSize + delta)));
+                if (newSize !== this.fontSize) {
+                    this.fontSize = newSize;
+                    localStorage.setItem('cifraly_stage_font_size', this.fontSize);
+                }
+            }
+        },
+        handleTouchEnd(e) {
+            if (e.touches.length < 2) {
+                this.initialPinchDist = 0;
+            }
+            if (this.touchStartX && e.changedTouches.length === 1) {
+                const diffX = e.changedTouches[0].clientX - this.touchStartX;
+                const diffY = e.changedTouches[0].clientY - this.touchStartY;
+                this.touchStartX = 0;
+                this.touchStartY = 0;
+                if (Math.abs(diffX) > 70 && Math.abs(diffX) > Math.abs(diffY) * 1.8) {
+                    if (diffX < 0) {
+                        $wire.nextSong();
+                    } else {
+                        $wire.previousSong();
+                    }
+                }
+            }
+        },
+        handleChordDoubleTap(e) {
+            const now = Date.now();
+            if (now - this.lastTapTime < 300) {
+                this.isAutoScrolling = !this.isAutoScrolling;
+                this.lastTapTime = 0;
+            } else {
+                this.lastTapTime = now;
+            }
+        },
         async requestWakeLock() {
+            if (window.CifralyWakeLock) {
+                const active = await window.CifralyWakeLock.request();
+                this.wakeLockActive = active;
+                return;
+            }
             if ('wakeLock' in navigator) {
                 try {
                     this.wakeLock = await navigator.wakeLock.request('screen');
@@ -62,7 +136,10 @@
             }));
         },
         init() {
-            // Restaurar preferências salvas no navegador
+            const savedSize = localStorage.getItem('cifraly_stage_font_size');
+            if (savedSize) {
+                this.fontSize = parseInt(savedSize, 10);
+            }
             const savedSpeed = localStorage.getItem('cifraly_stage_scroll_speed');
             if (savedSpeed) {
                 this.scrollSpeed = parseInt(savedSpeed, 10);
@@ -76,11 +153,11 @@
                 this.showLyricsOnly = savedLyrics === 'true';
             }
 
+            this.$watch('fontSize', val => localStorage.setItem('cifraly_stage_font_size', val));
             this.$watch('scrollSpeed', val => localStorage.setItem('cifraly_stage_scroll_speed', val));
             this.$watch('twoColumns', val => localStorage.setItem('cifraly_stage_two_columns', val));
             this.$watch('showLyricsOnly', val => localStorage.setItem('cifraly_stage_lyrics_only', val));
 
-            // Manter a tela sempre ativa durante o palco
             this.requestWakeLock();
             document.addEventListener('visibilitychange', () => {
                 if (document.visibilityState === 'visible') {
@@ -128,7 +205,7 @@
     }"
     @keydown.window.arrow-right="$wire.nextSong()"
     @keydown.window.arrow-left="$wire.previousSong()"
-    @keydown.window.space.prevent="$wire.toggleAutoScroll()"
+    @keydown.window.space.prevent="isAutoScrolling = !isAutoScrolling"
 >
     <!-- ALTAR Top Header Bar -->
     <header class="h-16 sm:h-20 bg-[#08080a] border-b border-[#1e222c] px-3 sm:px-6 flex items-center justify-between gap-2 shrink-0 z-30">
@@ -148,7 +225,8 @@
 
             <!-- Setlist Drawer Toggle -->
             <button
-                wire:click="toggleDrawer"
+                type="button"
+                @click="isDrawerOpen = !isDrawerOpen"
                 class="px-3 py-2 rounded-2xl bg-[#12141a] hover:bg-[#181b24] border border-[#1e222c] text-[#00d2ff] font-bold flex items-center gap-2 tap-scale transition cursor-pointer shrink-0"
                 title="Lista do Repertório"
             >
@@ -229,14 +307,15 @@
         <!-- Key Transposer Tools -->
         <div class="flex items-center gap-1.5 bg-[#08080a] border border-[#1e222c] px-2 py-1 rounded-2xl shrink-0">
             <button
+                type="button"
                 wire:click="transposeDown"
-                class="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-[#181b24] hover:bg-[#1e222c] text-slate-200 font-bold text-base flex items-center justify-center tap-scale cursor-pointer"
+                class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-[#181b24] hover:bg-[#1e222c] active:bg-[#232734] text-slate-200 font-bold text-base flex items-center justify-center tap-scale cursor-pointer"
                 title="Baixar 1 Semitom (-1)"
             >
                 -
             </button>
 
-            <div class="text-center px-2">
+            <div class="text-center px-2 min-w-[36px]" wire:loading.class="opacity-50 animate-pulse" wire:target="transposeDown, transposeUp, resetKey">
                 <span class="text-[9px] text-[#71788e] uppercase font-mono tracking-widest block leading-none">TOM</span>
                 <span class="text-sm sm:text-base font-black text-[#00d2ff] font-mono leading-tight">
                     {{ $currentKey ?? 'C' }}
@@ -244,8 +323,9 @@
             </div>
 
             <button
+                type="button"
                 wire:click="transposeUp"
-                class="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-[#181b24] hover:bg-[#1e222c] text-slate-200 font-bold text-base flex items-center justify-center tap-scale cursor-pointer"
+                class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-[#181b24] hover:bg-[#1e222c] active:bg-[#232734] text-slate-200 font-bold text-base flex items-center justify-center tap-scale cursor-pointer"
                 title="Subir 1 Semitom (+1)"
             >
                 +
@@ -253,6 +333,7 @@
 
             @if ($selectedEventSong && $currentKey !== $selectedEventSong->target_key)
                 <button
+                    type="button"
                     wire:click="resetKey"
                     class="text-[10px] px-2 py-1 rounded-lg bg-[#ffb300]/10 text-[#ffb300] hover:bg-[#ffb300]/20 border border-[#ffb300]/30 font-bold uppercase transition tap-scale cursor-pointer ml-1"
                     title="Restaurar tom original"
@@ -285,18 +366,25 @@
 
         <!-- Font Zoom, Colunas, Letra & Auto-Scroll -->
         <div class="flex items-center gap-2 shrink-0">
-            <!-- Font Zoom Controls -->
-            <div class="flex items-center bg-[#08080a] border border-[#1e222c] rounded-xl p-0.5">
+            <!-- Font Zoom Controls (Instantâneo 0ms) -->
+            <div class="flex items-center bg-[#08080a] border border-[#1e222c] rounded-2xl p-1 gap-1">
                 <button
-                    wire:click="decreaseFontSize"
-                    class="w-7 h-7 rounded-lg hover:bg-[#181b24] text-slate-400 hover:text-white font-bold text-xs flex items-center justify-center tap-scale cursor-pointer"
+                    type="button"
+                    @click="decreaseFontSize()"
+                    class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl hover:bg-[#181b24] active:bg-[#232734] text-slate-300 hover:text-white font-black text-xs flex items-center justify-center tap-scale cursor-pointer"
                     title="Diminuir Fonte (A-)"
                 >
                     A-
                 </button>
+                <span 
+                    class="text-[11px] font-mono font-bold text-[#00d2ff] w-6 text-center select-none"
+                    x-text="fontSize"
+                    title="Tamanho da Fonte Atual"
+                >18</span>
                 <button
-                    wire:click="increaseFontSize"
-                    class="w-7 h-7 rounded-lg hover:bg-[#181b24] text-slate-400 hover:text-white font-bold text-xs flex items-center justify-center tap-scale cursor-pointer"
+                    type="button"
+                    @click="increaseFontSize()"
+                    class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl hover:bg-[#181b24] active:bg-[#232734] text-slate-300 hover:text-white font-black text-xs flex items-center justify-center tap-scale cursor-pointer"
                     title="Aumentar Fonte (A+)"
                 >
                     A+
@@ -307,7 +395,7 @@
             <button
                 type="button"
                 @click="twoColumns = !twoColumns"
-                class="hidden md:flex items-center gap-1.5 text-xs font-black px-3 py-1.5 rounded-xl transition tap-scale cursor-pointer border"
+                class="hidden md:flex items-center gap-1.5 text-xs font-black px-3 py-2 rounded-xl transition tap-scale cursor-pointer border"
                 :class="twoColumns ? 'bg-cyan-500/20 border-cyan-500 text-[#00d2ff] shadow-md shadow-cyan-500/20' : 'bg-[#08080a] border-[#1e222c] hover:bg-[#181b24] text-slate-300'"
                 title="Alternar entre 1 e 2 Colunas"
             >
@@ -321,7 +409,7 @@
             <button
                 type="button"
                 @click="showLyricsOnly = !showLyricsOnly"
-                class="flex items-center gap-1.5 text-xs font-black px-3 py-1.5 rounded-xl transition tap-scale cursor-pointer border"
+                class="flex items-center gap-1.5 text-xs font-black px-3 py-2 rounded-xl transition tap-scale cursor-pointer border"
                 :class="showLyricsOnly ? 'bg-cyan-500/20 border-cyan-500 text-[#00d2ff] shadow-md shadow-cyan-500/20' : 'bg-[#08080a] border-[#1e222c] hover:bg-[#181b24] text-slate-300'"
                 title="Alternar entre Cifra Completa e Apenas Letra"
             >
@@ -331,30 +419,37 @@
                 <span x-text="showLyricsOnly ? 'Cifras' : 'Letra'">Letra</span>
             </button>
 
-            <!-- Auto-Scroll Toggle & Speed -->
-            <div class="flex items-center gap-1.5 bg-[#08080a] border border-[#1e222c] px-2 py-1 rounded-xl">
+            <!-- Auto-Scroll Toggle & Speed (Instantâneo 0ms) -->
+            <div class="flex items-center gap-1.5 bg-[#08080a] border border-[#1e222c] px-2 py-1 rounded-2xl">
                 <button
-                    wire:click="toggleAutoScroll"
-                    class="flex items-center gap-1 text-xs font-black px-2.5 py-1 rounded-lg transition tap-scale cursor-pointer {{ $isAutoScrolling ? 'bg-[#00d2ff] text-black shadow-md shadow-cyan-500/30' : 'bg-[#181b24] hover:bg-[#1e222c] text-slate-300' }}"
-                    title="Ativar/Desativar Rolagem Automática (Espaço)"
+                    type="button"
+                    @click="isAutoScrolling = !isAutoScrolling"
+                    class="flex items-center gap-1.5 text-xs font-black px-3 py-1.5 rounded-xl transition tap-scale cursor-pointer"
+                    :class="isAutoScrolling ? 'bg-[#00d2ff] text-black shadow-lg shadow-cyan-500/30' : 'bg-[#181b24] hover:bg-[#1e222c] text-slate-200'"
+                    title="Ativar/Desativar Rolagem Automática (Espaço ou Duplo Toque)"
                 >
-                    @if ($isAutoScrolling)
-                        <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>
-                        <span class="hidden sm:inline">Pausar</span>
-                    @else
-                        <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-                        <span class="hidden sm:inline">Rolar</span>
-                    @endif
+                    <template x-if="isAutoScrolling">
+                        <span class="flex items-center gap-1">
+                            <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>
+                            <span class="hidden sm:inline">Pausar</span>
+                        </span>
+                    </template>
+                    <template x-if="!isAutoScrolling">
+                        <span class="flex items-center gap-1">
+                            <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                            <span class="hidden sm:inline">Rolar</span>
+                        </span>
+                    </template>
                 </button>
 
-                <div class="hidden sm:flex items-center gap-1 pl-1">
-                    <span class="text-[10px] text-[#71788e] font-mono font-bold">{{ $scrollSpeed }}x</span>
+                <div class="hidden sm:flex items-center gap-1.5 pl-1">
+                    <span class="text-[10px] text-[#71788e] font-mono font-bold" x-text="scrollSpeed + 'x'">3x</span>
                     <input
                         type="range"
                         min="1"
                         max="10"
-                        wire:model.live="scrollSpeed"
-                        class="w-14 h-1 bg-[#181b24] rounded-lg appearance-none cursor-pointer accent-[#00d2ff]"
+                        x-model="scrollSpeed"
+                        class="w-16 h-1.5 bg-[#181b24] rounded-lg appearance-none cursor-pointer accent-[#00d2ff]"
                         title="Velocidade de Rolagem"
                     />
                 </div>
@@ -367,7 +462,8 @@
         
         <!-- Sidebar / Setlist Drawer -->
         <aside
-            class="fixed md:static inset-y-0 left-0 z-40 w-72 sm:w-80 bg-[#08080a]/95 md:bg-[#08080a] border-r border-[#1e222c] flex flex-col transition-transform duration-300 ease-in-out backdrop-blur-xl md:backdrop-blur-none {{ $isDrawerOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0' }}"
+            class="fixed md:static inset-y-0 left-0 z-40 w-72 sm:w-80 bg-[#08080a]/95 md:bg-[#08080a] border-r border-[#1e222c] flex flex-col transition-transform duration-300 ease-in-out backdrop-blur-xl md:backdrop-blur-none"
+            :class="isDrawerOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'"
         >
             <div class="p-4 border-b border-[#1e222c] flex items-center justify-between">
                 <div class="min-w-0">
@@ -376,8 +472,10 @@
                     <p class="text-[11px] text-[#71788e]">{{ $event->eventSongs->count() }} músicas escaladas</p>
                 </div>
                 <button
-                    wire:click="toggleDrawer"
-                    class="md:hidden p-1.5 rounded-lg text-slate-400 hover:text-white tap-scale cursor-pointer"
+                    type="button"
+                    @click="isDrawerOpen = false"
+                    class="md:hidden p-2 rounded-xl bg-[#12141a] border border-[#1e222c] text-slate-400 hover:text-white tap-scale cursor-pointer"
+                    title="Fechar Setlist"
                 >
                     ✕
                 </button>
@@ -391,7 +489,9 @@
                         $itemCapo = $eventSong->capo_fret ?? $eventSong->songVersion?->capo_fret ?? $eventSong->song?->capo_fret;
                     @endphp
                     <button
+                        type="button"
                         wire:click="selectSong({{ $eventSong->id }})"
+                        @click="isDrawerOpen = false"
                         class="w-full text-left p-3 rounded-2xl border transition-all tap-scale cursor-pointer flex items-center justify-between gap-3 {{ $isActive ? 'bg-[#12141a] border-[#00d2ff]/40 shadow-lg shadow-cyan-500/5 ring-1 ring-[#00d2ff]/30' : 'bg-[#12141a]/60 border-[#1e222c] hover:bg-[#181b24] hover:border-slate-700' }}"
                     >
                         <div class="flex items-center gap-3 min-w-0">
@@ -435,12 +535,13 @@
         </aside>
 
         <!-- Overlay backdrop for mobile drawer -->
-        @if ($isDrawerOpen)
-            <div
-                wire:click="toggleDrawer"
-                class="md:hidden fixed inset-0 z-30 bg-black/80 backdrop-blur-sm"
-            ></div>
-        @endif
+        <div
+            x-show="isDrawerOpen"
+            @click="isDrawerOpen = false"
+            x-cloak
+            x-transition.opacity.duration.200ms
+            class="md:hidden fixed inset-0 z-30 bg-black/80 backdrop-blur-sm"
+        ></div>
 
         <!-- Main Chord Sheet Viewing Area -->
         <main class="flex-1 flex flex-col min-w-0 bg-[#08080a] overflow-hidden relative">
@@ -460,9 +561,13 @@
                 <div
                     x-ref="chordContainer"
                     :class="{ 'hide-chords': showLyricsOnly }"
-                    class="flex-1 overflow-y-auto px-4 sm:px-8 py-6 font-mono leading-relaxed no-scrollbar focus:outline-none"
-                    style="font-size: {{ $fontSize }}px;"
+                    class="flex-1 overflow-y-auto px-4 sm:px-8 py-6 font-mono leading-relaxed no-scrollbar focus:outline-none overscroll-contain touch-pan-y select-none"
+                    :style="'font-size: ' + fontSize + 'px;'"
                     tabindex="0"
+                    @touchstart="handleTouchStart($event)"
+                    @touchmove="handleTouchMove($event)"
+                    @touchend="handleTouchEnd($event)"
+                    @click="handleChordDoubleTap($event)"
                 >
                     <div 
                         class="mx-auto pb-48 transition-all duration-150"

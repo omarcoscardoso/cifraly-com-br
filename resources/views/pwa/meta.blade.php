@@ -311,6 +311,186 @@
     }
 
     /* =====================================================
+       WIDGET DE CONVOCAÇÃO DE ESCALA (MINHAS ESCALAS)
+       ===================================================== */
+    .cifraly-roster-mobile-view {
+        display: none !important;
+    }
+    .cifraly-roster-desktop-view {
+        display: block !important;
+    }
+
+    @media (max-width: 1023px) {
+        .cifraly-roster-mobile-view {
+            display: flex !important;
+            flex-direction: column !important;
+            gap: 10px !important;
+            margin-bottom: 14px !important;
+            box-sizing: border-box !important;
+        }
+        .cifraly-roster-desktop-view {
+            display: none !important;
+        }
+    }
+
+    .cifraly-roster-header {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        padding: 0 4px !important;
+    }
+
+    .cifraly-roster-title-group {
+        display: flex !important;
+        align-items: center !important;
+        gap: 8px !important;
+    }
+
+    .cifraly-roster-card {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        gap: 10px !important;
+        padding: 12px 14px !important;
+        border-radius: 16px !important;
+        background: #ffffff !important;
+        border: 1px solid #e2e8f0 !important;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04) !important;
+        box-sizing: border-box !important;
+        transition: transform 0.15s ease, box-shadow 0.15s ease !important;
+    }
+
+    .dark .cifraly-roster-card {
+        background: #12141a !important;
+        border: 1px solid #1e222c !important;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25) !important;
+    }
+
+    .cifraly-roster-info-group {
+        display: flex !important;
+        align-items: center !important;
+        gap: 10px !important;
+        min-width: 0 !important;
+        flex: 1 1 auto !important;
+    }
+
+    .cifraly-roster-title {
+        font-size: 0.875rem !important;
+        font-weight: 700 !important;
+        color: #0f172a !important;
+        margin: 0 !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        line-height: 1.25 !important;
+    }
+
+    .dark .cifraly-roster-title {
+        color: #ffffff !important;
+    }
+
+    .cifraly-roster-subtitle {
+        font-size: 0.72rem !important;
+        color: #64748b !important;
+        margin: 2px 0 0 0 !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        line-height: 1.2 !important;
+    }
+
+    .dark .cifraly-roster-subtitle {
+        color: #94a3b8 !important;
+    }
+
+    .cifraly-roster-actions {
+        display: flex !important;
+        align-items: center !important;
+        gap: 6px !important;
+        flex-shrink: 0 !important;
+    }
+
+    .cifraly-roster-confirm-btn {
+        display: inline-flex !important;
+        align-items: center !important;
+        gap: 4px !important;
+        background: #00e676 !important;
+        color: #022c22 !important;
+        padding: 6px 12px !important;
+        border-radius: 10px !important;
+        font-size: 0.75rem !important;
+        font-weight: 800 !important;
+        border: none !important;
+        cursor: pointer !important;
+        box-shadow: 0 2px 8px rgba(0, 230, 118, 0.25) !important;
+        white-space: nowrap !important;
+        transition: opacity 0.15s ease, transform 0.15s ease !important;
+    }
+
+    .cifraly-roster-confirm-btn:active {
+        transform: scale(0.96) !important;
+    }
+
+    .cifraly-roster-decline-btn {
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        width: 30px !important;
+        height: 30px !important;
+        border-radius: 10px !important;
+        background: rgba(239, 68, 68, 0.1) !important;
+        color: #ef4444 !important;
+        border: 1px solid rgba(239, 68, 68, 0.2) !important;
+        cursor: pointer !important;
+        transition: opacity 0.15s ease, transform 0.15s ease !important;
+    }
+
+    .cifraly-roster-decline-btn:active {
+        transform: scale(0.92) !important;
+    }
+
+    .cifraly-roster-modal-card {
+        border-radius: 16px !important;
+        border: 1px solid #e2e8f0 !important;
+        background: #f8fafc !important;
+        padding: 16px !important;
+        box-sizing: border-box !important;
+    }
+
+    .dark .cifraly-roster-modal-card {
+        border-color: rgba(255, 255, 255, 0.08) !important;
+        background: #12141a !important;
+    }
+
+    .cifraly-roster-modal-title {
+        font-size: 1rem !important;
+        font-weight: 700 !important;
+        color: #0f172a !important;
+        margin: 0 0 4px 0 !important;
+    }
+
+    .dark .cifraly-roster-modal-title {
+        color: #ffffff !important;
+    }
+
+    .cifraly-roster-modal-textarea {
+        width: 100% !important;
+        border-radius: 12px !important;
+        background: #ffffff !important;
+        border: 1px solid #cbd5e1 !important;
+        padding: 8px 12px !important;
+        font-size: 0.75rem !important;
+        color: #0f172a !important;
+        box-sizing: border-box !important;
+    }
+
+    .dark .cifraly-roster-modal-textarea {
+        background: #08080a !important;
+        border: 1px solid #1e222c !important;
+        color: #ffffff !important;
+    }
+
+    /* =====================================================
        SETLIST DO REPERTÓRIO: CARDS DE LINHA ÚNICA NO MOBILE
        ===================================================== */
     @media (max-width: 767px) {

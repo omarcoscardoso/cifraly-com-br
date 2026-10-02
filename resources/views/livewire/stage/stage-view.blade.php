@@ -553,26 +553,20 @@
                             <span>Refrão</span>
                         </button>
 
-                        <!-- Botão de Iniciar/Parar Rolagem (+50% Destacado) -->
+                        <!-- Botão de Iniciar/Parar Rolagem (+50% Destacado, Apenas Ícone) -->
                         <div class="flex items-center bg-[#12141a]/95 border border-[#1e222c] rounded-2xl p-1.5 gap-1.5 sm:gap-2 shadow-2xl backdrop-blur-md">
                             <button
                                 type="button"
                                 @click="isAutoScrolling = !isAutoScrolling"
-                                class="flex items-center gap-2 text-sm sm:text-base font-black px-4 sm:px-5 py-2.5 sm:py-3 rounded-xl transition-all tap-scale cursor-pointer"
+                                class="w-11 h-11 sm:w-12 sm:h-12 flex items-center justify-center rounded-xl transition-all tap-scale cursor-pointer shrink-0"
                                 :class="isAutoScrolling ? 'bg-[#00d2ff] text-black shadow-xl shadow-cyan-500/40 ring-2 ring-cyan-400' : 'bg-[#181b24] hover:bg-[#202531] text-white border border-[#2a2f3d] shadow-lg'"
                                 title="Ativar/Desativar Rolagem Automática (Espaço ou Duplo Toque)"
                             >
                                 <template x-if="isAutoScrolling">
-                                    <span class="flex items-center gap-2">
-                                        <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>
-                                        <span>Pausar</span>
-                                    </span>
+                                    <svg class="w-5 h-5 sm:w-6 sm:h-6 fill-current" viewBox="0 0 24 24"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>
                                 </template>
                                 <template x-if="!isAutoScrolling">
-                                    <span class="flex items-center gap-2">
-                                        <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-                                        <span>Rolar</span>
-                                    </span>
+                                    <svg class="w-5 h-5 sm:w-6 sm:h-6 fill-current ml-0.5" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
                                 </template>
                             </button>
 

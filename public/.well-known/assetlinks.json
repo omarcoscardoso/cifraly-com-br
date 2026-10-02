@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "br.com.cifraly.app",
+      "sha256_cert_fingerprints": [
+        "14:6D:E9:7D:0F:52:AB:E7:5C:30:F5:F4:A0:67:8B:13:B6:3B:56:4C:E8:4A:23:44:8D:1F:B4:4D:B4:EB:18:CE"
+      ]
+    }
+  }
+]

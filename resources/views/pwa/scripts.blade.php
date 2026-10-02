@@ -11,7 +11,7 @@
             });
         }
 
-        // Install prompt handling
+        // Install prompt handling (Chrome, Android, Edge)
         var deferredPrompt = null;
         window.addEventListener('beforeinstallprompt', function (e) {
             e.preventDefault();
@@ -57,6 +57,29 @@
             var b = document.getElementById('pwa-install-banner');
             if (b) b.style.display = 'none';
         }
+
+        // iOS Safari manual install guidance
+        var isIOS = /iphone|ipad|ipod/.test(navigator.userAgent.toLowerCase());
+        var isStandalone = window.matchMedia('(display-mode: standalone)').matches || ('standalone' in navigator && navigator.standalone);
+
+        if (isIOS && !isStandalone && sessionStorage.getItem('pwa-ios-banner-dismissed') !== 'true') {
+            window.addEventListener('load', function () {
+                setTimeout(function () {
+                    var iosBanner = document.getElementById('pwa-ios-install-banner');
+                    if (iosBanner) {
+                        iosBanner.style.display = 'flex';
+                    }
+                }, 1500);
+            });
+        }
+
+        window.CifralyIOSDismiss = function () {
+            var iosBanner = document.getElementById('pwa-ios-install-banner');
+            if (iosBanner) {
+                iosBanner.style.display = 'none';
+            }
+            sessionStorage.setItem('pwa-ios-banner-dismissed', 'true');
+        };
     })();
 
     // Helper universal para cópia de texto com feedback via Filament Notification
@@ -133,13 +156,46 @@
             fallbackCopy(text);
         }
     };
+
+    // Helper universal para Screen Wake Lock (Modo Palco)
+    window.CifralyWakeLock = {
+        sentinel: null,
+        async request() {
+            if ('wakeLock' in navigator) {
+                try {
+                    this.sentinel = await navigator.wakeLock.request('screen');
+                    this.sentinel.addEventListener('release', function () {
+                        window.CifralyWakeLock.sentinel = null;
+                    });
+                    console.log('[PWA] Screen Wake Lock ativado');
+                    return true;
+                } catch (err) {
+                    console.warn('[PWA] Screen Wake Lock falhou:', err);
+                    return false;
+                }
+            }
+            return false;
+        },
+        async release() {
+            if (this.sentinel) {
+                try {
+                    await this.sentinel.release();
+                } catch (e) {}
+                this.sentinel = null;
+                console.log('[PWA] Screen Wake Lock liberado');
+            }
+        },
+        isActive() {
+            return this.sentinel !== null;
+        }
+    };
 </script>
 
-<!-- Mobile Install Banner (Bottom Sheet style) -->
+<!-- Mobile Install Banner (Chrome / Android / Desktop) -->
 <div id="pwa-install-banner"
      style="display: none; position: fixed; bottom: calc(env(safe-area-inset-bottom, 12px) + 76px); left: 16px; right: 16px; max-width: 480px; margin: 0 auto; background: rgba(15, 23, 42, 0.95); border: 1px solid rgba(245, 158, 11, 0.35); border-radius: 20px; padding: 14px 16px; box-shadow: 0 16px 36px rgba(0,0,0,0.6); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); z-index: 9999; align-items: center; justify-content: space-between; gap: 12px;">
     <div style="display: flex; align-items: center; gap: 12px; min-width: 0;">
-        <img src="/icons/icon-192x192.png?v=1.0.5" alt="Cifraly" style="width: 42px; height: 42px; border-radius: 10px; flex-shrink: 0; box-shadow: 0 2px 8px rgba(0,0,0,0.4);" />
+        <img src="/icons/icon-192x192.png?v=1.0.6" alt="Cifraly" style="width: 42px; height: 42px; border-radius: 10px; flex-shrink: 0; box-shadow: 0 2px 8px rgba(0,0,0,0.4);" />
         <div style="min-width: 0;">
             <div style="font-weight: 700; font-size: 0.9rem; color: #ffffff; line-height: 1.2;">Instalar Aplicativo</div>
             <div style="font-size: 0.78rem; color: #94a3b8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Acesso rápido ao Modo Palco & Cifras</div>
@@ -156,3 +212,26 @@
         </button>
     </div>
 </div>
+
+<!-- Mobile Install Banner para iOS (Safari) -->
+<div id="pwa-ios-install-banner"
+     style="display: none; position: fixed; bottom: calc(env(safe-area-inset-bottom, 12px) + 76px); left: 16px; right: 16px; max-width: 480px; margin: 0 auto; background: rgba(15, 23, 42, 0.97); border: 1px solid rgba(56, 189, 248, 0.4); border-radius: 20px; padding: 14px 16px; box-shadow: 0 16px 36px rgba(0,0,0,0.6); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); z-index: 9999; flex-direction: column; gap: 10px;">
+    <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; width: 100%;">
+        <div style="display: flex; align-items: center; gap: 12px; min-width: 0;">
+            <img src="/icons/icon-192x192.png?v=1.0.6" alt="Cifraly" style="width: 40px; height: 40px; border-radius: 10px; flex-shrink: 0; box-shadow: 0 2px 8px rgba(0,0,0,0.4);" />
+            <div style="min-width: 0;">
+                <div style="font-weight: 700; font-size: 0.9rem; color: #ffffff; line-height: 1.2;">Instalar no iPhone / iPad</div>
+                <div style="font-size: 0.78rem; color: #38bdf8;">Instale para rodar em tela cheia</div>
+            </div>
+        </div>
+        <button onclick="window.CifralyIOSDismiss()" style="background: transparent; border: none; color: #64748b; padding: 6px; cursor: pointer; border-radius: 8px; display: flex; align-items: center; justify-content: center;" title="Fechar">
+            <svg style="width: 18px; height: 18px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+        </button>
+    </div>
+    <div style="font-size: 0.8rem; color: #cbd5e1; line-height: 1.4; padding: 8px 10px; background: rgba(30, 41, 59, 0.7); border-radius: 12px; border: 1px solid rgba(255,255,255,0.06); display: flex; align-items: center; gap: 8px;">
+        <span>Toque no botão <strong>Compartilhar</strong> (ícone <svg style="display: inline; width: 15px; height: 15px; vertical-align: text-bottom;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>) e selecione <strong>Adicionar à Tela de Início</strong>.</span>
+    </div>
+</div>
+

@@ -610,38 +610,39 @@
         </div>
 
         <!-- ALTAR Floating Navigation Bar (Docked Bottom) -->
-        <div class="absolute bottom-12 sm:bottom-6 inset-x-0 px-4 sm:px-8 flex items-center justify-between pointer-events-none z-20 stage-safe-bottom">
+        <div class="absolute bottom-12 sm:bottom-6 inset-x-0 px-3 sm:px-8 flex items-center justify-between pointer-events-none z-20 stage-safe-bottom">
             
             <!-- Left: Quick Jump to Chorus Button & Auto-Scroll Play Button -->
-            <div class="flex items-center gap-1.5 sm:gap-2 pointer-events-auto">
+            <div class="flex items-center gap-1.5 sm:gap-2.5 pointer-events-auto">
+                <!-- Botão Refrão (-25%) -->
                 <button
                     @click="jumpToChorus()"
-                    class="px-3 sm:px-4 py-2 sm:py-2.5 rounded-2xl bg-[#12141a]/95 hover:bg-[#ffb300] border border-[#ffb300]/40 text-[#ffb300] hover:text-black font-black text-xs uppercase tracking-wider sm:tracking-widest shadow-xl shadow-amber-500/10 backdrop-blur-md tap-scale transition-all cursor-pointer flex items-center gap-1.5 sm:gap-2"
+                    class="px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-xl bg-[#12141a]/95 hover:bg-[#ffb300] border border-[#ffb300]/40 text-[#ffb300] hover:text-black font-bold text-[10px] sm:text-[11px] uppercase tracking-wider shadow-lg shadow-amber-500/10 backdrop-blur-md tap-scale transition-all cursor-pointer flex items-center gap-1 sm:gap-1.5"
                     title="Saltar imediatamente para o Refrão"
                 >
-                    <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                    <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
                     <span>Refrão</span>
                 </button>
 
-                <!-- Auto-Scroll Play / Pause Button with Speed Controls -->
-                <div class="flex items-center bg-[#12141a]/95 border border-[#1e222c] rounded-2xl p-1 gap-1 shadow-xl backdrop-blur-md">
+                <!-- Botão de Iniciar/Parar Rolagem (+50% Destacado) -->
+                <div class="flex items-center bg-[#12141a]/95 border border-[#1e222c] rounded-2xl p-1.5 gap-1.5 sm:gap-2 shadow-2xl backdrop-blur-md">
                     <button
                         type="button"
                         @click="isAutoScrolling = !isAutoScrolling"
-                        class="flex items-center gap-1.5 text-xs font-black px-2.5 sm:px-3 py-1.5 rounded-xl transition tap-scale cursor-pointer"
-                        :class="isAutoScrolling ? 'bg-[#00d2ff] text-black shadow-lg shadow-cyan-500/30' : 'bg-[#181b24] hover:bg-[#1e222c] text-slate-200'"
+                        class="flex items-center gap-2 text-sm sm:text-base font-black px-4 sm:px-5 py-2.5 sm:py-3 rounded-xl transition-all tap-scale cursor-pointer"
+                        :class="isAutoScrolling ? 'bg-[#00d2ff] text-black shadow-xl shadow-cyan-500/40 ring-2 ring-cyan-400' : 'bg-[#181b24] hover:bg-[#202531] text-white border border-[#2a2f3d] shadow-lg'"
                         title="Ativar/Desativar Rolagem Automática (Espaço ou Duplo Toque)"
                     >
                         <template x-if="isAutoScrolling">
-                            <span class="flex items-center gap-1.5">
-                                <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>
-                                <span class="hidden xs:inline sm:inline">Pausar</span>
+                            <span class="flex items-center gap-2">
+                                <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>
+                                <span>Pausar</span>
                             </span>
                         </template>
                         <template x-if="!isAutoScrolling">
-                            <span class="flex items-center gap-1.5">
-                                <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-                                <span class="hidden xs:inline sm:inline">Rolar</span>
+                            <span class="flex items-center gap-2">
+                                <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                                <span>Rolar</span>
                             </span>
                         </template>
                     </button>
@@ -650,34 +651,34 @@
                     <button
                         type="button"
                         @click="scrollSpeed = scrollSpeed >= 10 ? 1 : scrollSpeed + 1"
-                        class="sm:hidden text-[10px] text-[#71788e] hover:text-[#00d2ff] font-mono font-bold px-2 py-1 rounded-lg bg-[#08080a] tap-scale transition cursor-pointer"
+                        class="sm:hidden text-xs text-[#71788e] hover:text-[#00d2ff] font-mono font-bold px-2.5 py-1.5 rounded-lg bg-[#08080a] tap-scale transition cursor-pointer"
                         title="Toque para alternar velocidade (1x a 10x)"
                     >
                         <span x-text="scrollSpeed + 'x'">3x</span>
                     </button>
 
-                    <div class="hidden sm:flex items-center gap-1.5 px-1.5">
-                        <span class="text-[10px] text-[#71788e] font-mono font-bold" x-text="scrollSpeed + 'x'">3x</span>
+                    <div class="hidden sm:flex items-center gap-2 px-1.5">
+                        <span class="text-xs text-[#71788e] font-mono font-bold" x-text="scrollSpeed + 'x'">3x</span>
                         <input
                             type="range"
                             min="1"
                             max="10"
                             x-model="scrollSpeed"
-                            class="w-14 sm:w-16 h-1.5 bg-[#08080a] rounded-lg appearance-none cursor-pointer accent-[#00d2ff]"
+                            class="w-16 sm:w-20 h-1.5 bg-[#08080a] rounded-lg appearance-none cursor-pointer accent-[#00d2ff]"
                             title="Velocidade de Rolagem"
                         />
                     </div>
                 </div>
             </div>
 
-            <!-- Right: Return to Songs Resource Button -->
-            <div class="flex items-center gap-3 pointer-events-auto">
+            <!-- Right: Return to Songs Resource Button (-25%) -->
+            <div class="flex items-center gap-1.5 sm:gap-2.5 pointer-events-auto">
                 <a
                     href="{{ route('filament.app.resources.songs.index', ['tenant' => $organization]) }}"
-                    class="px-4 sm:px-5 py-3 sm:py-3.5 rounded-2xl bg-[#12141a]/95 hover:bg-[#181b24] border border-[#1e222c] hover:border-[#00d2ff]/40 text-white hover:text-[#00d2ff] font-black text-xs uppercase tracking-wider shadow-xl backdrop-blur-md transition tap-scale cursor-pointer flex items-center gap-2"
+                    class="px-3 sm:px-3.5 py-2 sm:py-2.5 rounded-xl bg-[#12141a]/95 hover:bg-[#181b24] border border-[#1e222c] hover:border-[#00d2ff]/40 text-white hover:text-[#00d2ff] font-bold text-[10px] sm:text-xs uppercase tracking-wider shadow-lg backdrop-blur-md transition tap-scale cursor-pointer flex items-center gap-1.5"
                     title="Sair do Modo Palco e voltar ao Repertório"
                 >
-                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <svg class="w-3.5 h-3.5 fill-none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7" />
                     </svg>
                     <span class="hidden xs:inline sm:inline">Repertório</span>

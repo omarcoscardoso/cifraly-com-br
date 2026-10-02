@@ -301,23 +301,23 @@
         </div>
     </header>
 
-    <!-- Performance Action Toolbar -->
-    <section class="bg-[#12141a]/95 border-b border-[#1e222c] px-3 sm:px-6 py-2.5 flex flex-wrap items-center justify-between gap-3 shrink-0 backdrop-blur-md z-20">
+    <!-- Performance Action Toolbar (Tom, Tamanho de Fonte e Letra na mesma linha) -->
+    <section class="bg-[#12141a]/95 border-b border-[#1e222c] px-2 sm:px-6 py-2 flex items-center justify-between gap-1.5 sm:gap-3 shrink-0 backdrop-blur-md z-20">
         
-        <!-- Key Transposer Tools -->
-        <div class="flex items-center gap-1.5 bg-[#08080a] border border-[#1e222c] px-2 py-1 rounded-2xl shrink-0">
+        <!-- Left: Key Transposer Tools -->
+        <div class="flex items-center gap-1 sm:gap-1.5 bg-[#08080a] border border-[#1e222c] px-1.5 sm:px-2 py-1 rounded-2xl shrink-0">
             <button
                 type="button"
                 wire:click="transposeDown"
-                class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-[#181b24] hover:bg-[#1e222c] active:bg-[#232734] text-slate-200 font-bold text-base flex items-center justify-center tap-scale cursor-pointer"
+                class="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-[#181b24] hover:bg-[#1e222c] active:bg-[#232734] text-slate-200 font-bold text-sm sm:text-base flex items-center justify-center tap-scale cursor-pointer"
                 title="Baixar 1 Semitom (-1)"
             >
                 -
             </button>
 
-            <div class="text-center px-2 min-w-[36px]" wire:loading.class="opacity-50 animate-pulse" wire:target="transposeDown, transposeUp, resetKey">
-                <span class="text-[9px] text-[#71788e] uppercase font-mono tracking-widest block leading-none">TOM</span>
-                <span class="text-sm sm:text-base font-black text-[#00d2ff] font-mono leading-tight">
+            <div class="text-center px-1 sm:px-2 min-w-[32px] sm:min-w-[36px]" wire:loading.class="opacity-50 animate-pulse" wire:target="transposeDown, transposeUp, resetKey">
+                <span class="text-[8px] sm:text-[9px] text-[#71788e] uppercase font-mono tracking-widest block leading-none">TOM</span>
+                <span class="text-xs sm:text-sm font-black text-[#00d2ff] font-mono leading-tight">
                     {{ $currentKey ?? 'C' }}
                 </span>
             </div>
@@ -325,7 +325,7 @@
             <button
                 type="button"
                 wire:click="transposeUp"
-                class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-[#181b24] hover:bg-[#1e222c] active:bg-[#232734] text-slate-200 font-bold text-base flex items-center justify-center tap-scale cursor-pointer"
+                class="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-[#181b24] hover:bg-[#1e222c] active:bg-[#232734] text-slate-200 font-bold text-sm sm:text-base flex items-center justify-center tap-scale cursor-pointer"
                 title="Subir 1 Semitom (+1)"
             >
                 +
@@ -335,7 +335,7 @@
                 <button
                     type="button"
                     wire:click="resetKey"
-                    class="text-[10px] px-2 py-1 rounded-lg bg-[#ffb300]/10 text-[#ffb300] hover:bg-[#ffb300]/20 border border-[#ffb300]/30 font-bold uppercase transition tap-scale cursor-pointer ml-1"
+                    class="text-[9px] px-1.5 py-0.5 rounded-lg bg-[#ffb300]/10 text-[#ffb300] hover:bg-[#ffb300]/20 border border-[#ffb300]/30 font-bold uppercase transition tap-scale cursor-pointer"
                     title="Restaurar tom original"
                 >
                     Orig
@@ -343,12 +343,12 @@
             @endif
         </div>
 
-        <!-- Capo Badge & Metadados -->
+        <!-- Capo Badge & Metadados (visível em telas sm e maiores) -->
         @if ($selectedEventSong)
             @php
                 $capoFret = $selectedEventSong->capo_fret ?? $selectedEventSong->songVersion?->capo_fret ?? $selectedEventSong->song?->capo_fret;
             @endphp
-            <div class="flex items-center gap-2 text-xs font-mono">
+            <div class="hidden sm:flex items-center gap-2 text-xs font-mono">
                 @if ($capoFret)
                     <div class="flex items-center gap-1.5 bg-indigo-500/10 border border-indigo-500/30 px-2.5 py-1 rounded-xl text-indigo-300">
                         <span class="text-indigo-400 font-bold">🎸 Capo:</span>
@@ -357,34 +357,34 @@
                 @endif
 
                 @if ($selectedEventSong->song?->time_signature)
-                    <div class="hidden sm:flex items-center gap-1.5 bg-[#08080a] border border-[#1e222c] px-2.5 py-1 rounded-xl text-[#71788e]">
+                    <div class="hidden md:flex items-center gap-1.5 bg-[#08080a] border border-[#1e222c] px-2.5 py-1 rounded-xl text-[#71788e]">
                         <span class="text-slate-300 font-bold">{{ $selectedEventSong->song->time_signature }}</span>
                     </div>
                 @endif
             </div>
         @endif
 
-        <!-- Font Zoom, Colunas, Letra & Auto-Scroll -->
-        <div class="flex items-center gap-2 shrink-0">
+        <!-- Right: Font Zoom, Colunas & Letra -->
+        <div class="flex items-center gap-1.5 sm:gap-2 shrink-0">
             <!-- Font Zoom Controls (Instantâneo 0ms) -->
-            <div class="flex items-center bg-[#08080a] border border-[#1e222c] rounded-2xl p-1 gap-1">
+            <div class="flex items-center bg-[#08080a] border border-[#1e222c] rounded-2xl p-0.5 sm:p-1 gap-0.5 sm:gap-1">
                 <button
                     type="button"
                     @click="decreaseFontSize()"
-                    class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl hover:bg-[#181b24] active:bg-[#232734] text-slate-300 hover:text-white font-black text-xs flex items-center justify-center tap-scale cursor-pointer"
+                    class="w-7 h-7 sm:w-8 sm:h-8 rounded-xl hover:bg-[#181b24] active:bg-[#232734] text-slate-300 hover:text-white font-black text-[11px] sm:text-xs flex items-center justify-center tap-scale cursor-pointer"
                     title="Diminuir Fonte (A-)"
                 >
                     A-
                 </button>
                 <span 
-                    class="text-[11px] font-mono font-bold text-[#00d2ff] w-6 text-center select-none"
+                    class="text-[10px] sm:text-[11px] font-mono font-bold text-[#00d2ff] w-5 sm:w-6 text-center select-none"
                     x-text="fontSize"
                     title="Tamanho da Fonte Atual"
                 >18</span>
                 <button
                     type="button"
                     @click="increaseFontSize()"
-                    class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl hover:bg-[#181b24] active:bg-[#232734] text-slate-300 hover:text-white font-black text-xs flex items-center justify-center tap-scale cursor-pointer"
+                    class="w-7 h-7 sm:w-8 sm:h-8 rounded-xl hover:bg-[#181b24] active:bg-[#232734] text-slate-300 hover:text-white font-black text-[11px] sm:text-xs flex items-center justify-center tap-scale cursor-pointer"
                     title="Aumentar Fonte (A+)"
                 >
                     A+
@@ -405,55 +405,16 @@
                 <span x-text="twoColumns ? '2 Colunas' : '1 Coluna'">1 Coluna</span>
             </button>
 
-            <!-- Toggle Letra (Ocultar Cifras) -->
+            <!-- Toggle Letra (Sem ícone, apenas a palavra "Letra") -->
             <button
                 type="button"
                 @click="showLyricsOnly = !showLyricsOnly"
-                class="flex items-center gap-1.5 text-xs font-black px-3 py-2 rounded-xl transition tap-scale cursor-pointer border"
-                :class="showLyricsOnly ? 'bg-cyan-500/20 border-cyan-500 text-[#00d2ff] shadow-md shadow-cyan-500/20' : 'bg-[#08080a] border-[#1e222c] hover:bg-[#181b24] text-slate-300'"
+                class="text-xs font-black px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-2xl transition tap-scale cursor-pointer border"
+                :class="showLyricsOnly ? 'bg-cyan-500/20 border-[#00d2ff] text-[#00d2ff] shadow-md shadow-cyan-500/20' : 'bg-[#08080a] border-[#1e222c] hover:bg-[#181b24] text-slate-300'"
                 title="Alternar entre Cifra Completa e Apenas Letra"
             >
-                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
-                <span x-text="showLyricsOnly ? 'Cifras' : 'Letra'">Letra</span>
+                Letra
             </button>
-
-            <!-- Auto-Scroll Toggle & Speed (Instantâneo 0ms) -->
-            <div class="flex items-center gap-1.5 bg-[#08080a] border border-[#1e222c] px-2 py-1 rounded-2xl">
-                <button
-                    type="button"
-                    @click="isAutoScrolling = !isAutoScrolling"
-                    class="flex items-center gap-1.5 text-xs font-black px-3 py-1.5 rounded-xl transition tap-scale cursor-pointer"
-                    :class="isAutoScrolling ? 'bg-[#00d2ff] text-black shadow-lg shadow-cyan-500/30' : 'bg-[#181b24] hover:bg-[#1e222c] text-slate-200'"
-                    title="Ativar/Desativar Rolagem Automática (Espaço ou Duplo Toque)"
-                >
-                    <template x-if="isAutoScrolling">
-                        <span class="flex items-center gap-1">
-                            <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>
-                            <span class="hidden sm:inline">Pausar</span>
-                        </span>
-                    </template>
-                    <template x-if="!isAutoScrolling">
-                        <span class="flex items-center gap-1">
-                            <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-                            <span class="hidden sm:inline">Rolar</span>
-                        </span>
-                    </template>
-                </button>
-
-                <div class="hidden sm:flex items-center gap-1.5 pl-1">
-                    <span class="text-[10px] text-[#71788e] font-mono font-bold" x-text="scrollSpeed + 'x'">3x</span>
-                    <input
-                        type="range"
-                        min="1"
-                        max="10"
-                        x-model="scrollSpeed"
-                        class="w-16 h-1.5 bg-[#181b24] rounded-lg appearance-none cursor-pointer accent-[#00d2ff]"
-                        title="Velocidade de Rolagem"
-                    />
-                </div>
-            </div>
         </div>
     </section>
 
@@ -580,16 +541,62 @@
                 <!-- ALTAR Floating Navigation & Chorus Jump Bar (Docked Bottom) -->
                 <div class="absolute bottom-12 sm:bottom-6 inset-x-0 px-4 sm:px-8 flex items-center justify-between pointer-events-none z-20 stage-safe-bottom">
                     
-                    <!-- Left: Quick Jump to Chorus Button -->
-                    <div class="flex items-center gap-2 pointer-events-auto">
+                    <!-- Left: Quick Jump to Chorus Button & Auto-Scroll Play Button -->
+                    <div class="flex items-center gap-1.5 sm:gap-2 pointer-events-auto">
                         <button
                             @click="jumpToChorus()"
-                            class="px-4 py-2.5 rounded-2xl bg-[#12141a]/95 hover:bg-[#ffb300] border border-[#ffb300]/40 text-[#ffb300] hover:text-black font-black text-xs uppercase tracking-widest shadow-xl shadow-amber-500/10 backdrop-blur-md tap-scale transition-all cursor-pointer flex items-center gap-2"
+                            class="px-3 sm:px-4 py-2 sm:py-2.5 rounded-2xl bg-[#12141a]/95 hover:bg-[#ffb300] border border-[#ffb300]/40 text-[#ffb300] hover:text-black font-black text-xs uppercase tracking-wider sm:tracking-widest shadow-xl shadow-amber-500/10 backdrop-blur-md tap-scale transition-all cursor-pointer flex items-center gap-1.5 sm:gap-2"
                             title="Saltar imediatamente para o Refrão"
                         >
                             <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-                            Refrão
+                            <span>Refrão</span>
                         </button>
+
+                        <!-- Auto-Scroll Play / Pause Button with Speed Controls -->
+                        <div class="flex items-center bg-[#12141a]/95 border border-[#1e222c] rounded-2xl p-1 gap-1 shadow-xl backdrop-blur-md">
+                            <button
+                                type="button"
+                                @click="isAutoScrolling = !isAutoScrolling"
+                                class="flex items-center gap-1.5 text-xs font-black px-2.5 sm:px-3 py-1.5 rounded-xl transition tap-scale cursor-pointer"
+                                :class="isAutoScrolling ? 'bg-[#00d2ff] text-black shadow-lg shadow-cyan-500/30' : 'bg-[#181b24] hover:bg-[#1e222c] text-slate-200'"
+                                title="Ativar/Desativar Rolagem Automática (Espaço ou Duplo Toque)"
+                            >
+                                <template x-if="isAutoScrolling">
+                                    <span class="flex items-center gap-1.5">
+                                        <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>
+                                        <span class="hidden xs:inline sm:inline">Pausar</span>
+                                    </span>
+                                </template>
+                                <template x-if="!isAutoScrolling">
+                                    <span class="flex items-center gap-1.5">
+                                        <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                                        <span class="hidden xs:inline sm:inline">Rolar</span>
+                                    </span>
+                                </template>
+                            </button>
+
+                            <!-- Speed Toggle for Mobile (Tap to cycle 1x..10x) / Range Slider for Desktop -->
+                            <button
+                                type="button"
+                                @click="scrollSpeed = scrollSpeed >= 10 ? 1 : scrollSpeed + 1"
+                                class="sm:hidden text-[10px] text-[#71788e] hover:text-[#00d2ff] font-mono font-bold px-2 py-1 rounded-lg bg-[#08080a] tap-scale transition cursor-pointer"
+                                title="Toque para alternar velocidade (1x a 10x)"
+                            >
+                                <span x-text="scrollSpeed + 'x'">3x</span>
+                            </button>
+
+                            <div class="hidden sm:flex items-center gap-1.5 px-1.5">
+                                <span class="text-[10px] text-[#71788e] font-mono font-bold" x-text="scrollSpeed + 'x'">3x</span>
+                                <input
+                                    type="range"
+                                    min="1"
+                                    max="10"
+                                    x-model="scrollSpeed"
+                                    class="w-14 sm:w-16 h-1.5 bg-[#08080a] rounded-lg appearance-none cursor-pointer accent-[#00d2ff]"
+                                    title="Velocidade de Rolagem"
+                                />
+                            </div>
+                        </div>
                     </div>
 
                     <!-- Right: Previous & Next / Finish Navigation Buttons -->

@@ -1,0 +1,14 @@
+{
+  "applinks": {
+    "apps": [],
+    "details": [
+      {
+        "appID": "TEAMID.br.com.cifraly.app",
+        "paths": ["/app/*", "/join/*", "/r/*"]
+      }
+    ]
+  },
+  "webcredentials": {
+    "apps": ["TEAMID.br.com.cifraly.app"]
+  }
+}

@@ -59,3 +59,15 @@ Route::middleware('web')->group(function (): void {
     Route::get('/auth/google/redirect', [GoogleAuthController::class, 'redirect'])->name('auth.google.redirect');
     Route::get('/auth/google/callback', [GoogleAuthController::class, 'callback'])->name('auth.google.callback');
 });
+
+Route::get('/.well-known/assetlinks.json', function () {
+    return response()->file(public_path('.well-known/assetlinks.json'), [
+        'Content-Type' => 'application/json',
+    ]);
+});
+
+Route::get('/.well-known/apple-app-site-association', function () {
+    return response()->file(public_path('.well-known/apple-app-site-association'), [
+        'Content-Type' => 'application/json',
+    ]);
+});

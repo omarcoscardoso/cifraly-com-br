@@ -3,7 +3,7 @@
  * Focus: Mobile performance, offline resilience, and future extensible sync/push capabilities.
  */
 
-const CACHE_VERSION = 'cifraly-v1.0.5';
+const CACHE_VERSION = 'cifraly-v1.0.6';
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const RUNTIME_CACHE = `${CACHE_VERSION}-runtime`;
 const STAGE_CACHE = `${CACHE_VERSION}-stage`;
@@ -121,17 +121,32 @@ self.addEventListener('fetch', (event) => {
         return;
     }
 
-    // Never cache excluded patterns (app, login, livewire, auth, etc.)
+    // B. General HTML Navigation Requests: Network-First with Offline Fallback
+    // Lets network handle standard HTTP redirects (302/301), auth session cookies,
+    // and Filament/Livewire lifecycle natively without opaque-redirect errors.
+    // If network fails (device offline), gracefully responds with the precached offline.html.
+    if (request.mode === 'navigate') {
+        event.respondWith(
+            fetch(request).catch(async () => {
+                const cachedResponse = await caches.match(request);
+                if (cachedResponse) {
+                    return cachedResponse;
+                }
+                const fallback = await caches.match(OFFLINE_FALLBACK_URL);
+                return fallback || new Response('Cifraly está offline. Verifique sua conexão.', {
+                    status: 503,
+                    headers: { 'Content-Type': 'text/html; charset=utf-8' }
+                });
+            })
+        );
+        return;
+    }
+
+    // Never cache excluded patterns for non-navigation requests (Livewire updates, API calls, auth mutations)
     if (EXCLUDED_PATTERNS.some((pattern) => pattern.test(url.pathname))) {
         return;
     }
 
-    // DO NOT intercept general HTML navigation requests.
-    // Let the browser handle standard HTTP redirects (302/301), auth session cookies,
-    // and Filament/Livewire lifecycle natively without opaque-redirect errors or cache collisions.
-    if (request.mode === 'navigate') {
-        return;
-    }
 
     // B. Static Assets (CSS, JS, Fonts, Images, SVG): Stale-While-Revalidate
     const isStaticAsset = 
@@ -182,6 +197,35 @@ async function handleRosterSync() {
 async function handleFavoritesSync() {
     // Placeholder handler for future offline favorites/songs sync
     console.log('[SW] Background sync triggered: cifraly-sync-favorites');
+}
+
+// -------------------------------------------------------------
+// 4.1. Periodic Background Sync API
+// -------------------------------------------------------------
+self.addEventListener('periodicsync', (event) => {
+    if (event.tag === 'cifraly-periodic-sync') {
+        event.waitUntil(handlePeriodicSync());
+    }
+});
+
+async function handlePeriodicSync() {
+    console.log('[SW] Periodic background sync triggered: cifraly-periodic-sync');
+    try {
+        const cache = await caches.open(STATIC_CACHE);
+        await Promise.all(
+            PRECACHE_ASSETS.map((url) =>
+                fetch(new Request(url, { cache: 'reload' }))
+                    .then((res) => {
+                        if (res && res.ok) {
+                            return cache.put(url, res);
+                        }
+                    })
+                    .catch(() => {})
+            )
+        );
+    } catch (err) {
+        console.warn('[SW] Periodic sync error:', err);
+    }
 }
 
 // -------------------------------------------------------------

@@ -72,21 +72,27 @@
             padding-bottom: calc(5.5rem + env(safe-area-inset-bottom, 0px)) !important;
         }
 
-        /* Topbar azul vibrante — integra visualmente com o Hero Card */
+        /* Topbar com acabamento ALTAR dark integrado ao sidebar e ao tema */
         .fi-topbar {
-            background: linear-gradient(145deg, #1565e0 0%, #1992fe 100%) !important;
-            border-bottom: none !important;
+            background: rgba(8, 8, 10, 0.95) !important;
+            backdrop-filter: blur(16px) !important;
+            -webkit-backdrop-filter: blur(16px) !important;
+            border-bottom: 1px solid #1e222c !important;
             box-shadow: none !important;
         }
         .fi-topbar .fi-topbar-item-btn,
         .fi-topbar button,
         .fi-topbar a:not(.fi-logo) {
+            color: #94a3b8 !important;
+        }
+        .fi-topbar button:hover,
+        .fi-topbar a:not(.fi-logo):hover {
             color: #ffffff !important;
         }
         .fi-topbar button svg,
         .fi-topbar .fi-topbar-item-btn svg,
         .fi-topbar .fi-icon-btn svg {
-            color: #ffffff !important;
+            color: currentColor !important;
             stroke: currentColor !important;
         }
         .fi-logo,
@@ -131,19 +137,19 @@
             min-height: 0 !important;
         }
 
-        /* Remove padding superior no container de páginas do dashboard para colar no topo */
+        /* Ajuste do container de páginas do dashboard no mobile */
         .fi-page:has(#cifraly-hero-card) .fi-page-header-main-ctn,
         .fi-page:has(.fi-wi-organization-header) .fi-page-header-main-ctn {
-            padding-top: 0 !important;
-            gap: 0 !important;
+            padding-top: 0.75rem !important;
+            gap: 1.25rem !important;
         }
 
-        /* Hero Card: remove padding e borda do container widget para o efeito edge-to-edge */
+        /* Hero Card: container widget */
         .fi-wi-organization-header {
             padding: 0 !important;
             margin-left: 0 !important;
             margin-right: 0 !important;
-            border-radius: 0 !important;
+            border-radius: 20px !important;
             box-shadow: none !important;
             border: none !important;
             background: transparent !important;
@@ -163,16 +169,15 @@
             margin-top: 1.5rem !important;
         }
 
-        /* Hero card bleed: margem que anula o padding lateral de .fi-main e cola na topbar */
+        /* Hero card: card integrado com cantos arredondados e sombra suave */
         #cifraly-hero-card {
-            margin: 0 -16px 0 !important;
-            padding: 16px 16px 22px !important;
-            border-top-left-radius: 0 !important;
-            border-top-right-radius: 0 !important;
-            border-bottom-left-radius: 24px !important;
-            border-bottom-right-radius: 24px !important;
-            background: linear-gradient(180deg, #1992fe 0%, #1565e0 40%, #0d47a1 100%) !important;
-            box-shadow: 0 10px 25px -5px rgba(21, 101, 224, 0.35) !important;
+            margin: 0 !important;
+            padding: 20px 18px 22px !important;
+            border-radius: 20px !important;
+            box-sizing: border-box !important;
+            background: linear-gradient(135deg, #0e1a34 0%, #132752 50%, #173673 100%) !important;
+            border: 1px solid rgba(0, 210, 255, 0.25) !important;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 0 18px rgba(0, 210, 255, 0.08) !important;
         }
 
         /* Bottom Nav Fixa no Mobile */
@@ -221,11 +226,12 @@
         }
     }
 
-    /* Hero card bleed: sm breakpoint fi-main padding = 24px */
+    /* Hero card: sm breakpoint */
     @media (min-width: 640px) and (max-width: 1023px) {
         #cifraly-hero-card {
-            margin: 0 -24px 0 !important;
-            padding: 20px 24px 24px !important;
+            margin: 0 !important;
+            padding: 22px 24px 24px !important;
+            border-radius: 20px !important;
         }
     }
 

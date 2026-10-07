@@ -27,8 +27,8 @@ class PwaMobileTest extends TestCase
         $this->assertSame('Cifraly', $json['short_name']);
         $this->assertSame('/app', $json['start_url']);
         $this->assertSame('standalone', $json['display']);
-        $this->assertSame('#0f172a', $json['theme_color']);
-        $this->assertSame('#0f172a', $json['background_color']);
+        $this->assertSame('#08080a', $json['theme_color']);
+        $this->assertSame('#08080a', $json['background_color']);
     }
 
     public function test_manifest_has_all_required_icon_sizes_and_purposes(): void

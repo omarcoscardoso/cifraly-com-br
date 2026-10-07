@@ -267,9 +267,11 @@
                                 </svg>
                             </h1>
                         </div>
-                        <p class="text-xs text-[#71788e] group-hover:text-slate-300 truncate font-medium max-w-full">
-                            {{ $currentSong->artist ?? 'Artista não informado' }} • <span class="text-slate-400">{{ $event->title }}</span>
-                        </p>
+                        @if ($currentSong->artist)
+                            <p class="text-xs text-[#71788e] group-hover:text-slate-300 truncate font-medium max-w-full">
+                                {{ $currentSong->artist }}
+                            </p>
+                        @endif
                     </button>
 
                     <!-- Dropdown Menu -->
@@ -401,7 +403,7 @@
                                 </div>
                             @endif
 
-                            <div class="max-h-48 sm:max-h-60 overflow-y-auto space-y-1 overscroll-contain pr-1 [scrollbar-width:thin] [scrollbar-color:#1e222c_transparent]">
+                            <div class="max-h-80 sm:max-h-96 overflow-y-auto space-y-1 overscroll-contain pr-1 [scrollbar-width:thin] [scrollbar-color:#1e222c_transparent]">
                                 @forelse ($allSongs as $itemSong)
                                     @php
                                         $isCurrent = $itemSong->id === $currentSong->id;

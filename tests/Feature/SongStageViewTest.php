@@ -73,7 +73,8 @@ class SongStageViewTest extends TestCase
         $response->assertSuccessful();
         $response->assertSee('Porque Ele Vive');
         $response->assertSee('Harpa Cristã');
-        $response->assertSee('75 BPM');
+        $response->assertSee('75');
+        $response->assertDontSee('75 BPM');
     }
 
     public function test_song_stage_view_transposes_key(): void

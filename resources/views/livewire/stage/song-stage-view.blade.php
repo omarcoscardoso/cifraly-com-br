@@ -340,7 +340,7 @@
                         @endif
 
                         <!-- Lista rolável de músicas -->
-                        <div class="max-h-48 sm:max-h-60 overflow-y-auto space-y-1 overscroll-contain pr-1 [scrollbar-width:thin] [scrollbar-color:#1e222c_transparent]">
+                        <div class="max-h-80 sm:max-h-96 overflow-y-auto space-y-1 overscroll-contain pr-1 [scrollbar-width:thin] [scrollbar-color:#1e222c_transparent]">
                             @forelse ($allSongs as $itemSong)
                                 @php
                                     $isCurrent = $itemSong->id === $song->id;
@@ -428,7 +428,7 @@
                 title="Abrir Metrônomo ALTAR"
             >
                 <span class="w-2 h-2 rounded-full bg-[#00e676] animate-pulse shadow-[0_0_8px_#00e676]"></span>
-                <span class="text-xs font-mono font-black">{{ $song->bpm ? $song->bpm . ' BPM' : '120 BPM' }}</span>
+                <span class="text-xs font-mono font-black">{{ $song->bpm ?? 120 }}</span>
             </button>
 
             <!-- Fullscreen Toggle -->

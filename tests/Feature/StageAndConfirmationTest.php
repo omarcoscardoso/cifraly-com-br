@@ -542,6 +542,7 @@ class StageAndConfirmationTest extends TestCase
             ])
             ->assertSee('Grande É o Senhor')
             ->assertSee('Adhemar de Campos')
+            ->assertDontSeeHtml('• <span class="text-slate-400">Culto de Celebração</span>')
             ->assertSee('Tom Orig:')
             ->assertSee('Assistir no YouTube')
             ->assertSee('Ouvir no Spotify')

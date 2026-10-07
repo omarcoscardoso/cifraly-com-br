@@ -103,30 +103,6 @@
                 document.exitFullscreen().then(() => this.isFullscreen = false).catch(() => {});
             }
         },
-        jumpToChorus() {
-            const container = this.$refs.chordContainer;
-            const chorusEl = document.querySelector('.stage-chorus-target');
-            if (!container || !chorusEl) return;
-
-            const wasScrolling = this.isAutoScrolling;
-            if (wasScrolling) {
-                this.stopAutoScroll();
-            }
-
-            const targetScrollTop = chorusEl.offsetTop - (container.clientHeight / 3);
-            container.scrollTo({
-                top: Math.max(0, targetScrollTop),
-                behavior: 'smooth'
-            });
-
-            if (wasScrolling) {
-                setTimeout(() => {
-                    if (this.isAutoScrolling) {
-                        this.startAutoScroll();
-                    }
-                }, 600);
-            }
-        },
         openMetronome(bpm, timeSignature) {
             window.dispatchEvent(new CustomEvent('open-altar-metronome', {
                 detail: {
@@ -315,9 +291,8 @@
                 -
             </button>
 
-            <div class="text-center px-1 sm:px-2 min-w-[32px] sm:min-w-[36px]" wire:loading.class="opacity-50 animate-pulse" wire:target="transposeDown, transposeUp, resetKey">
-                <span class="text-[8px] sm:text-[9px] text-[#71788e] uppercase font-mono tracking-widest block leading-none">TOM</span>
-                <span class="text-xs sm:text-sm font-black text-[#00d2ff] font-mono leading-tight">
+            <div class="text-center px-1 sm:px-2 min-w-[28px] sm:min-w-[32px]" wire:loading.class="opacity-50 animate-pulse" wire:target="transposeDown, transposeUp, resetKey">
+                <span class="text-xs sm:text-sm font-black text-[#00d2ff] font-mono leading-none">
                     {{ $currentKey ?? 'C' }}
                 </span>
             </div>
@@ -343,28 +318,30 @@
             @endif
         </div>
 
-        <!-- Capo Badge & Metadados (visível em telas sm e maiores) -->
+        <!-- Capo Badge & Metadados (visível também em telas pequenas) -->
         @if ($selectedEventSong)
             @php
                 $capoFret = $selectedEventSong->capo_fret ?? $selectedEventSong->songVersion?->capo_fret ?? $selectedEventSong->song?->capo_fret;
             @endphp
-            <div class="hidden sm:flex items-center gap-2 text-xs font-mono">
-                @if ($capoFret)
-                    <div class="flex items-center gap-1.5 bg-indigo-500/10 border border-indigo-500/30 px-2.5 py-1 rounded-xl text-indigo-300">
-                        <span class="text-indigo-400 font-bold">🎸 Capo:</span>
-                        <span class="font-black text-white">{{ $capoFret }}ª casa</span>
-                    </div>
-                @endif
+            @if ($capoFret || $selectedEventSong->song?->time_signature)
+                <div class="flex items-center gap-1.5 sm:gap-2 text-[11px] sm:text-xs font-mono">
+                    @if ($capoFret)
+                        <div class="flex items-center gap-1 sm:gap-1.5 bg-indigo-500/10 border border-indigo-500/30 px-2 sm:px-2.5 py-1 rounded-xl text-indigo-300 whitespace-nowrap">
+                            <span class="text-indigo-400 font-bold">🎸 Capo:</span>
+                            <span class="font-black text-white">{{ $capoFret }}ª casa</span>
+                        </div>
+                    @endif
 
-                @if ($selectedEventSong->song?->time_signature)
-                    <div class="hidden md:flex items-center gap-1.5 bg-[#08080a] border border-[#1e222c] px-2.5 py-1 rounded-xl text-[#71788e]">
-                        <span class="text-slate-300 font-bold">{{ $selectedEventSong->song->time_signature }}</span>
-                    </div>
-                @endif
-            </div>
+                    @if ($selectedEventSong->song?->time_signature)
+                        <div class="hidden md:flex items-center gap-1.5 bg-[#08080a] border border-[#1e222c] px-2.5 py-1 rounded-xl text-[#71788e]">
+                            <span class="text-slate-300 font-bold">{{ $selectedEventSong->song->time_signature }}</span>
+                        </div>
+                    @endif
+                </div>
+            @endif
         @endif
 
-        <!-- Right: Font Zoom, Colunas & Letra -->
+        <!-- Right: Font Zoom & Colunas -->
         <div class="flex items-center gap-1.5 sm:gap-2 shrink-0">
             <!-- Font Zoom Controls (Instantâneo 0ms) -->
             <div class="flex items-center bg-[#08080a] border border-[#1e222c] rounded-2xl p-0.5 sm:p-1 gap-0.5 sm:gap-1">
@@ -403,17 +380,6 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 4v16m6-16v16M4 4h16a1 1 0 011 1v14a1 1 0 01-1 1H4a1 1 0 01-1-1V5a1 1 0 011-1z" />
                 </svg>
                 <span x-text="twoColumns ? '2 Colunas' : '1 Coluna'">1 Coluna</span>
-            </button>
-
-            <!-- Toggle Letra (Sem ícone, apenas a palavra "Letra") -->
-            <button
-                type="button"
-                @click="showLyricsOnly = !showLyricsOnly"
-                class="text-xs font-black px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-2xl transition tap-scale cursor-pointer border"
-                :class="showLyricsOnly ? 'bg-cyan-500/20 border-[#00d2ff] text-[#00d2ff] shadow-md shadow-cyan-500/20' : 'bg-[#08080a] border-[#1e222c] hover:bg-[#181b24] text-slate-300'"
-                title="Alternar entre Cifra Completa e Apenas Letra"
-            >
-                Letra
             </button>
         </div>
     </section>
@@ -543,14 +509,18 @@
                     
                     <!-- Left: Quick Jump to Chorus Button & Auto-Scroll Play Button -->
                     <div class="flex items-center gap-1.5 sm:gap-2.5 pointer-events-auto">
-                        <!-- Botão Refrão (-25%) -->
+                        <!-- Botão Letra (Alternar entre Cifra Completa e Apenas Letra) -->
                         <button
-                            @click="jumpToChorus()"
-                            class="px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-xl bg-[#12141a]/95 hover:bg-[#ffb300] border border-[#ffb300]/40 text-[#ffb300] hover:text-black font-bold text-[10px] sm:text-[11px] uppercase tracking-wider shadow-lg shadow-amber-500/10 backdrop-blur-md tap-scale transition-all cursor-pointer flex items-center gap-1 sm:gap-1.5"
-                            title="Saltar imediatamente para o Refrão"
+                            type="button"
+                            @click="showLyricsOnly = !showLyricsOnly"
+                            class="px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-xl border font-bold text-[10px] sm:text-[11px] uppercase tracking-wider shadow-lg backdrop-blur-md tap-scale transition-all cursor-pointer flex items-center gap-1 sm:gap-1.5"
+                            :class="showLyricsOnly ? 'bg-cyan-500/20 border-[#00d2ff] text-[#00d2ff] shadow-cyan-500/20 ring-1 ring-cyan-500/30' : 'bg-[#12141a]/95 border-[#1e222c] hover:bg-[#181b24] text-slate-300 hover:text-white'"
+                            title="Alternar entre Cifra Completa e Apenas Letra"
                         >
-                            <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-                            <span>Refrão</span>
+                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            </svg>
+                            <span>Letra</span>
                         </button>
 
                         <!-- Botão de Iniciar/Parar Rolagem (+50% Destacado, Apenas Ícone) -->

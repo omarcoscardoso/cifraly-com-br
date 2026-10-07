@@ -23,6 +23,7 @@ class SongsTable
     public static function configure(Table $table): Table
     {
         return $table
+            ->defaultSort('title', 'asc')
             ->recordUrl(fn (Song $record): string => route('songs.stage', [
                 'organization' => Filament::getTenant(),
                 'song' => $record,

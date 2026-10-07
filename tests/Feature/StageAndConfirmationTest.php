@@ -367,6 +367,51 @@ class StageAndConfirmationTest extends TestCase
             ->assertSee('[Verso 1]');
     }
 
+    public function test_stage_view_renders_toolbar_controls_capo_badge_and_lyrics_toggle(): void
+    {
+        $event = Event::factory()->create([
+            'organization_id' => $this->organization->id,
+            'title' => 'Culto de Louvor',
+        ]);
+
+        $song = Song::factory()->create([
+            'organization_id' => $this->organization->id,
+            'title' => 'Ao Único',
+            'original_key' => 'C',
+            'capo_fret' => 3,
+        ]);
+
+        $version = SongVersion::factory()->create([
+            'song_id' => $song->id,
+            'label' => 'Versão Padrão',
+            'base_key' => 'C',
+            'chordpro_content' => "C   G\nAo único que é digno",
+            'is_default' => true,
+        ]);
+
+        EventSong::factory()->create([
+            'organization_id' => $this->organization->id,
+            'event_id' => $event->id,
+            'song_id' => $song->id,
+            'song_version_id' => $version->id,
+            'target_key' => 'C',
+            'order_index' => 1,
+        ]);
+
+        Livewire::actingAs($this->user)
+            ->test(StageView::class, [
+                'organization' => $this->organization,
+                'event' => $event,
+            ])
+            ->assertDontSeeHtml('>TOM<')
+            ->assertDontSee('jumpToChorus')
+            ->assertDontSee('Saltar imediatamente para o Refrão')
+            ->assertSeeHtml('Capo:')
+            ->assertSeeHtml('3ª casa')
+            ->assertDontSeeHtml('hidden sm:flex items-center gap-2 text-xs font-mono')
+            ->assertSeeHtml('Letra');
+    }
+
     public function test_stage_view_exit_button_links_to_application_home_dashboard(): void
     {
         $event = Event::factory()->create([

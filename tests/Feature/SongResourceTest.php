@@ -63,6 +63,28 @@ class SongResourceTest extends TestCase
         $response->assertDontSee('John Newton');
     }
 
+    public function test_songs_table_orders_alphabetically_by_title_by_default(): void
+    {
+        $songZ = Song::factory()->create([
+            'organization_id' => $this->organization->id,
+            'title' => 'Zion',
+        ]);
+
+        $songA = Song::factory()->create([
+            'organization_id' => $this->organization->id,
+            'title' => 'Aclame ao Senhor',
+        ]);
+
+        $songM = Song::factory()->create([
+            'organization_id' => $this->organization->id,
+            'title' => 'Me Leva Pra Casa',
+        ]);
+
+        Livewire::actingAs($this->user)
+            ->test(ListSongs::class)
+            ->assertCanSeeTableRecords([$songA, $songM, $songZ], inOrder: true);
+    }
+
     public function test_songs_table_renders_responsive_layout_and_populates_toggleable_manager(): void
     {
         $test = Livewire::actingAs($this->user)->test(ListSongs::class);

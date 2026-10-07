@@ -8,6 +8,8 @@ use App\Livewire\Stage\Concerns\InteractsWithStageControls;
 use App\Models\Event;
 use App\Models\EventSong;
 use App\Models\Organization;
+use App\Models\Song;
+use App\Models\SongVersion;
 use App\Models\User;
 use App\Services\Music\StageChordFormatterService;
 use Illuminate\Contracts\View\View;
@@ -27,6 +29,8 @@ class StageView extends Component
     public Event $event;
 
     public ?int $selectedEventSongId = null;
+
+    public ?int $adHocSongId = null;
 
     public bool $isDrawerOpen = false;
 
@@ -67,9 +71,36 @@ class StageView extends Component
 
         if ($eventSong) {
             $this->selectedEventSongId = $eventSong->id;
+            $this->adHocSongId = null;
             $this->currentKey = $eventSong->target_key ?? $eventSong->song?->original_key ?? 'C';
             $this->isDrawerOpen = false;
             $this->isAutoScrolling = false;
+        }
+    }
+
+    public function selectAdHocSong(int $songId): void
+    {
+        $song = $this->organization->songs()
+            ->with(['versions', 'defaultVersion'])
+            ->find($songId);
+
+        if ($song) {
+            $this->selectedEventSongId = null;
+            $this->adHocSongId = $song->id;
+            $this->currentKey = $song->original_key ?? 'C';
+            $this->isDrawerOpen = false;
+            $this->isAutoScrolling = false;
+        }
+    }
+
+    public function selectOrganizationSong(int $songId): void
+    {
+        $eventSong = $this->event->eventSongs->firstWhere('song_id', $songId);
+
+        if ($eventSong) {
+            $this->selectSong($eventSong->id);
+        } else {
+            $this->selectAdHocSong($songId);
         }
     }
 
@@ -78,6 +109,15 @@ class StageView extends Component
         $songs = $this->event->eventSongs;
 
         if ($songs->isEmpty()) {
+            return;
+        }
+
+        if ($this->adHocSongId !== null) {
+            $first = $songs->first();
+            if ($first) {
+                $this->selectSong($first->id);
+            }
+
             return;
         }
 
@@ -97,6 +137,15 @@ class StageView extends Component
             return;
         }
 
+        if ($this->adHocSongId !== null) {
+            $last = $songs->last();
+            if ($last) {
+                $this->selectSong($last->id);
+            }
+
+            return;
+        }
+
         $currentIndex = $songs->search(fn (EventSong $item): bool => $item->id === $this->selectedEventSongId);
 
         if ($currentIndex !== false && $currentIndex > 0) {
@@ -107,6 +156,10 @@ class StageView extends Component
 
     protected function getDefaultKey(): string
     {
+        if ($this->adHocSongId !== null) {
+            return $this->getCurrentSong()?->original_key ?? 'C';
+        }
+
         $selected = $this->getSelectedEventSong();
 
         return $selected?->target_key ?? $selected?->song?->original_key ?? 'C';
@@ -119,32 +172,67 @@ class StageView extends Component
 
     public function getSelectedEventSong(): ?EventSong
     {
+        if ($this->adHocSongId !== null) {
+            return null;
+        }
+
         return $this->event->eventSongs->firstWhere('id', $this->selectedEventSongId);
+    }
+
+    public function getCurrentSong(): ?Song
+    {
+        if ($this->adHocSongId !== null) {
+            return $this->organization->songs()
+                ->with(['versions', 'defaultVersion'])
+                ->find($this->adHocSongId);
+        }
+
+        return $this->getSelectedEventSong()?->song;
+    }
+
+    public function getCurrentSongVersion(): ?SongVersion
+    {
+        if ($this->adHocSongId !== null) {
+            $song = $this->getCurrentSong();
+
+            return $song?->defaultVersion ?? $song?->versions->first();
+        }
+
+        $selected = $this->getSelectedEventSong();
+
+        return $selected?->songVersion ?? $selected?->song?->defaultVersion ?? $selected?->song?->versions->first();
     }
 
     public function getFormattedChords(?StageChordFormatterService $formatter = null): HtmlString
     {
-        $selected = $this->getSelectedEventSong();
+        $song = $this->getCurrentSong();
 
-        if (! $selected || ! $selected->song) {
+        if (! $song) {
             return new HtmlString('<p class="text-slate-500 italic p-8">Nenhuma música selecionada no repertório.</p>');
         }
 
         $formatter ??= app(StageChordFormatterService::class);
-        $song = $selected->song;
-        $version = $selected->songVersion ?? $song->defaultVersion ?? $song->versions->first();
+        $version = $this->getCurrentSongVersion();
         $content = $version?->chordpro_content;
         $fromKey = $version?->base_key ?? $song->original_key ?? 'C';
-        $toKey = $this->currentKey ?? $selected->target_key ?? $fromKey;
+        $toKey = $this->currentKey ?? ($this->getSelectedEventSong()?->target_key ?? $fromKey);
 
         return $formatter->transposeAndFormat($content, $fromKey, $toKey);
     }
 
     public function render(StageChordFormatterService $formatter): View
     {
+        $allSongs = $this->organization->songs()
+            ->orderBy('title')
+            ->get(['id', 'organization_id', 'title', 'artist', 'original_key', 'youtube_url', 'spotify_url']);
+
         return view('livewire.stage.stage-view', [
             'selectedEventSong' => $this->getSelectedEventSong(),
+            'currentSong' => $this->getCurrentSong(),
+            'currentSongVersion' => $this->getCurrentSongVersion(),
+            'isAdHocSong' => $this->adHocSongId !== null,
             'formattedChords' => $this->getFormattedChords($formatter),
+            'allSongs' => $allSongs,
         ]);
     }
 }

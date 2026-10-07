@@ -6,12 +6,58 @@ namespace App\Filament\Resources\Songs\Pages;
 
 use App\Filament\Resources\Songs\Actions\ImportChordFromWebAction;
 use App\Filament\Resources\Songs\SongResource;
+use Filament\Actions\Action;
 use Filament\Actions\DeleteAction;
 use Filament\Resources\Pages\EditRecord;
 
 class EditSong extends EditRecord
 {
     protected static string $resource = SongResource::class;
+
+    public ?string $returnUrl = null;
+
+    public function mount(int|string $record): void
+    {
+        parent::mount($record);
+
+        $this->returnUrl = request()->query('return_url');
+    }
+
+    protected function getRedirectUrl(): ?string
+    {
+        return $this->getValidReturnUrl() ?? parent::getRedirectUrl();
+    }
+
+    protected function getCancelFormAction(): Action
+    {
+        $action = parent::getCancelFormAction();
+
+        if ($validUrl = $this->getValidReturnUrl()) {
+            $action->url($validUrl);
+        }
+
+        return $action;
+    }
+
+    protected function getValidReturnUrl(): ?string
+    {
+        if (empty($this->returnUrl)) {
+            return null;
+        }
+
+        if (str_starts_with($this->returnUrl, '/') && ! str_starts_with($this->returnUrl, '//')) {
+            return $this->returnUrl;
+        }
+
+        $appHost = parse_url(config('app.url'), PHP_URL_HOST);
+        $urlHost = parse_url($this->returnUrl, PHP_URL_HOST);
+
+        if (! empty($urlHost) && ($urlHost === $appHost || $urlHost === request()->getHost())) {
+            return $this->returnUrl;
+        }
+
+        return null;
+    }
 
     protected function getHeaderActions(): array
     {

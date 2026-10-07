@@ -387,4 +387,33 @@ class SongResourceTest extends TestCase
         $this->assertStringContainsString('F', $htmlFromChordPro);
         $this->assertStringContainsString('Gm', $htmlFromChordPro);
     }
+
+    public function test_edit_song_redirects_to_custom_return_url_on_save(): void
+    {
+        $song = Song::factory()->create([
+            'organization_id' => $this->organization->id,
+            'title' => 'Música Para Retorno',
+            'original_key' => 'C',
+        ]);
+
+        SongVersion::factory()->create([
+            'song_id' => $song->id,
+            'base_key' => 'C',
+            'chordpro_content' => 'C G',
+            'is_default' => true,
+        ]);
+
+        $customReturnUrl = "/app/{$this->organization->slug}/events/99/stage";
+
+        Livewire::actingAs($this->user)
+            ->withQueryParams(['return_url' => $customReturnUrl])
+            ->test(EditSong::class, ['record' => $song->id])
+            ->assertSet('returnUrl', $customReturnUrl)
+            ->fillForm([
+                'title' => 'Música Para Retorno Atualizada',
+            ])
+            ->call('save')
+            ->assertHasNoFormErrors()
+            ->assertRedirect($customReturnUrl);
+    }
 }

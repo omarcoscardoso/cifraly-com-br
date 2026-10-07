@@ -148,7 +148,7 @@
             this.stopAutoScroll();
             const container = this.$refs.chordContainer;
             if (!container) return;
-            const delay = Math.max(15, 75 - (this.scrollSpeed * 5));
+            const delay = Math.max(20, Math.round((75 - (this.scrollSpeed * 5)) / 0.6));
             this.scrollInterval = setInterval(() => {
                 if (container.scrollTop + container.clientHeight >= container.scrollHeight) {
                     this.isAutoScrolling = false;
@@ -287,7 +287,7 @@
                     <!-- 5 - Botão "Editar" -->
                     <div class="{{ ($song->youtube_url || $song->spotify_url) ? 'border-t border-[#1e222c] pt-2.5' : '' }} shrink-0">
                         <a
-                            href="{{ route('filament.app.resources.songs.edit', ['tenant' => $organization, 'record' => $song]) }}"
+                            href="{{ route('filament.app.resources.songs.edit', ['tenant' => $organization, 'record' => $song, 'return_url' => route('songs.stage', ['organization' => $organization, 'song' => $song], absolute: false)]) }}"
                             class="flex items-center justify-center gap-2 w-full px-3 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider text-white hover:text-[#00d2ff] bg-[#181b24] hover:bg-[#1e222c] border border-[#1e222c] hover:border-[#00d2ff]/40 shadow-sm transition tap-scale cursor-pointer"
                             title="Editar Música no Painel"
                         >

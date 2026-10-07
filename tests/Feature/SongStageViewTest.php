@@ -73,7 +73,8 @@ class SongStageViewTest extends TestCase
         $response->assertSuccessful();
         $response->assertSee('Porque Ele Vive');
         $response->assertSee('Harpa Cristã');
-        $response->assertSee('75 BPM');
+        $response->assertSee('75');
+        $response->assertDontSee('75 BPM');
     }
 
     public function test_song_stage_view_transposes_key(): void
@@ -150,7 +151,24 @@ class SongStageViewTest extends TestCase
         $response->assertSee('Tela Ativa');
         $response->assertSee('2 Colunas');
         $response->assertSee('Letra');
-        $response->assertSee('Refrão');
+        $response->assertDontSee('Saltar imediatamente para o Refrão');
+        $response->assertDontSee('jumpToChorus');
+        $response->assertDontSee('>TOM<', false);
+    }
+
+    public function test_song_stage_view_renders_capo_badge_without_hiding_on_mobile(): void
+    {
+        $this->song->update(['capo_fret' => 2]);
+
+        $response = $this->get(route('songs.stage', [
+            'organization' => $this->organization,
+            'song' => $this->song,
+        ]));
+
+        $response->assertSuccessful();
+        $response->assertSee('Capo:');
+        $response->assertSee('2ª casa');
+        $response->assertDontSee('hidden sm:flex items-center gap-2 text-xs font-mono');
     }
 
     public function test_song_stage_view_renders_musical_menu_with_shortcuts_and_info(): void

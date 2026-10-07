@@ -103,30 +103,6 @@
                 document.exitFullscreen().then(() => this.isFullscreen = false).catch(() => {});
             }
         },
-        jumpToChorus() {
-            const container = this.$refs.chordContainer;
-            const chorusEl = document.querySelector('.stage-chorus-target');
-            if (!container || !chorusEl) return;
-
-            const wasScrolling = this.isAutoScrolling;
-            if (wasScrolling) {
-                this.stopAutoScroll();
-            }
-
-            const targetScrollTop = chorusEl.offsetTop - (container.clientHeight / 3);
-            container.scrollTo({
-                top: Math.max(0, targetScrollTop),
-                behavior: 'smooth'
-            });
-
-            if (wasScrolling) {
-                setTimeout(() => {
-                    if (this.isAutoScrolling) {
-                        this.startAutoScroll();
-                    }
-                }, 600);
-            }
-        },
         openMetronome(bpm, timeSignature) {
             window.dispatchEvent(new CustomEvent('open-altar-metronome', {
                 detail: {
@@ -186,7 +162,7 @@
             this.stopAutoScroll();
             const container = this.$refs.chordContainer;
             if (!container) return;
-            const delay = Math.max(15, 75 - (this.scrollSpeed * 5));
+            const delay = Math.max(20, Math.round((75 - (this.scrollSpeed * 5)) / 0.6));
             this.scrollInterval = setInterval(() => {
                 if (container.scrollTop + container.clientHeight >= container.scrollHeight) {
                     this.isAutoScrolling = false;
@@ -242,20 +218,252 @@
             </button>
         </div>
 
-        <!-- Center: Current Song Title & Artist + Order Badge -->
+        <!-- Center: Current Song Title & Artist + Order Badge + Musical Dropdown -->
         <div class="flex-1 text-center px-2 min-w-0">
-            @if ($selectedEventSong && $selectedEventSong->song)
-                <div class="flex items-center justify-center gap-2">
-                    <span class="hidden sm:inline-block text-[10px] uppercase font-mono font-extrabold px-2 py-0.5 rounded-full bg-[#12141a] border border-[#1e222c] text-[#71788e]">
-                        {{ $event->eventSongs->search(fn ($item) => $item->id === $selectedEventSongId) + 1 }} de {{ $event->eventSongs->count() }}
-                    </span>
-                    <h1 class="text-sm sm:text-base font-black text-white truncate tracking-tight">
-                        {{ $selectedEventSong->song->title }}
-                    </h1>
+            @if ($currentSong)
+                <div 
+                    class="relative inline-block max-w-full"
+                    x-data="{
+                        openMenu: false,
+                        searchQuery: ''
+                    }"
+                    x-init="$watch('openMenu', value => {
+                        if (value) {
+                            searchQuery = '';
+                            $nextTick(() => {
+                                if ($refs.currentSongItem) {
+                                    $refs.currentSongItem.scrollIntoView({ block: 'nearest' });
+                                }
+                            });
+                        }
+                    })"
+                    @click.outside="openMenu = false" 
+                    @keydown.escape.window="openMenu = false"
+                >
+                    <!-- Trigger: Song Title as a Clickable Button/Link -->
+                    <button
+                        type="button"
+                        @click="openMenu = !openMenu"
+                        class="group inline-flex flex-col items-center max-w-full px-2.5 py-1 rounded-2xl hover:bg-[#12141a] transition tap-scale cursor-pointer focus:outline-none"
+                        :class="openMenu ? 'bg-[#12141a] ring-1 ring-[#00d2ff]/40 shadow-lg' : ''"
+                        title="Ver informações, links e músicas cadastradas"
+                        aria-label="Abrir detalhes e lista de músicas"
+                        :aria-expanded="openMenu"
+                    >
+                        <div class="flex items-center justify-center gap-1.5 max-w-full">
+                            @if ($isAdHocSong)
+                                <span class="text-[9px] uppercase font-mono font-extrabold px-2 py-0.5 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-400 shrink-0">
+                                    Música Avulsa
+                                </span>
+                            @elseif ($selectedEventSong)
+                                <span class="hidden sm:inline-block text-[10px] uppercase font-mono font-extrabold px-2 py-0.5 rounded-full bg-[#12141a] border border-[#1e222c] text-[#71788e] shrink-0">
+                                    {{ $event->eventSongs->search(fn ($item) => $item->id === $selectedEventSongId) + 1 }} de {{ $event->eventSongs->count() }}
+                                </span>
+                            @endif
+                            <h1 class="text-sm sm:text-base font-black text-white group-hover:text-[#00d2ff] truncate tracking-tight flex items-center gap-1">
+                                <span class="truncate">{{ $currentSong->title }}</span>
+                                <svg class="w-3.5 h-3.5 text-slate-400 group-hover:text-[#00d2ff] transition-transform duration-150 shrink-0" :class="openMenu ? 'rotate-180 text-[#00d2ff]' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </h1>
+                        </div>
+                        @if ($currentSong->artist)
+                            <p class="text-xs text-[#71788e] group-hover:text-slate-300 truncate font-medium max-w-full">
+                                {{ $currentSong->artist }}
+                            </p>
+                        @endif
+                    </button>
+
+                    <!-- Dropdown Menu -->
+                    <div
+                        x-show="openMenu"
+                        x-cloak
+                        x-transition:enter="transition ease-out duration-150 transform"
+                        x-transition:enter-start="opacity-0 -translate-y-2 scale-95"
+                        x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+                        x-transition:leave="transition ease-in duration-100 transform"
+                        x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+                        x-transition:leave-end="opacity-0 -translate-y-2 scale-95"
+                        class="absolute left-1/2 -translate-x-1/2 top-full mt-2 w-80 sm:w-96 max-w-[calc(100vw-1.5rem)] max-h-[85vh] flex flex-col rounded-2xl bg-[#12141a]/95 border border-[#1e222c] shadow-2xl shadow-black/90 backdrop-blur-xl p-3.5 z-50 text-left select-none"
+                    >
+                        <!-- Header Info: Título e Compositor -->
+                        <div class="mb-2.5 pb-2 border-b border-[#1e222c] shrink-0">
+                            <div class="flex items-center justify-between gap-2">
+                                <span class="text-[10px] font-mono uppercase tracking-widest text-[#00d2ff] font-bold block mb-0.5">Informações da Cifra</span>
+                                @if ($currentSong->original_key)
+                                    <span class="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-[#181b24] text-slate-300 border border-[#1e222c] shrink-0">
+                                        Tom Orig: {{ $currentSong->original_key }}
+                                    </span>
+                                @endif
+                            </div>
+                            <h3 class="text-sm font-black text-white truncate" title="{{ $currentSong->title }}">
+                                {{ $currentSong->title }}
+                            </h3>
+                            @if ($currentSong->artist)
+                                <p class="text-xs text-slate-400 font-medium truncate mt-0.5" title="{{ $currentSong->artist }}">
+                                    {{ $currentSong->artist }}
+                                </p>
+                            @endif
+                        </div>
+
+                        <!-- Links Externos: YouTube e Spotify (quando houver) -->
+                        @if ($currentSong->youtube_url || $currentSong->spotify_url)
+                            <div class="mb-2.5 space-y-1.5 shrink-0">
+                                @if ($currentSong->youtube_url)
+                                    <a
+                                        href="{{ $currentSong->youtube_url }}"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        class="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold text-slate-200 hover:text-white bg-[#181b24]/40 hover:bg-red-500/10 border border-[#1e222c]/60 hover:border-red-500/30 transition tap-scale group"
+                                    >
+                                        <div class="flex items-center gap-2.5 min-w-0">
+                                            <svg class="w-4 h-4 text-red-500 group-hover:scale-110 transition shrink-0" viewBox="0 0 24 24" fill="currentColor">
+                                                <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                                            </svg>
+                                            <span class="truncate">Assistir no YouTube</span>
+                                        </div>
+                                        <svg class="w-3.5 h-3.5 text-slate-500 group-hover:text-red-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                        </svg>
+                                    </a>
+                                @endif
+
+                                @if ($currentSong->spotify_url)
+                                    <a
+                                        href="{{ $currentSong->spotify_url }}"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        class="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold text-slate-200 hover:text-white bg-[#181b24]/40 hover:bg-emerald-500/10 border border-[#1e222c]/60 hover:border-emerald-500/30 transition tap-scale group"
+                                    >
+                                        <div class="flex items-center gap-2.5 min-w-0">
+                                            <svg class="w-4 h-4 text-[#1db954] group-hover:scale-110 transition shrink-0" viewBox="0 0 24 24" fill="currentColor">
+                                                <path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/>
+                                            </svg>
+                                            <span class="truncate">Ouvir no Spotify</span>
+                                        </div>
+                                        <svg class="w-3.5 h-3.5 text-slate-500 group-hover:text-emerald-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                        </svg>
+                                    </a>
+                                @endif
+                            </div>
+                        @endif
+
+                        <!-- Botão "Editar" com return_url -->
+                        <div class="{{ ($currentSong->youtube_url || $currentSong->spotify_url) ? 'border-t border-[#1e222c] pt-2.5' : '' }} shrink-0">
+                            <a
+                                href="{{ route('filament.app.resources.songs.edit', ['tenant' => $organization, 'record' => $currentSong, 'return_url' => route('events.stage', ['organization' => $organization, 'event' => $event], absolute: false)]) }}"
+                                class="flex items-center justify-center gap-2 w-full px-3 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider text-white hover:text-[#00d2ff] bg-[#181b24] hover:bg-[#1e222c] border border-[#1e222c] hover:border-[#00d2ff]/40 shadow-sm transition tap-scale cursor-pointer"
+                                title="Editar Música no Painel"
+                            >
+                                <svg class="w-4 h-4 text-[#00d2ff]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                </svg>
+                                <span>Editar</span>
+                            </a>
+                        </div>
+
+                        <!-- Lista de Músicas Cadastradas -->
+                        <div class="border-t border-[#1e222c] pt-2.5 mt-2.5 flex-1 min-h-0 flex flex-col">
+                            <div class="flex items-center justify-between mb-2 shrink-0">
+                                <div class="flex items-center gap-1.5">
+                                    <span class="text-[10px] font-mono uppercase tracking-widest text-[#00d2ff] font-bold">
+                                        Músicas Cadastradas
+                                    </span>
+                                    <span class="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded-md bg-[#181b24] text-slate-400 border border-[#1e222c]">
+                                        {{ $allSongs->count() }}
+                                    </span>
+                                </div>
+                            </div>
+
+                            @if ($allSongs->count() > 4)
+                                <div class="relative mb-2 shrink-0">
+                                    <input
+                                        type="text"
+                                        x-model="searchQuery"
+                                        placeholder="Buscar música ou artista..."
+                                        class="w-full pl-8 pr-7 py-1.5 text-xs bg-[#08080a] border border-[#1e222c] rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-[#00d2ff] focus:ring-1 focus:ring-[#00d2ff] transition"
+                                        @click.stop
+                                        @keydown.stop
+                                    >
+                                    <svg class="w-3.5 h-3.5 text-slate-500 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                    </svg>
+                                    <button
+                                        type="button"
+                                        x-show="searchQuery.length > 0"
+                                        x-cloak
+                                        @click.stop="searchQuery = ''"
+                                        class="absolute right-2 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white p-0.5"
+                                    >
+                                        <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                        </svg>
+                                    </button>
+                                </div>
+                            @endif
+
+                            <div class="max-h-80 sm:max-h-96 overflow-y-auto space-y-1 overscroll-contain pr-1 [scrollbar-width:thin] [scrollbar-color:#1e222c_transparent]">
+                                @forelse ($allSongs as $itemSong)
+                                    @php
+                                        $isCurrent = $itemSong->id === $currentSong->id;
+                                        $inSetlist = $event->eventSongs->contains('song_id', $itemSong->id);
+                                        $searchHaystack = mb_strtolower($itemSong->title . ' ' . ($itemSong->artist ?? ''));
+                                    @endphp
+                                    <button
+                                        type="button"
+                                        wire:click="selectOrganizationSong({{ $itemSong->id }})"
+                                        @click="openMenu = false"
+                                        @if ($isCurrent) x-ref="currentSongItem" @endif
+                                        x-show="!searchQuery.trim() || {{ json_encode($searchHaystack) }}.includes(searchQuery.toLowerCase().trim())"
+                                        class="w-full flex items-center justify-between gap-2 px-2.5 py-2 rounded-xl text-xs transition tap-scale group text-left {{ $isCurrent ? 'bg-[#00d2ff]/10 border border-[#00d2ff]/40 text-white font-semibold' : 'bg-[#08080a]/60 hover:bg-[#181b24] border border-[#1e222c]/60 hover:border-[#00d2ff]/30 text-slate-300 hover:text-white' }}"
+                                        title="{{ $itemSong->title }} - {{ $itemSong->artist ?? 'Sem artista' }}"
+                                    >
+                                        <div class="flex items-center gap-2 min-w-0 flex-1">
+                                            @if ($isCurrent)
+                                                <span class="w-1.5 h-1.5 rounded-full bg-[#00d2ff] shrink-0 animate-pulse"></span>
+                                            @else
+                                                <span class="w-1.5 h-1.5 rounded-full bg-slate-600 group-hover:bg-[#00d2ff]/70 shrink-0 transition"></span>
+                                            @endif
+                                            <div class="min-w-0 flex-1">
+                                                <div class="truncate font-medium leading-snug {{ $isCurrent ? 'text-[#00d2ff]' : 'text-slate-200 group-hover:text-white' }}">
+                                                    {{ $itemSong->title }}
+                                                </div>
+                                                @if ($itemSong->artist)
+                                                    <div class="truncate text-[10px] text-slate-400 group-hover:text-slate-300">
+                                                        {{ $itemSong->artist }}
+                                                    </div>
+                                                @endif
+                                            </div>
+                                        </div>
+
+                                        <div class="flex items-center gap-1.5 shrink-0">
+                                            @if ($inSetlist)
+                                                <span class="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded bg-emerald-950/80 text-emerald-400 border border-emerald-800/60">
+                                                    Setlist
+                                                </span>
+                                            @else
+                                                <span class="text-[9px] font-mono px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 border border-slate-700">
+                                                    Avulsa
+                                                </span>
+                                            @endif
+
+                                            @if ($isCurrent)
+                                                <span class="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-[#00d2ff]/20 text-[#00d2ff] border border-[#00d2ff]/30">
+                                                    Atual
+                                                </span>
+                                            @endif
+                                        </div>
+                                    </button>
+                                @empty
+                                    <div class="py-4 text-center text-xs text-slate-500">
+                                        Nenhuma música cadastrada
+                                    </div>
+                                @endforelse
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <p class="hidden sm:block text-xs text-[#71788e] truncate font-medium">
-                    {{ $selectedEventSong->song->artist ?? 'Artista não informado' }} • <span class="text-slate-400">{{ $event->title }}</span>
-                </p>
             @else
                 <h1 class="text-sm font-bold text-white truncate">{{ $event->title }}</h1>
                 <p class="hidden sm:block text-xs text-[#71788e] truncate">{{ $organization->name }}</p>
@@ -275,15 +483,15 @@
                 <span class="hidden xl:inline">Tela Ativa</span>
             </div>
 
-            @if ($selectedEventSong && $selectedEventSong->song)
+            @if ($currentSong)
                 <!-- BPM LED Pulse Trigger Button -->
                 <button
-                    @click="openMetronome({{ $selectedEventSong->song->bpm ?? 120 }}, '{{ $selectedEventSong->song->time_signature ?? '4/4' }}')"
+                    @click="openMetronome({{ $currentSong->bpm ?? 120 }}, '{{ $currentSong->time_signature ?? '4/4' }}')"
                     class="px-2.5 py-1.5 rounded-2xl bg-[#12141a] hover:bg-[#181b24] border border-[#1e222c] text-slate-200 flex items-center gap-2 tap-scale transition cursor-pointer"
                     title="Abrir Metrônomo ALTAR"
                 >
                     <span class="w-2 h-2 rounded-full bg-[#00e676] animate-pulse shadow-[0_0_8px_#00e676]"></span>
-                    <span class="text-xs font-mono font-black">{{ $selectedEventSong->song->bpm ?? 120 }}</span>
+                    <span class="text-xs font-mono font-black">{{ $currentSong->bpm ?? 120 }}</span>
                     <span class="text-[10px] font-mono text-[#71788e] uppercase hidden sm:inline">BPM</span>
                 </button>
             @endif
@@ -315,9 +523,8 @@
                 -
             </button>
 
-            <div class="text-center px-1 sm:px-2 min-w-[32px] sm:min-w-[36px]" wire:loading.class="opacity-50 animate-pulse" wire:target="transposeDown, transposeUp, resetKey">
-                <span class="text-[8px] sm:text-[9px] text-[#71788e] uppercase font-mono tracking-widest block leading-none">TOM</span>
-                <span class="text-xs sm:text-sm font-black text-[#00d2ff] font-mono leading-tight">
+            <div class="text-center px-1 sm:px-2 min-w-[28px] sm:min-w-[32px]" wire:loading.class="opacity-50 animate-pulse" wire:target="transposeDown, transposeUp, resetKey">
+                <span class="text-xs sm:text-sm font-black text-[#00d2ff] font-mono leading-none">
                     {{ $currentKey ?? 'C' }}
                 </span>
             </div>
@@ -331,7 +538,10 @@
                 +
             </button>
 
-            @if ($selectedEventSong && $currentKey !== $selectedEventSong->target_key)
+            @php
+                $defaultSongKey = $selectedEventSong?->target_key ?? $currentSongVersion?->base_key ?? $currentSong?->original_key ?? 'C';
+            @endphp
+            @if ($currentKey !== $defaultSongKey)
                 <button
                     type="button"
                     wire:click="resetKey"
@@ -343,28 +553,30 @@
             @endif
         </div>
 
-        <!-- Capo Badge & Metadados (visível em telas sm e maiores) -->
-        @if ($selectedEventSong)
+        <!-- Capo Badge & Metadados (visível também em telas pequenas) -->
+        @if ($currentSong)
             @php
-                $capoFret = $selectedEventSong->capo_fret ?? $selectedEventSong->songVersion?->capo_fret ?? $selectedEventSong->song?->capo_fret;
+                $capoFret = $currentSongVersion?->capo_fret ?? $selectedEventSong?->capo_fret ?? $currentSong->capo_fret;
             @endphp
-            <div class="hidden sm:flex items-center gap-2 text-xs font-mono">
-                @if ($capoFret)
-                    <div class="flex items-center gap-1.5 bg-indigo-500/10 border border-indigo-500/30 px-2.5 py-1 rounded-xl text-indigo-300">
-                        <span class="text-indigo-400 font-bold">🎸 Capo:</span>
-                        <span class="font-black text-white">{{ $capoFret }}ª casa</span>
-                    </div>
-                @endif
+            @if ($capoFret || $currentSong->time_signature)
+                <div class="flex items-center gap-1.5 sm:gap-2 text-[11px] sm:text-xs font-mono">
+                    @if ($capoFret)
+                        <div class="flex items-center gap-1 sm:gap-1.5 bg-indigo-500/10 border border-indigo-500/30 px-2 sm:px-2.5 py-1 rounded-xl text-indigo-300 whitespace-nowrap">
+                            <span class="text-indigo-400 font-bold">🎸 Capo:</span>
+                            <span class="font-black text-white">{{ $capoFret }}ª casa</span>
+                        </div>
+                    @endif
 
-                @if ($selectedEventSong->song?->time_signature)
-                    <div class="hidden md:flex items-center gap-1.5 bg-[#08080a] border border-[#1e222c] px-2.5 py-1 rounded-xl text-[#71788e]">
-                        <span class="text-slate-300 font-bold">{{ $selectedEventSong->song->time_signature }}</span>
-                    </div>
-                @endif
-            </div>
+                    @if ($currentSong->time_signature)
+                        <div class="hidden md:flex items-center gap-1.5 bg-[#08080a] border border-[#1e222c] px-2.5 py-1 rounded-xl text-[#71788e]">
+                            <span class="text-slate-300 font-bold">{{ $currentSong->time_signature }}</span>
+                        </div>
+                    @endif
+                </div>
+            @endif
         @endif
 
-        <!-- Right: Font Zoom, Colunas & Letra -->
+        <!-- Right: Font Zoom & Colunas -->
         <div class="flex items-center gap-1.5 sm:gap-2 shrink-0">
             <!-- Font Zoom Controls (Instantâneo 0ms) -->
             <div class="flex items-center bg-[#08080a] border border-[#1e222c] rounded-2xl p-0.5 sm:p-1 gap-0.5 sm:gap-1">
@@ -404,17 +616,6 @@
                 </svg>
                 <span x-text="twoColumns ? '2 Colunas' : '1 Coluna'">1 Coluna</span>
             </button>
-
-            <!-- Toggle Letra (Sem ícone, apenas a palavra "Letra") -->
-            <button
-                type="button"
-                @click="showLyricsOnly = !showLyricsOnly"
-                class="text-xs font-black px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-2xl transition tap-scale cursor-pointer border"
-                :class="showLyricsOnly ? 'bg-cyan-500/20 border-[#00d2ff] text-[#00d2ff] shadow-md shadow-cyan-500/20' : 'bg-[#08080a] border-[#1e222c] hover:bg-[#181b24] text-slate-300'"
-                title="Alternar entre Cifra Completa e Apenas Letra"
-            >
-                Letra
-            </button>
         </div>
     </section>
 
@@ -446,7 +647,7 @@
             <div class="flex-1 overflow-y-auto p-3 space-y-2 no-scrollbar">
                 @forelse ($event->eventSongs as $index => $eventSong)
                     @php 
-                        $isActive = $eventSong->id === $selectedEventSongId; 
+                        $isActive = ! $isAdHocSong && $eventSong->id === $selectedEventSongId; 
                         $itemCapo = $eventSong->capo_fret ?? $eventSong->songVersion?->capo_fret ?? $eventSong->song?->capo_fret;
                     @endphp
                     <button
@@ -507,9 +708,9 @@
         <!-- Main Chord Sheet Viewing Area -->
         <main class="flex-1 flex flex-col min-w-0 bg-[#08080a] overflow-hidden relative">
             
-            @if ($selectedEventSong && $selectedEventSong->song)
+            @if ($currentSong)
                 <!-- Arrangement Notes Alert (if present) -->
-                @if ($selectedEventSong->arrangement_notes)
+                @if ($selectedEventSong?->arrangement_notes)
                     <div class="bg-[#ffb300]/10 border-b border-[#ffb300]/20 px-4 sm:px-8 py-2 text-xs text-[#ffb300] flex items-center gap-2 shrink-0">
                         <svg class="w-4 h-4 shrink-0 text-[#ffb300]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -543,14 +744,18 @@
                     
                     <!-- Left: Quick Jump to Chorus Button & Auto-Scroll Play Button -->
                     <div class="flex items-center gap-1.5 sm:gap-2.5 pointer-events-auto">
-                        <!-- Botão Refrão (-25%) -->
+                        <!-- Botão Letra (Alternar entre Cifra Completa e Apenas Letra) -->
                         <button
-                            @click="jumpToChorus()"
-                            class="px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-xl bg-[#12141a]/95 hover:bg-[#ffb300] border border-[#ffb300]/40 text-[#ffb300] hover:text-black font-bold text-[10px] sm:text-[11px] uppercase tracking-wider shadow-lg shadow-amber-500/10 backdrop-blur-md tap-scale transition-all cursor-pointer flex items-center gap-1 sm:gap-1.5"
-                            title="Saltar imediatamente para o Refrão"
+                            type="button"
+                            @click="showLyricsOnly = !showLyricsOnly"
+                            class="px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-xl border font-bold text-[10px] sm:text-[11px] uppercase tracking-wider shadow-lg backdrop-blur-md tap-scale transition-all cursor-pointer flex items-center gap-1 sm:gap-1.5"
+                            :class="showLyricsOnly ? 'bg-cyan-500/20 border-[#00d2ff] text-[#00d2ff] shadow-cyan-500/20 ring-1 ring-cyan-500/30' : 'bg-[#12141a]/95 border-[#1e222c] hover:bg-[#181b24] text-slate-300 hover:text-white'"
+                            title="Alternar entre Cifra Completa e Apenas Letra"
                         >
-                            <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-                            <span>Refrão</span>
+                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            </svg>
+                            <span>Letra</span>
                         </button>
 
                         <!-- Botão de Iniciar/Parar Rolagem (+50% Destacado, Apenas Ícone) -->
@@ -596,45 +801,61 @@
 
                     <!-- Right: Previous & Next / Finish Navigation Buttons (-25%) -->
                     <div class="flex items-center gap-1.5 sm:gap-2.5 pointer-events-auto">
-                        @php
-                            $currentIndex = $event->eventSongs->search(fn ($item) => $item->id === $selectedEventSongId);
-                            $isFirstSong = $currentIndex === 0;
-                            $isLastSong = $currentIndex === ($event->eventSongs->count() - 1);
-                        @endphp
-
-                        <!-- Previous Song Button (-25%) -->
-                        <button
-                            wire:click="previousSong"
-                            @if ($isFirstSong) disabled @endif
-                            class="p-2 sm:p-2.5 rounded-xl bg-[#12141a]/95 hover:bg-[#181b24] border border-[#1e222c] text-white shadow-lg backdrop-blur-md transition tap-scale cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
-                            title="Música Anterior (Seta Esquerda)"
-                        >
-                            <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7" />
-                            </svg>
-                        </button>
-
-                        <!-- Next / Finish Song Button (-25%) -->
-                        @if ($isLastSong)
-                            <a
-                                href="{{ route('filament.app.pages.dashboard', ['tenant' => $organization]) }}"
-                                class="px-3 sm:px-3.5 py-2 sm:py-2.5 rounded-xl bg-[#00e676] hover:bg-[#00c853] text-black font-black text-[10px] sm:text-xs uppercase tracking-wider shadow-lg shadow-green-500/20 backdrop-blur-md transition tap-scale cursor-pointer flex items-center gap-1.5"
-                                title="Concluir e voltar à Dashboard"
-                            >
-                                <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24"><path d="M9 16.2l-3.5-3.5 1.4-1.4 2.1 2.1 5.7-5.7 1.4 1.4z"/></svg>
-                                <span>Concluir</span>
-                            </a>
+                        @if ($isAdHocSong)
+                            @if ($event->eventSongs->isNotEmpty())
+                                <button
+                                    type="button"
+                                    wire:click="selectSong({{ $event->eventSongs->first()->id }})"
+                                    class="px-3 sm:px-3.5 py-2 sm:py-2.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 text-amber-300 font-bold text-[10px] sm:text-xs uppercase tracking-wider shadow-lg backdrop-blur-md transition tap-scale cursor-pointer flex items-center gap-1.5"
+                                    title="Voltar ao Setlist do evento"
+                                >
+                                    <svg class="w-3.5 h-3.5 fill-none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                                    </svg>
+                                    <span>Voltar ao Setlist</span>
+                                </button>
+                            @endif
                         @else
+                            @php
+                                $currentIndex = $event->eventSongs->search(fn ($item) => $item->id === $selectedEventSongId);
+                                $isFirstSong = $currentIndex === 0;
+                                $isLastSong = $currentIndex === ($event->eventSongs->count() - 1);
+                            @endphp
+
+                            <!-- Previous Song Button (-25%) -->
                             <button
-                                wire:click="nextSong"
-                                class="px-3 sm:px-3.5 py-2 sm:py-2.5 rounded-xl bg-[#00d2ff] hover:bg-[#38bdf8] text-black font-black text-[10px] sm:text-xs uppercase tracking-wider shadow-lg shadow-cyan-500/20 backdrop-blur-md transition tap-scale cursor-pointer flex items-center gap-1.5"
-                                title="Próxima Música (Seta Direita / Espaço)"
+                                wire:click="previousSong"
+                                @if ($isFirstSong) disabled @endif
+                                class="p-2 sm:p-2.5 rounded-xl bg-[#12141a]/95 hover:bg-[#181b24] border border-[#1e222c] text-white shadow-lg backdrop-blur-md transition tap-scale cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                                title="Música Anterior (Seta Esquerda)"
                             >
-                                <span>Próxima</span>
-                                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7" />
+                                <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7" />
                                 </svg>
                             </button>
+
+                            <!-- Next / Finish Song Button (-25%) -->
+                            @if ($isLastSong)
+                                <a
+                                    href="{{ route('filament.app.pages.dashboard', ['tenant' => $organization]) }}"
+                                    class="px-3 sm:px-3.5 py-2 sm:py-2.5 rounded-xl bg-[#00e676] hover:bg-[#00c853] text-black font-black text-[10px] sm:text-xs uppercase tracking-wider shadow-lg shadow-green-500/20 backdrop-blur-md transition tap-scale cursor-pointer flex items-center gap-1.5"
+                                    title="Concluir e voltar à Dashboard"
+                                >
+                                    <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24"><path d="M9 16.2l-3.5-3.5 1.4-1.4 2.1 2.1 5.7-5.7 1.4 1.4z"/></svg>
+                                    <span>Concluir</span>
+                                </a>
+                            @else
+                                <button
+                                    wire:click="nextSong"
+                                    class="px-3 sm:px-3.5 py-2 sm:py-2.5 rounded-xl bg-[#00d2ff] hover:bg-[#38bdf8] text-black font-black text-[10px] sm:text-xs uppercase tracking-wider shadow-lg shadow-cyan-500/20 backdrop-blur-md transition tap-scale cursor-pointer flex items-center gap-1.5"
+                                    title="Próxima Música (Seta Direita / Espaço)"
+                                >
+                                    <span>Próxima</span>
+                                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7" />
+                                    </svg>
+                                </button>
+                            @endif
                         @endif
                     </div>
                 </div>

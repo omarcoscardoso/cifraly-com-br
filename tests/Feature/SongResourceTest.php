@@ -63,6 +63,28 @@ class SongResourceTest extends TestCase
         $response->assertDontSee('John Newton');
     }
 
+    public function test_songs_table_orders_alphabetically_by_title_by_default(): void
+    {
+        $songZ = Song::factory()->create([
+            'organization_id' => $this->organization->id,
+            'title' => 'Zion',
+        ]);
+
+        $songA = Song::factory()->create([
+            'organization_id' => $this->organization->id,
+            'title' => 'Aclame ao Senhor',
+        ]);
+
+        $songM = Song::factory()->create([
+            'organization_id' => $this->organization->id,
+            'title' => 'Me Leva Pra Casa',
+        ]);
+
+        Livewire::actingAs($this->user)
+            ->test(ListSongs::class)
+            ->assertCanSeeTableRecords([$songA, $songM, $songZ], inOrder: true);
+    }
+
     public function test_songs_table_renders_responsive_layout_and_populates_toggleable_manager(): void
     {
         $test = Livewire::actingAs($this->user)->test(ListSongs::class);
@@ -364,5 +386,34 @@ class SongResourceTest extends TestCase
         $this->assertStringContainsString('stage-chord-pair', $htmlFromTwoLine);
         $this->assertStringContainsString('F', $htmlFromChordPro);
         $this->assertStringContainsString('Gm', $htmlFromChordPro);
+    }
+
+    public function test_edit_song_redirects_to_custom_return_url_on_save(): void
+    {
+        $song = Song::factory()->create([
+            'organization_id' => $this->organization->id,
+            'title' => 'Música Para Retorno',
+            'original_key' => 'C',
+        ]);
+
+        SongVersion::factory()->create([
+            'song_id' => $song->id,
+            'base_key' => 'C',
+            'chordpro_content' => 'C G',
+            'is_default' => true,
+        ]);
+
+        $customReturnUrl = "/app/{$this->organization->slug}/events/99/stage";
+
+        Livewire::actingAs($this->user)
+            ->withQueryParams(['return_url' => $customReturnUrl])
+            ->test(EditSong::class, ['record' => $song->id])
+            ->assertSet('returnUrl', $customReturnUrl)
+            ->fillForm([
+                'title' => 'Música Para Retorno Atualizada',
+            ])
+            ->call('save')
+            ->assertHasNoFormErrors()
+            ->assertRedirect($customReturnUrl);
     }
 }

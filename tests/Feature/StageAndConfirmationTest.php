@@ -367,6 +367,51 @@ class StageAndConfirmationTest extends TestCase
             ->assertSee('[Verso 1]');
     }
 
+    public function test_stage_view_renders_toolbar_controls_capo_badge_and_lyrics_toggle(): void
+    {
+        $event = Event::factory()->create([
+            'organization_id' => $this->organization->id,
+            'title' => 'Culto de Louvor',
+        ]);
+
+        $song = Song::factory()->create([
+            'organization_id' => $this->organization->id,
+            'title' => 'Ao Único',
+            'original_key' => 'C',
+            'capo_fret' => 3,
+        ]);
+
+        $version = SongVersion::factory()->create([
+            'song_id' => $song->id,
+            'label' => 'Versão Padrão',
+            'base_key' => 'C',
+            'chordpro_content' => "C   G\nAo único que é digno",
+            'is_default' => true,
+        ]);
+
+        EventSong::factory()->create([
+            'organization_id' => $this->organization->id,
+            'event_id' => $event->id,
+            'song_id' => $song->id,
+            'song_version_id' => $version->id,
+            'target_key' => 'C',
+            'order_index' => 1,
+        ]);
+
+        Livewire::actingAs($this->user)
+            ->test(StageView::class, [
+                'organization' => $this->organization,
+                'event' => $event,
+            ])
+            ->assertDontSeeHtml('>TOM<')
+            ->assertDontSee('jumpToChorus')
+            ->assertDontSee('Saltar imediatamente para o Refrão')
+            ->assertSeeHtml('Capo:')
+            ->assertSeeHtml('3ª casa')
+            ->assertDontSeeHtml('hidden sm:flex items-center gap-2 text-xs font-mono')
+            ->assertSeeHtml('Letra');
+    }
+
     public function test_stage_view_exit_button_links_to_application_home_dashboard(): void
     {
         $event = Event::factory()->create([
@@ -450,5 +495,117 @@ class StageAndConfirmationTest extends TestCase
         $response->assertSee('Tela Ativa');
         $response->assertSee('2 Colunas');
         $response->assertSee('Letra');
+    }
+
+    public function test_stage_view_renders_song_dropdown_panel_with_info_links_and_edit_action(): void
+    {
+        $event = Event::factory()->create([
+            'organization_id' => $this->organization->id,
+            'title' => 'Culto de Celebração',
+        ]);
+
+        $song = Song::factory()->create([
+            'organization_id' => $this->organization->id,
+            'title' => 'Grande É o Senhor',
+            'artist' => 'Adhemar de Campos',
+            'original_key' => 'A',
+            'youtube_url' => 'https://youtube.com/watch?v=123',
+            'spotify_url' => 'https://open.spotify.com/track/123',
+        ]);
+
+        $version = SongVersion::factory()->create([
+            'song_id' => $song->id,
+            'label' => 'Versão Padrão',
+            'base_key' => 'A',
+            'chordpro_content' => "A   D\nGrande é o Senhor",
+            'is_default' => true,
+        ]);
+
+        EventSong::factory()->create([
+            'organization_id' => $this->organization->id,
+            'event_id' => $event->id,
+            'song_id' => $song->id,
+            'song_version_id' => $version->id,
+            'target_key' => 'A',
+            'order_index' => 1,
+        ]);
+
+        $stageUrl = route('events.stage', [
+            'organization' => $this->organization,
+            'event' => $event,
+        ], absolute: false);
+
+        Livewire::actingAs($this->user)
+            ->test(StageView::class, [
+                'organization' => $this->organization,
+                'event' => $event,
+            ])
+            ->assertSee('Grande É o Senhor')
+            ->assertSee('Adhemar de Campos')
+            ->assertDontSeeHtml('• <span class="text-slate-400">Culto de Celebração</span>')
+            ->assertSee('Tom Orig:')
+            ->assertSee('Assistir no YouTube')
+            ->assertSee('Ouvir no Spotify')
+            ->assertSee('Editar')
+            ->assertSeeHtml(urlencode($stageUrl))
+            ->assertSee('Músicas Cadastradas');
+    }
+
+    public function test_stage_view_allows_selecting_ad_hoc_organization_song_not_in_setlist(): void
+    {
+        $event = Event::factory()->create([
+            'organization_id' => $this->organization->id,
+            'title' => 'Culto de Louvor',
+        ]);
+
+        $setlistSong = Song::factory()->create([
+            'organization_id' => $this->organization->id,
+            'title' => 'Música no Setlist',
+            'artist' => 'Artista Setlist',
+            'original_key' => 'C',
+        ]);
+
+        $setlistVersion = SongVersion::factory()->create([
+            'song_id' => $setlistSong->id,
+            'base_key' => 'C',
+            'chordpro_content' => "C   G\nLetra do setlist",
+            'is_default' => true,
+        ]);
+
+        EventSong::factory()->create([
+            'organization_id' => $this->organization->id,
+            'event_id' => $event->id,
+            'song_id' => $setlistSong->id,
+            'song_version_id' => $setlistVersion->id,
+            'target_key' => 'C',
+            'order_index' => 1,
+        ]);
+
+        $adHocSong = Song::factory()->create([
+            'organization_id' => $this->organization->id,
+            'title' => 'Música Avulsa Fora do Setlist',
+            'artist' => 'Artista Avulso',
+            'original_key' => 'G',
+        ]);
+
+        SongVersion::factory()->create([
+            'song_id' => $adHocSong->id,
+            'base_key' => 'G',
+            'chordpro_content' => "G   D\nLetra da música avulsa",
+            'is_default' => true,
+        ]);
+
+        Livewire::actingAs($this->user)
+            ->test(StageView::class, [
+                'organization' => $this->organization,
+                'event' => $event,
+            ])
+            ->assertSee('Música no Setlist')
+            ->assertSee('Artista Setlist')
+            ->call('selectOrganizationSong', $adHocSong->id)
+            ->assertSet('adHocSongId', $adHocSong->id)
+            ->assertSee('Música Avulsa Fora do Setlist')
+            ->assertSee('Artista Avulso')
+            ->assertSee('Voltar ao Setlist');
     }
 }

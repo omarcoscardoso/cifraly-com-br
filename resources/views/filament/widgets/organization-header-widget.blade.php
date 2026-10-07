@@ -8,17 +8,17 @@
 @endphp
 
 {{--
-    Hero Card: borda a borda no mobile, conectado à topbar azul
+    Hero Card: Card com gradiente meia-noite integrado ao design dark ALTAR
 --}}
 <x-filament-widgets::widget class="fi-wi-organization-header !p-0 overflow-hidden">
     <div
         id="cifraly-hero-card"
-        style="background: linear-gradient(145deg, #1565e0 0%, #1992fe 50%, #00b4d8 100%); color: #ffffff; padding: 20px 16px 22px; margin: -16px -16px 0;"
+        style="background: linear-gradient(135deg, #0e1a34 0%, #132752 50%, #173673 100%); color: #ffffff; padding: 22px 20px; border-radius: 20px; border: 1px solid rgba(0, 210, 255, 0.25); box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 0 18px rgba(0, 210, 255, 0.08); box-sizing: border-box; margin: 0;"
     >
         {{-- Linha superior: Badge da org --}}
         <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:18px;">
-            <div style="display:inline-flex; align-items:center; gap:6px; background:rgba(255,255,255,0.15); border-radius:9999px; padding:4px 12px; font-size:12px; font-weight:600; color:#fff;">
-                <span style="display:inline-block; width:7px; height:7px; min-width:7px; min-height:7px; border-radius:9999px; background:#34d399;"></span>
+            <div style="display:inline-flex; align-items:center; gap:6px; background:rgba(0,210,255,0.12); border:1px solid rgba(0,210,255,0.25); border-radius:9999px; padding:4px 12px; font-size:12px; font-weight:600; color:#00d2ff;">
+                <span style="display:inline-block; width:7px; height:7px; min-width:7px; min-height:7px; border-radius:9999px; background:#00e676;"></span>
                 <span>{{ $org?->name ?? 'Cifraly' }}</span>
             </div>
         </div>
@@ -42,7 +42,7 @@
             {{-- 1. Evento --}}
             <a
                 href="{{ $this->getNewEventUrl() }}"
-                style="flex-shrink:0; display:inline-flex; align-items:center; gap:6px; background:#ffffff; color:#1565e0; border-radius:12px; padding:8px 14px; font-size:12px; font-weight:700; text-decoration:none; box-shadow:0 2px 8px rgba(0,0,0,0.12);"
+                style="flex-shrink:0; display:inline-flex; align-items:center; gap:6px; background:#00d2ff; color:#08080a; border-radius:12px; padding:8px 14px; font-size:12px; font-weight:700; text-decoration:none; box-shadow:0 2px 8px rgba(0,210,255,0.25);"
             >
                 <svg width="12" height="12" style="width:12px;height:12px;min-width:12px;min-height:12px;max-width:12px;max-height:12px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
@@ -53,7 +53,7 @@
             {{-- 2. + Cifra --}}
             <a
                 href="{{ $this->getNewSongUrl() }}"
-                style="flex-shrink:0; display:inline-flex; align-items:center; gap:6px; background:rgba(255,255,255,0.18); color:#ffffff; border-radius:12px; padding:8px 14px; font-size:12px; font-weight:600; text-decoration:none; border:1px solid rgba(255,255,255,0.28); backdrop-filter:blur(8px);"
+                style="flex-shrink:0; display:inline-flex; align-items:center; gap:6px; background:rgba(255,255,255,0.12); color:#ffffff; border-radius:12px; padding:8px 14px; font-size:12px; font-weight:600; text-decoration:none; border:1px solid rgba(255,255,255,0.22); backdrop-filter:blur(8px);"
             >
                 <svg width="12" height="12" style="width:12px;height:12px;min-width:12px;min-height:12px;max-width:12px;max-height:12px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
@@ -64,7 +64,7 @@
             {{-- 3. SetList --}}
             <a
                 href="{{ $setlistUrl }}"
-                style="flex-shrink:0; display:inline-flex; align-items:center; gap:6px; background:#00e676; color:#022c22; border-radius:12px; padding:8px 14px; font-size:12px; font-weight:700; text-decoration:none; box-shadow:0 2px 8px rgba(0,230,118,0.25);"
+                style="flex-shrink:0; display:inline-flex; align-items:center; gap:6px; background:#00e676; color:#08080a; border-radius:12px; padding:8px 14px; font-size:12px; font-weight:700; text-decoration:none; box-shadow:0 2px 8px rgba(0,230,118,0.25);"
             >
                 <svg width="12" height="12" style="width:12px;height:12px;min-width:12px;min-height:12px;max-width:12px;max-height:12px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />

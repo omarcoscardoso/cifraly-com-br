@@ -49,14 +49,49 @@
             }
         },
 
+        initWorker() {
+            if (this.timerWorker) return;
+            try {
+                const workerScript = `
+                    let timer = null;
+                    let interval = 25;
+                    self.onmessage = function(e) {
+                        if (e.data === "start") {
+                            if (!timer) timer = setInterval(() => self.postMessage("tick"), interval);
+                        } else if (e.data === "stop") {
+                            clearInterval(timer);
+                            timer = null;
+                        }
+                    };
+                `;
+                const blob = new Blob([workerScript], { type: 'application/javascript' });
+                this.timerWorker = new Worker(URL.createObjectURL(blob));
+                this.timerWorker.onmessage = (e) => {
+                    if (e.data === 'tick') {
+                        this.scheduler();
+                    }
+                };
+            } catch (err) {
+                console.warn('[Metronome] Web Worker fallback to setTimeout:', err);
+            }
+        },
+
         togglePlay() {
             this.ensureAudioContext();
             this.isPlaying = !this.isPlaying;
             if (this.isPlaying) {
+                this.initWorker();
                 this.currentBeat = 0;
                 this.nextNoteTime = this.audioCtx.currentTime + 0.05;
-                this.scheduler();
+                if (this.timerWorker) {
+                    this.timerWorker.postMessage('start');
+                } else {
+                    this.scheduler();
+                }
             } else {
+                if (this.timerWorker) {
+                    this.timerWorker.postMessage('stop');
+                }
                 clearTimeout(this.timerId);
                 this.flashBeat = false;
             }
@@ -68,7 +103,9 @@
                 this.scheduleNote(this.currentBeat, this.nextNoteTime);
                 this.nextNote();
             }
-            this.timerId = setTimeout(() => this.scheduler(), this.lookahead);
+            if (!this.timerWorker) {
+                this.timerId = setTimeout(() => this.scheduler(), this.lookahead);
+            }
         },
 
         nextNote() {

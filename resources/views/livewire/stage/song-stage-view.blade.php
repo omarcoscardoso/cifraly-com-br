@@ -484,7 +484,7 @@
                 -
             </button>
 
-            <div class="text-center px-1 sm:px-2 min-w-[28px] sm:min-w-[32px]" wire:loading.class="opacity-50 animate-pulse" wire:target="transposeDown, transposeUp, resetKey">
+            <div class="text-center px-1 sm:px-2 min-w-[28px] sm:min-w-[32px]" wire:loading.class="opacity-50 animate-pulse" wire:target="transposeDown, transposeUp, resetKey, toggleCapo">
                 <span class="text-xs sm:text-sm font-black text-[#00d2ff] font-mono leading-none">
                     {{ $currentKey ?? 'C' }}
                 </span>
@@ -502,7 +502,7 @@
             @php
                 $defaultSongKey = $songVersion?->base_key ?? $song->original_key ?? 'C';
             @endphp
-            @if ($currentKey !== $defaultSongKey)
+            @if ($currentKey !== $defaultSongKey || ! $useCapo)
                 <button
                     type="button"
                     wire:click="resetKey"
@@ -516,15 +516,24 @@
 
         <!-- Capo Badge & Metadados (visível também em telas pequenas) -->
         @php
-            $capoFret = $songVersion?->capo_fret ?? $song->capo_fret;
+            $capoFret = $this->getActiveCapoFret();
         @endphp
         @if ($capoFret || $song->time_signature)
             <div class="flex items-center gap-1.5 sm:gap-2 text-[11px] sm:text-xs font-mono">
                 @if ($capoFret)
-                    <div class="flex items-center gap-1 sm:gap-1.5 bg-indigo-500/10 border border-indigo-500/30 px-2 sm:px-2.5 py-1 rounded-xl text-indigo-300 whitespace-nowrap">
-                        <span class="text-indigo-400 font-bold">🎸 Capo:</span>
-                        <span class="font-black text-white">{{ $capoFret }}ª casa</span>
-                    </div>
+                    <button
+                        type="button"
+                        wire:click="toggleCapo"
+                        class="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1 rounded-xl border transition-all tap-scale cursor-pointer whitespace-nowrap {{ $useCapo ? 'bg-indigo-500/15 hover:bg-indigo-500/25 border-indigo-500/40 text-indigo-200 shadow-sm shadow-indigo-500/10' : 'bg-[#181b24] hover:bg-[#202430] border-slate-700/60 text-slate-400' }}"
+                        title="{{ $useCapo ? "Capo ativo na {$capoFret}ª casa. Toque para ver cifras sem capo." : "Capo desativado. Toque para restaurar shape com capo na {$capoFret}ª casa." }}"
+                    >
+                        <span class="text-xs">🎸</span>
+                        <span class="font-bold {{ $useCapo ? 'text-indigo-300' : 'text-slate-400' }}">Capo:</span>
+                        <span class="font-black {{ $useCapo ? 'text-white' : 'text-slate-400 line-through' }}">{{ $capoFret }}ª casa</span>
+                        <span class="relative inline-flex h-3.5 w-6 sm:h-4 sm:w-7 shrink-0 items-center rounded-full transition-colors {{ $useCapo ? 'bg-indigo-500' : 'bg-slate-700' }}">
+                            <span class="inline-block h-2.5 w-2.5 sm:h-3 sm:w-3 transform rounded-full bg-white transition-transform {{ $useCapo ? 'translate-x-3 sm:translate-x-3.5' : 'translate-x-0.5' }}"></span>
+                        </span>
+                    </button>
                 @endif
 
                 @if ($song->time_signature)

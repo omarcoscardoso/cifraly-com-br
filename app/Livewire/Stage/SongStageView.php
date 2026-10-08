@@ -54,6 +54,11 @@ class SongStageView extends Component
         return $this->songVersion?->base_key ?? $this->song->original_key ?? 'C';
     }
 
+    public function getActiveCapoFret(): ?int
+    {
+        return $this->songVersion?->capo_fret ?? $this->song->capo_fret;
+    }
+
     public function getFormattedChords(?StageChordFormatterService $formatter = null): HtmlString
     {
         $formatter ??= app(StageChordFormatterService::class);

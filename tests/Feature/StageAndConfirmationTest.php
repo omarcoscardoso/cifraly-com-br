@@ -608,4 +608,99 @@ class StageAndConfirmationTest extends TestCase
             ->assertSee('Artista Avulso')
             ->assertSee('Voltar ao Setlist');
     }
+
+    public function test_stage_view_capo_toggle_transposes_chords_and_resets_on_song_change(): void
+    {
+        $event = Event::factory()->create([
+            'organization_id' => $this->organization->id,
+            'title' => 'Culto Capo Teste',
+        ]);
+
+        $song = Song::factory()->create([
+            'organization_id' => $this->organization->id,
+            'title' => 'Música com Capo',
+            'original_key' => 'C',
+            'capo_fret' => 3,
+        ]);
+
+        $version = SongVersion::factory()->create([
+            'song_id' => $song->id,
+            'base_key' => 'C',
+            'capo_fret' => 3,
+            'chordpro_content' => '[C]Tu és [G]bom',
+            'is_default' => true,
+        ]);
+
+        $eventSong = EventSong::factory()->create([
+            'organization_id' => $this->organization->id,
+            'event_id' => $event->id,
+            'song_id' => $song->id,
+            'song_version_id' => $version->id,
+            'target_key' => 'C',
+            'order_index' => 1,
+        ]);
+
+        $song2 = Song::factory()->create([
+            'organization_id' => $this->organization->id,
+            'title' => 'Música Sem Capo',
+            'original_key' => 'D',
+            'capo_fret' => null,
+        ]);
+
+        $version2 = SongVersion::factory()->create([
+            'song_id' => $song2->id,
+            'base_key' => 'D',
+            'chordpro_content' => '[D]Deus é [A]fiel',
+            'is_default' => true,
+        ]);
+
+        $eventSong2 = EventSong::factory()->create([
+            'organization_id' => $this->organization->id,
+            'event_id' => $event->id,
+            'song_id' => $song2->id,
+            'song_version_id' => $version2->id,
+            'target_key' => 'D',
+            'order_index' => 2,
+        ]);
+
+        $component = Livewire::actingAs($this->user)
+            ->test(StageView::class, [
+                'organization' => $this->organization,
+                'event' => $event,
+            ]);
+
+        // Capo ativo inicialmente
+        $component->assertSet('useCapo', true)
+            ->assertSet('currentKey', 'C')
+            ->assertSeeHtml('Capo:')
+            ->assertSeeHtml('3ª casa')
+            ->assertSee('Tu')
+            ->assertSee('bom');
+
+        $this->assertStringContainsString('>C</span>', $component->instance()->getFormattedChords()->toHtml());
+        $this->assertStringContainsString('>G</span>', $component->instance()->getFormattedChords()->toHtml());
+
+        // Desativa capo: C + 3 semitons = D# (ou Eb)
+        $component->call('toggleCapo')
+            ->assertSet('useCapo', false)
+            ->assertSet('currentKey', 'D#');
+
+        $this->assertStringContainsString('>D#</span>', $component->instance()->getFormattedChords()->toHtml());
+        $this->assertStringContainsString('>A#</span>', $component->instance()->getFormattedChords()->toHtml());
+
+        // Reativa capo
+        $component->call('toggleCapo')
+            ->assertSet('useCapo', true)
+            ->assertSet('currentKey', 'C');
+
+        $this->assertStringContainsString('>C</span>', $component->instance()->getFormattedChords()->toHtml());
+        $this->assertStringContainsString('>G</span>', $component->instance()->getFormattedChords()->toHtml());
+
+        // Alterna para próxima música: useCapo deve resetar para true
+        $component->call('toggleCapo')
+            ->assertSet('useCapo', false)
+            ->call('selectSong', $eventSong2->id)
+            ->assertSet('useCapo', true)
+            ->assertSet('currentKey', 'D');
+    }
 }

@@ -115,6 +115,23 @@ class AmbientPadTest extends TestCase
         $this->assertStringContainsString('rounded-2xl', $view);
         $this->assertStringContainsString('bg-gradient-to-br from-fuchsia-600 via-indigo-600 to-cyan-500', $view);
         $this->assertStringContainsString('animate-pulse', $view);
+
+        // 10. Draggable FAB & Botão de Engrenagem (Settings)
+        $this->assertStringContainsString('onPointerDown', $view);
+        $this->assertStringContainsString('fabContainerStyle', $view);
+        $this->assertStringContainsString('openModal()', $view);
+        $this->assertStringContainsString('Configurações do Ambient Pad', $view);
+
+        // 11. Modal Overlay de Configuração Completa & Sintetizador
+        $this->assertStringContainsString('isModalOpen', $view);
+        $this->assertStringContainsString('visualizerCanvas', $view);
+        $this->assertStringContainsString('availableNotes', $view);
+        $this->assertStringContainsString('setChordType', $view);
+        $this->assertStringContainsString('setTimbre', $view);
+        $this->assertStringContainsString('setInversion', $view);
+        $this->assertStringContainsString('setOctave', $view);
+        $this->assertStringContainsString('setAmbience', $view);
+        $this->assertStringContainsString('setMovement', $view);
     }
 
     public function test_song_stage_view_renders_ambient_pad_and_key_detector(): void

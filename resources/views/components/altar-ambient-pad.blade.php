@@ -1,7 +1,7 @@
 <script>
     /**
      * Ambient Pad Synthesizer Audio Engine (Powered by Tone.js)
-     * Cadeia Estrita: PolySynth (fattriangle) -> Lowpass 1200Hz -> AutoFilter -> Chorus -> PingPongDelay -> Reverb 12s -> Volume -12dB -> Destination
+     * Cadeia Estrita: PolySynth (fattriangle) -> Lowpass 1200Hz -> AutoFilter -> Chorus -> PingPongDelay -> Reverb 12s -> Volume -12dB -> Analyser -> Destination
      */
     class AmbientPadEngine {
         constructor() {
@@ -12,10 +12,19 @@
             this.delay = null;
             this.reverb = null;
             this.volume = null;
+            this.analyser = null;
             this.isInitialized = false;
             this.isPlaying = false;
             this.activeNotes = [];
             this.currentKey = 'C';
+
+            // Parâmetros de síntese e sonoridade
+            this.chordType = 'major'; // 'major' | 'minor'
+            this.timbre = 'lush'; // 'lush' (fattriangle) | 'analog' (fatsawtooth) | 'ethereal' (fatsine)
+            this.inversion = 0; // 0: Root, 1: 1st Inv, 2: 2nd Inv
+            this.octave = 3; // 2..5
+            this.ambienceLevel = 0.7; // 0..1
+            this.movementLevel = 0.4; // 0..1
 
             this.noteSemitones = {
                 'C': 0, 'B#': 0,
@@ -42,9 +51,13 @@
                 return;
             }
 
-            // Inicia o contexto de áudio em resposta à interação do usuário
-            if (Tone.context.state !== 'running') {
-                await Tone.start();
+            // Inicia o contexto de áudio em resposta ao gesto do usuário
+            try {
+                if (Tone.context.state !== 'running') {
+                    await Tone.start();
+                }
+            } catch (e) {
+                console.warn('[AmbientPad] Tone.start falhou ou já iniciado:', e);
             }
 
             // 1. Synth: PolySynth com ondas fattriangle (count 4, spread 50)
@@ -77,7 +90,8 @@
                 type: 'sine',
                 depth: 0.5,
                 baseFrequency: 350,
-                octaves: 2.2
+                octaves: 2.2,
+                wet: this.movementLevel
             });
 
             this.chorus = new Tone.Chorus({
@@ -104,7 +118,10 @@
             // 5. Volume Master: Roteado para Tone.Destination com volume inicial -12dB
             this.volume = new Tone.Volume(-12);
 
-            // Cadeia estrita: synth -> filter -> autoFilter -> chorus -> delay -> reverb -> volume -> Tone.Destination
+            // Analisador de forma de onda para o visualizador gráfico
+            this.analyser = new Tone.Analyser('waveform', 128);
+
+            // Cadeia estrita: synth -> filter -> autoFilter -> chorus -> delay -> reverb -> volume -> analyser -> Tone.Destination
             this.synth.chain(
                 this.filter,
                 this.autoFilter,
@@ -112,6 +129,7 @@
                 this.delay,
                 this.reverb,
                 this.volume,
+                this.analyser,
                 Tone.Destination
             );
 
@@ -129,8 +147,7 @@
             } catch (e) {}
 
             // No Tone.js v14, Reverb inicia geração automaticamente no construtor.
-            // NÃO chamar reverb.generate() pois isso tenta iniciar um segundo OfflineAudioContext concorrente.
-            // Aguardamos reverb.ready com timeout de segurança para não bloquear em navegadores móveis.
+            // Aguardamos reverb.ready com timeout defensivo de segurança
             try {
                 if (this.reverb && this.reverb.ready) {
                     await Promise.race([
@@ -145,30 +162,87 @@
             this.isInitialized = true;
         }
 
-        getNotesForKey(key) {
-            if (!key) return ['C3', 'G3', 'C4', 'E4'];
+        applyTimbre(type) {
+            this.timbre = type;
+            if (!this.synth) return;
+
+            switch (type) {
+                case 'analog':
+                    this.synth.set({ oscillator: { type: 'fatsawtooth', count: 3, spread: 30 } });
+                    break;
+                case 'ethereal':
+                    this.synth.set({ oscillator: { type: 'fatsine', count: 3, spread: 40 } });
+                    break;
+                case 'lush':
+                default:
+                    this.synth.set({ oscillator: { type: 'fattriangle', count: 4, spread: 50 } });
+                    break;
+            }
+        }
+
+        setAmbience(level) {
+            this.ambienceLevel = parseFloat(level);
+            if (this.reverb && this.delay) {
+                this.reverb.wet.rampTo(this.ambienceLevel, 0.1);
+                this.delay.wet.rampTo(this.ambienceLevel * 0.6, 0.1);
+            }
+        }
+
+        setMovement(level) {
+            this.movementLevel = parseFloat(level);
+            if (this.autoFilter && this.chorus) {
+                this.autoFilter.wet.rampTo(this.movementLevel, 0.1);
+                this.autoFilter.frequency.value = 0.05 + (this.movementLevel * 0.45);
+                this.chorus.depth = 0.3 + (this.movementLevel * 0.7);
+            }
+        }
+
+        setVolume(db) {
+            if (this.volume) {
+                this.volume.volume.rampTo(parseFloat(db), 0.05);
+            }
+        }
+
+        getChordNotes(key, octave = this.octave, type = this.chordType, inversion = this.inversion) {
+            if (!key) return ['C2', 'C3', 'E3', 'G3'];
 
             const match = key.trim().match(/^([A-G][#b♭♯]?)(.*)$/i);
-            if (!match) return ['C3', 'G3', 'C4', 'E4'];
+            if (!match) return ['C2', 'C3', 'E3', 'G3'];
 
             const root = match[1].toUpperCase().replace('♭', 'b').replace('♯', '#');
             const ext = (match[2] || '').toLowerCase();
-            const isMinor = ext.includes('m') && !ext.includes('maj');
+            const isMinor = type === 'minor' || (ext.includes('m') && !ext.includes('maj'));
 
             const rootIndex = this.noteSemitones[root] ?? 0;
-            // Notas graves (E, F, F#, G, Ab, A, Bb, B) na oitava 2; notas agudas (C, C#, D, D#, Eb) na oitava 3
-            const baseOctave = (rootIndex >= 4) ? 2 : 3;
+            const intervals = isMinor ? [0, 3, 7] : [0, 4, 7]; // Raiz, Terça (menor/maior), Quinta
 
-            // Voicing worship aveludado: Raiz (baixo), Quinta, Oitava, Terça (maior ou menor)
-            const thirdInterval = isMinor ? 15 : 16;
-            const intervals = [0, 7, 12, thirdInterval];
-
-            return intervals.map((interval) => {
-                const totalSemitones = rootIndex + interval;
-                const noteName = this.chromaticScale[totalSemitones % 12];
-                const octave = baseOctave + Math.floor(totalSemitones / 12);
-                return `${noteName}${octave}`;
+            let chord = intervals.map((interval) => {
+                let noteIndex = rootIndex + interval;
+                let currentOctave = octave;
+                if (noteIndex >= 12) {
+                    noteIndex -= 12;
+                    currentOctave++;
+                }
+                return `${this.chromaticScale[noteIndex]}${currentOctave}`;
             });
+
+            // Aplicação de inversões harmônicas
+            if (inversion === 1) {
+                let first = chord.shift();
+                let matchNote = first.match(/^([A-G][#b]?)([0-9])$/);
+                if (matchNote) chord.push(`${matchNote[1]}${parseInt(matchNote[2], 10) + 1}`);
+            } else if (inversion === 2) {
+                let first = chord.shift();
+                let second = chord.shift();
+                let m1 = first.match(/^([A-G][#b]?)([0-9])$/);
+                let m2 = second.match(/^([A-G][#b]?)([0-9])$/);
+                if (m1) chord.push(`${m1[1]}${parseInt(m1[2], 10) + 1}`);
+                if (m2) chord.push(`${m2[1]}${parseInt(m2[2], 10) + 1}`);
+            }
+
+            // Nota fundamental no sub-baixo (1 oitava abaixo) para o clássico preenchimento aveludado worship
+            const bassOctave = Math.max(1, octave - 1);
+            return [`${root}${bassOctave}`, ...chord];
         }
 
         async play(key) {
@@ -176,9 +250,9 @@
             if (!this.synth) return;
 
             this.currentKey = key;
-            const notes = this.getNotesForKey(key);
+            const notes = this.getChordNotes(key);
 
-            // Se já houver notas ativas, libera com release suave de 6s
+            // Liberação com release suave de 6s
             if (this.activeNotes.length > 0) {
                 try {
                     this.synth.triggerRelease(this.activeNotes);
@@ -205,10 +279,8 @@
             }
 
             const cleanKey = newKey.trim();
-            if (this.currentKey === cleanKey) return;
-
             const oldNotes = [...this.activeNotes];
-            const newNotes = this.getNotesForKey(cleanKey);
+            const newNotes = this.getChordNotes(cleanKey);
 
             this.currentKey = cleanKey;
             this.activeNotes = newNotes;
@@ -255,8 +327,46 @@
                 isPlaying: false,
                 currentKey: 'C',
                 observer: null,
+                isModalOpen: false,
+
+                // Configurações e Controles
+                chordType: 'major',
+                timbre: 'lush',
+                inversion: 0,
+                octave: 3,
+                ambienceLevel: 0.7,
+                movementLevel: 0.4,
+                volumeDb: -12,
+
+                // Drag & Drop do Botão Flutuante (FAB)
+                fabX: null,
+                fabY: null,
+                isDragging: false,
+                dragStartX: 0,
+                dragStartY: 0,
+                initialElemX: 0,
+                initialElemY: 0,
+                hasMoved: false,
+
+                // Cores de destaque para cada tom
+                noteColors: {
+                    'C': '#ef4444', 'C#': '#f97316', 'D': '#f59e0b', 'D#': '#eab308',
+                    'E': '#84cc16', 'F': '#22c55e', 'F#': '#10b981', 'G': '#14b8a6',
+                    'G#': '#06b6d4', 'A': '#0ea5e9', 'A#': '#3b82f6', 'B': '#8b5cf6'
+                },
+
+                // 12 Notas Fundamentais para a grade de seleção rápida
+                availableNotes: ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'],
 
                 init() {
+                    // Carrega posição prévia salva do botão arrastável
+                    const savedX = localStorage.getItem('cifraly_pad_fab_x');
+                    const savedY = localStorage.getItem('cifraly_pad_fab_y');
+                    if (savedX !== null && savedY !== null) {
+                        this.fabX = parseFloat(savedX);
+                        this.fabY = parseFloat(savedY);
+                    }
+
                     this.detectKeyFromDom();
 
                     // Observa alterações no tom da cifra em tempo real no DOM
@@ -271,6 +381,13 @@
                     window.addEventListener('beforeunload', () => {
                         this.stopPad();
                     });
+                },
+
+                get fabContainerStyle() {
+                    if (this.fabX !== null && this.fabY !== null) {
+                        return `position: fixed; left: ${this.fabX}px; top: ${this.fabY}px; z-index: 50; touch-action: none;`;
+                    }
+                    return 'position: fixed; bottom: calc(env(safe-area-inset-bottom, 0px) + 6.5rem); right: max(env(safe-area-inset-right, 0px), 1rem); z-index: 50; touch-action: none;';
                 },
 
                 setupKeyObserver() {
@@ -308,11 +425,75 @@
                     if (cleanKey && cleanKey !== this.currentKey) {
                         this.currentKey = cleanKey;
 
+                        // Detecta automaticamente se o tom da cifra é menor (ex: Am) ou maior
+                        const ext = cleanKey.replace(/^[A-G][#b♭♯]?/i, '').toLowerCase();
+                        if (ext.includes('m') && !ext.includes('maj')) {
+                            this.chordType = 'minor';
+                            getAmbientPadEngine().chordType = 'minor';
+                        } else {
+                            this.chordType = 'major';
+                            getAmbientPadEngine().chordType = 'major';
+                        }
+
                         // Se o Pad já estiver tocando, dispara o crossfade suave em tempo real
                         if (this.isPlaying) {
                             getAmbientPadEngine().crossfadeToKey(this.currentKey);
                         }
                     }
+                },
+
+                // --- Drag and Drop Logic (Mobile + Desktop) ---
+                onPointerDown(e) {
+                    if (e.target.closest('button[data-no-drag]')) return;
+
+                    this.isDragging = true;
+                    this.hasMoved = false;
+                    this.dragStartX = e.clientX;
+                    this.dragStartY = e.clientY;
+
+                    const el = this.$refs.fabWrapper;
+                    if (el) {
+                        const rect = el.getBoundingClientRect();
+                        this.initialElemX = rect.left;
+                        this.initialElemY = rect.top;
+                    }
+                },
+
+                onPointerMove(e) {
+                    if (!this.isDragging) return;
+
+                    const dx = e.clientX - this.dragStartX;
+                    const dy = e.clientY - this.dragStartY;
+
+                    if (Math.hypot(dx, dy) > 6) {
+                        this.hasMoved = true;
+                    }
+
+                    const el = this.$refs.fabWrapper;
+                    const width = el ? el.offsetWidth : 64;
+                    const height = el ? el.offsetHeight : 64;
+
+                    const maxX = window.innerWidth - width - 8;
+                    const maxY = window.innerHeight - height - 8;
+
+                    this.fabX = Math.max(8, Math.min(maxX, this.initialElemX + dx));
+                    this.fabY = Math.max(8, Math.min(maxY, this.initialElemY + dy));
+                },
+
+                onPointerUp(e) {
+                    if (!this.isDragging) return;
+                    this.isDragging = false;
+
+                    if (this.hasMoved && this.fabX !== null && this.fabY !== null) {
+                        localStorage.setItem('cifraly_pad_fab_x', this.fabX.toString());
+                        localStorage.setItem('cifraly_pad_fab_y', this.fabY.toString());
+                    }
+                },
+
+                handleMainButtonClick() {
+                    // Se foi arrasto, não dispara o toggle de play/stop
+                    if (this.hasMoved) return;
+                    this.togglePad();
                 },
 
                 async togglePad() {
@@ -340,6 +521,128 @@
                         engine.stop();
                     }
                     this.isPlaying = false;
+                },
+
+                // --- Modal de Configurações ---
+                openModal() {
+                    this.isModalOpen = true;
+                    this.$nextTick(() => {
+                        this.initVisualizer();
+                    });
+                },
+
+                closeModal() {
+                    this.isModalOpen = false;
+                },
+
+                selectPadKey(note) {
+                    this.currentKey = note;
+                    const engine = getAmbientPadEngine();
+
+                    if (!this.isPlaying) {
+                        this.startPad();
+                    } else {
+                        engine.crossfadeToKey(this.currentKey);
+                    }
+                },
+
+                setChordType(type) {
+                    this.chordType = type;
+                    const engine = getAmbientPadEngine();
+                    engine.chordType = type;
+                    if (this.isPlaying) {
+                        engine.crossfadeToKey(this.currentKey);
+                    }
+                },
+
+                setTimbre(timbre) {
+                    this.timbre = timbre;
+                    getAmbientPadEngine().applyTimbre(timbre);
+                },
+
+                setInversion(inv) {
+                    this.inversion = parseInt(inv, 10);
+                    const engine = getAmbientPadEngine();
+                    engine.inversion = this.inversion;
+                    if (this.isPlaying) {
+                        engine.crossfadeToKey(this.currentKey);
+                    }
+                },
+
+                setOctave(oct) {
+                    this.octave = parseInt(oct, 10);
+                    const engine = getAmbientPadEngine();
+                    engine.octave = this.octave;
+                    if (this.isPlaying) {
+                        engine.crossfadeToKey(this.currentKey);
+                    }
+                },
+
+                setAmbience(val) {
+                    this.ambienceLevel = parseFloat(val);
+                    getAmbientPadEngine().setAmbience(this.ambienceLevel);
+                },
+
+                setMovement(val) {
+                    this.movementLevel = parseFloat(val);
+                    getAmbientPadEngine().setMovement(this.movementLevel);
+                },
+
+                setVolume(val) {
+                    this.volumeDb = parseFloat(val);
+                    getAmbientPadEngine().setVolume(this.volumeDb);
+                },
+
+                getCleanRootKey() {
+                    const match = this.currentKey.trim().match(/^([A-G][#b♭♯]?)/i);
+                    return match ? match[1].toUpperCase().replace('♭', 'b').replace('♯', '#') : 'C';
+                },
+
+                // --- Visualizador Neon em Canvas ---
+                initVisualizer() {
+                    const canvas = this.$refs.visualizerCanvas;
+                    if (!canvas) return;
+
+                    const ctx = canvas.getContext('2d');
+                    const resize = () => {
+                        canvas.width = canvas.parentElement.clientWidth;
+                        canvas.height = canvas.parentElement.clientHeight;
+                    };
+                    resize();
+
+                    const render = () => {
+                        if (!this.isModalOpen) return;
+
+                        const engine = getAmbientPadEngine();
+                        if (engine && engine.analyser && this.isPlaying) {
+                            const buffer = engine.analyser.getValue();
+                            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                            ctx.lineWidth = 2.5;
+                            ctx.strokeStyle = 'rgba(0, 210, 255, 0.4)';
+                            ctx.shadowBlur = 16;
+                            ctx.shadowColor = '#00d2ff';
+
+                            ctx.beginPath();
+                            const sliceWidth = canvas.width / buffer.length;
+                            let x = 0;
+
+                            for (let i = 0; i < buffer.length; i++) {
+                                const v = buffer[i] * (canvas.height * 0.4);
+                                const y = (canvas.height / 2) + v;
+                                if (i === 0) ctx.moveTo(x, y);
+                                else ctx.lineTo(x, y);
+                                x += sliceWidth;
+                            }
+                            ctx.stroke();
+                        } else {
+                            ctx.clearRect(0, 0, canvas.width, canvas.height);
+                        }
+
+                        requestAnimationFrame(render);
+                    };
+
+                    requestAnimationFrame(render);
                 }
             };
         };
@@ -354,68 +657,387 @@
     }
 </script>
 
-<!-- Ambient Pad Synthesizer: Floating Action Button (FAB) -->
+<!-- Ambient Pad Synthesizer: Draggable Floating Action Button (FAB) -->
 <div
     x-data="altarAmbientPad()"
-    class="fixed bottom-28 sm:bottom-24 right-4 sm:right-6 z-50 select-none pointer-events-auto"
-    style="position: fixed; bottom: calc(env(safe-area-inset-bottom, 0px) + 6.5rem); right: max(env(safe-area-inset-right, 0px), 1rem); z-index: 50;"
+    x-ref="fabWrapper"
+    class="fixed bottom-28 sm:bottom-24 right-4 sm:right-6 z-50 select-none pointer-events-auto flex flex-col items-end"
+    :style="fabContainerStyle"
+    @pointerdown="onPointerDown($event)"
+    @pointermove.window="onPointerMove($event)"
+    @pointerup.window="onPointerUp($event)"
+    @pointercancel.window="onPointerUp($event)"
 >
-    <!-- Aura pulsante / breathing quando ativo -->
-    <template x-if="isPlaying">
-        <span class="absolute -inset-1.5 rounded-2xl bg-gradient-to-r from-fuchsia-500 via-indigo-500 to-cyan-400 opacity-70 blur-md animate-pulse pointer-events-none"></span>
-    </template>
-
-    <!-- Botão Quadrado com Cantos Arredondados (Mobile First) -->
+    <!-- Botão de Configurações (Engrenagem) - Aparece acima do PAD quando ativo -->
     <button
         type="button"
-        @click="togglePad()"
-        class="relative w-14 h-14 sm:w-16 sm:h-16 rounded-2xl flex flex-col items-center justify-center p-1.5 shadow-2xl transition-all duration-300 tap-scale cursor-pointer group"
-        style="min-width: 3.5rem; min-height: 3.5rem;"
-        :class="isPlaying 
-            ? 'bg-gradient-to-br from-fuchsia-600 via-indigo-600 to-cyan-500 text-white border border-white/40 shadow-indigo-500/50 scale-105 ring-2 ring-white/30' 
-            : 'bg-[#12141a]/95 hover:bg-[#181b24] border border-[#2a2f3d] hover:border-indigo-500/50 text-slate-300 hover:text-white shadow-black/60 backdrop-blur-md'"
-        :title="isPlaying ? 'Pad Contínuo ATIVO em ' + currentKey + ' (Toque para Parar)' : 'Ativar Pad Contínuo em ' + currentKey"
-        aria-label="Ambient Pad Synthesizer"
+        x-show="isPlaying"
+        x-cloak
+        x-transition:enter="transition ease-out duration-200 transform"
+        x-transition:enter-start="opacity-0 scale-75 -translate-y-2"
+        x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+        x-transition:leave="transition ease-in duration-150 transform"
+        x-transition:leave-start="opacity-100 scale-100 translate-y-0"
+        x-transition:leave-end="opacity-0 scale-75 -translate-y-2"
+        @click.stop="openModal()"
+        data-no-drag="true"
+        class="mb-2 w-10 h-10 rounded-xl bg-[#12141a]/95 hover:bg-[#1c202d] border border-cyan-500/40 text-cyan-300 hover:text-white flex items-center justify-center shadow-lg shadow-cyan-500/10 tap-scale transition-all cursor-pointer backdrop-blur-md shrink-0"
+        title="Abrir configurações completas do Pad (Overlay)"
+        aria-label="Configurações do Ambient Pad"
     >
-        <!-- Topo: Label e Ícone de Áudio -->
-        <div class="flex items-center gap-1 leading-none">
-            <template x-if="isPlaying">
-                <!-- Barras de onda sonora animadas -->
-                <span class="flex items-center gap-0.5 text-cyan-200">
-                    <span class="w-0.5 h-2 bg-current rounded-full animate-pulse"></span>
-                    <span class="w-0.5 h-3 bg-current rounded-full animate-pulse" style="animation-delay: 150ms;"></span>
-                    <span class="w-0.5 h-2 bg-current rounded-full animate-pulse" style="animation-delay: 300ms;"></span>
-                </span>
-            </template>
-            <template x-if="!isPlaying">
-                <!-- Ícone estático de onda sonora -->
-                <svg class="w-2.5 h-2.5 text-[#71788e] group-hover:text-slate-400 transition" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
-                </svg>
-            </template>
-            <span 
-                class="text-[8px] sm:text-[9px] font-black uppercase tracking-wider transition"
-                :class="isPlaying ? 'text-cyan-200 font-bold' : 'text-[#71788e] group-hover:text-slate-300'"
-            >
-                PAD
-            </span>
-        </div>
-
-        <!-- Centro: Tom da Cifra em Destaque -->
-        <span 
-            class="text-base sm:text-lg font-black font-mono leading-none tracking-tight transition-transform duration-200 mt-0.5"
-            :class="isPlaying ? 'text-white drop-shadow-md scale-110' : 'text-slate-200 group-hover:text-white'"
-            x-text="currentKey"
-        >C</span>
-
-        <!-- Rodapé: Led de Status -->
-        <div class="flex items-center gap-1 mt-0.5">
-            <span 
-                class="w-1.5 h-1.5 rounded-full transition-all duration-300"
-                :class="isPlaying 
-                    ? 'bg-emerald-300 shadow-[0_0_8px_#34d399] scale-125' 
-                    : 'bg-slate-600'"
-            ></span>
-        </div>
+        <svg class="w-5 h-5 animate-[spin_10s_linear_infinite]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+        </svg>
     </button>
+
+    <!-- Botão Principal do PAD (Quadrado com Cantos Arredondados, Mobile-First, Arrastável) -->
+    <div class="relative">
+        <!-- Aura pulsante / breathing quando ativo -->
+        <template x-if="isPlaying">
+            <span class="absolute -inset-1.5 rounded-2xl bg-gradient-to-r from-fuchsia-500 via-indigo-500 to-cyan-400 opacity-70 blur-md animate-pulse pointer-events-none"></span>
+        </template>
+
+        <button
+            type="button"
+            @click="handleMainButtonClick()"
+            class="relative w-14 h-14 sm:w-16 sm:h-16 rounded-2xl flex flex-col items-center justify-center p-1.5 shadow-2xl transition-all duration-300 tap-scale cursor-pointer group shrink-0"
+            style="min-width: 3.5rem; min-height: 3.5rem;"
+            :class="isPlaying 
+                ? 'bg-gradient-to-br from-fuchsia-600 via-indigo-600 to-cyan-500 text-white border border-white/40 shadow-indigo-500/50 scale-105 ring-2 ring-white/30' 
+                : 'bg-[#12141a]/95 hover:bg-[#181b24] border border-[#2a2f3d] hover:border-indigo-500/50 text-slate-300 hover:text-white shadow-black/60 backdrop-blur-md'"
+            :title="isPlaying ? 'Pad Contínuo ATIVO em ' + currentKey + ' (Toque para Parar | Arraste para Mover)' : 'Ativar Pad Contínuo em ' + currentKey + ' (Arraste para Mover)'"
+            aria-label="Ambient Pad Synthesizer"
+        >
+            <!-- Topo: Label e Ícone de Áudio -->
+            <div class="flex items-center gap-1 leading-none pointer-events-none">
+                <template x-if="isPlaying">
+                    <!-- Barras de onda sonora animadas -->
+                    <span class="flex items-center gap-0.5 text-cyan-200">
+                        <span class="w-0.5 h-2 bg-current rounded-full animate-pulse"></span>
+                        <span class="w-0.5 h-3 bg-current rounded-full animate-pulse" style="animation-delay: 150ms;"></span>
+                        <span class="w-0.5 h-2 bg-current rounded-full animate-pulse" style="animation-delay: 300ms;"></span>
+                    </span>
+                </template>
+                <template x-if="!isPlaying">
+                    <!-- Ícone estático de onda sonora -->
+                    <svg class="w-2.5 h-2.5 text-[#71788e] group-hover:text-slate-400 transition" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
+                    </svg>
+                </template>
+                <span 
+                    class="text-[8px] sm:text-[9px] font-black uppercase tracking-wider transition"
+                    :class="isPlaying ? 'text-cyan-200 font-bold' : 'text-[#71788e] group-hover:text-slate-300'"
+                >
+                    PAD
+                </span>
+            </div>
+
+            <!-- Centro: Tom da Cifra em Destaque -->
+            <span 
+                class="text-base sm:text-lg font-black font-mono leading-none tracking-tight transition-transform duration-200 mt-0.5 pointer-events-none"
+                :class="isPlaying ? 'text-white drop-shadow-md scale-110' : 'text-slate-200 group-hover:text-white'"
+                x-text="currentKey"
+            >C</span>
+
+            <!-- Rodapé: Led de Status -->
+            <div class="flex items-center gap-1 mt-0.5 pointer-events-none">
+                <span 
+                    class="w-1.5 h-1.5 rounded-full transition-all duration-300"
+                    :class="isPlaying 
+                        ? 'bg-emerald-300 shadow-[0_0_8px_#34d399] scale-125' 
+                        : 'bg-slate-600'"
+                ></span>
+            </div>
+        </button>
+    </div>
+
+    <!-- MODAL OVERLAY COMPLETO EM TELA CHEIA (FULL-SCREEN AMBIENT PAD) -->
+    <div
+        x-show="isModalOpen"
+        x-cloak
+        x-transition:enter="transition ease-out duration-300"
+        x-transition:enter-start="opacity-0 scale-95"
+        x-transition:enter-end="opacity-100 scale-100"
+        x-transition:leave="transition ease-in duration-200"
+        x-transition:leave-start="opacity-100 scale-100"
+        x-transition:leave-end="opacity-0 scale-95"
+        class="fixed inset-0 z-[100000] flex flex-col bg-[#08080a]/95 backdrop-blur-2xl text-slate-100 overflow-y-auto overscroll-contain select-none p-4 sm:p-8"
+        @keydown.escape.window="closeModal()"
+    >
+        <!-- Background Neon Wave Visualizer Canvas -->
+        <canvas x-ref="visualizerCanvas" class="absolute inset-0 w-full h-full pointer-events-none opacity-25 z-0"></canvas>
+
+        <div class="relative z-10 max-w-4xl w-full mx-auto flex flex-col flex-1 gap-5">
+            <!-- Modal Header -->
+            <div class="flex items-center justify-between border-b border-[#1e222c] pb-4 shrink-0">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-2xl bg-cyan-500/15 border border-cyan-500/40 flex items-center justify-center text-[#00d2ff] shadow-lg shadow-cyan-500/20">
+                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
+                        </svg>
+                    </div>
+                    <div>
+                        <h2 class="text-base sm:text-lg font-black tracking-wider text-white flex items-center gap-2">
+                            <span>AMBIENT PAD</span>
+                            <span class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-cyan-500/20 text-[#00d2ff] font-bold border border-cyan-500/30 uppercase">Synth</span>
+                        </h2>
+                        <p class="text-[11px] sm:text-xs text-[#71788e]">Sintetizador worship contínuo para atmosfera de louvor</p>
+                    </div>
+                </div>
+
+                <!-- Botão Fechar Modal -->
+                <button
+                    type="button"
+                    @click="closeModal()"
+                    class="p-2 sm:px-3 sm:py-2 rounded-2xl bg-[#12141a] hover:bg-[#1c202d] border border-[#1e222c] hover:border-cyan-500/40 text-slate-300 hover:text-white flex items-center gap-1.5 tap-scale transition cursor-pointer"
+                    title="Fechar configurações (Esc)"
+                >
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                    <span class="text-xs font-bold uppercase hidden sm:inline">Fechar</span>
+                </button>
+            </div>
+
+            <!-- Grade de 12 Notas Fundamentais (Seleção Rápida de Tom) -->
+            <div class="flex flex-col gap-2">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs uppercase tracking-wider font-extrabold text-[#71788e]">Tom Fundamental (Root Key)</span>
+                    <span class="text-xs font-mono font-bold text-[#00d2ff]">
+                        Tom Selecionado: <strong class="text-white text-sm" x-text="currentKey"></strong>
+                    </span>
+                </div>
+
+                <div class="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-12 gap-2">
+                    <template x-for="note in availableNotes" :key="note">
+                        <button
+                            type="button"
+                            @click="selectPadKey(note)"
+                            class="relative rounded-xl p-2 sm:p-2.5 flex flex-col items-center justify-center border transition-all tap-scale cursor-pointer group"
+                            :class="(getCleanRootKey() === note && isPlaying)
+                                ? 'bg-gradient-to-b from-cyan-500/30 to-indigo-600/30 border-[#00d2ff] shadow-[0_0_15px_rgba(0,210,255,0.3)] text-white scale-105' 
+                                : (getCleanRootKey() === note)
+                                    ? 'bg-[#181b24] border-cyan-500/60 text-cyan-300'
+                                    : 'bg-[#12141a] hover:bg-[#181b24] border-[#1e222c] hover:border-slate-600 text-slate-300 hover:text-white'"
+                        >
+                            <span class="text-sm sm:text-base font-black font-mono leading-none" x-text="note"></span>
+                            <!-- Barra de acento de cor do tom -->
+                            <span 
+                                class="w-full h-1 rounded-full mt-1.5 opacity-60 group-hover:opacity-100 transition-opacity"
+                                :style="'background-color: ' + noteColors[note] + ';'"
+                            ></span>
+                        </button>
+                    </template>
+                </div>
+            </div>
+
+            <!-- Controles de Síntese e Efeitos (Grid 3 Colunas) -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-4">
+                
+                <!-- 1. Tipo de Acorde (Chord Type: Major / Minor) -->
+                <div class="p-3.5 sm:p-4 rounded-2xl bg-[#12141a]/90 border border-[#1e222c] flex flex-col gap-2">
+                    <label class="text-[11px] uppercase tracking-wider font-extrabold text-[#71788e]">Tipo de Acorde</label>
+                    <div class="flex bg-[#08080a] p-1 rounded-xl border border-[#1e222c]">
+                        <button 
+                            type="button"
+                            @click="setChordType('major')"
+                            class="flex-1 py-1.5 text-xs font-bold rounded-lg transition-all"
+                            :class="chordType === 'major' ? 'bg-[#00d2ff] text-black shadow-md' : 'text-slate-400 hover:text-white'"
+                        >
+                            Maior (Major)
+                        </button>
+                        <button 
+                            type="button"
+                            @click="setChordType('minor')"
+                            class="flex-1 py-1.5 text-xs font-bold rounded-lg transition-all"
+                            :class="chordType === 'minor' ? 'bg-[#00d2ff] text-black shadow-md' : 'text-slate-400 hover:text-white'"
+                        >
+                            Menor (Minor)
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 2. Timbre / Textura -->
+                <div class="p-3.5 sm:p-4 rounded-2xl bg-[#12141a]/90 border border-[#1e222c] flex flex-col gap-2">
+                    <label class="text-[11px] uppercase tracking-wider font-extrabold text-[#71788e]">Timbre & Ondas</label>
+                    <div class="flex bg-[#08080a] p-1 rounded-xl border border-[#1e222c] gap-1">
+                        <button 
+                            type="button"
+                            @click="setTimbre('lush')"
+                            class="flex-1 py-1.5 text-xs font-bold rounded-lg transition-all"
+                            :class="timbre === 'lush' ? 'bg-[#00d2ff] text-black shadow-md' : 'text-slate-400 hover:text-white'"
+                            title="Worship aveludado profundo (Fattriangle)"
+                        >
+                            Lush
+                        </button>
+                        <button 
+                            type="button"
+                            @click="setTimbre('analog')"
+                            class="flex-1 py-1.5 text-xs font-bold rounded-lg transition-all"
+                            :class="timbre === 'analog' ? 'bg-[#00d2ff] text-black shadow-md' : 'text-slate-400 hover:text-white'"
+                            title="Quente analógico (Fatsawtooth)"
+                        >
+                            Analog
+                        </button>
+                        <button 
+                            type="button"
+                            @click="setTimbre('ethereal')"
+                            class="flex-1 py-1.5 text-xs font-bold rounded-lg transition-all"
+                            :class="timbre === 'ethereal' ? 'bg-[#00d2ff] text-black shadow-md' : 'text-slate-400 hover:text-white'"
+                            title="Suave celestial (Fatsine)"
+                        >
+                            Ethereal
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 3. Voicing / Inversão Harmônica -->
+                <div class="p-3.5 sm:p-4 rounded-2xl bg-[#12141a]/90 border border-[#1e222c] flex flex-col gap-1.5">
+                    <div class="flex items-center justify-between text-[11px] uppercase tracking-wider font-extrabold text-[#71788e]">
+                        <span>Voicing / Inversão</span>
+                        <span class="text-[#00d2ff] font-mono" x-text="inversion === 0 ? 'Fundamental (Root)' : (inversion === 1 ? '1ª Inversão' : '2ª Inversão')"></span>
+                    </div>
+                    <input 
+                        type="range" 
+                        min="0" 
+                        max="2" 
+                        step="1"
+                        :value="inversion"
+                        @input="setInversion($event.target.value)"
+                        class="w-full h-1.5 bg-[#08080a] rounded-lg appearance-none cursor-pointer accent-[#00d2ff] mt-1"
+                    />
+                    <div class="flex justify-between text-[10px] text-[#71788e] font-mono px-0.5">
+                        <span>Root</span>
+                        <span>1st Inv</span>
+                        <span>2nd Inv</span>
+                    </div>
+                </div>
+
+                <!-- 4. Oitava Base (Octave Shift) -->
+                <div class="p-3.5 sm:p-4 rounded-2xl bg-[#12141a]/90 border border-[#1e222c] flex flex-col gap-1.5">
+                    <div class="flex items-center justify-between text-[11px] uppercase tracking-wider font-extrabold text-[#71788e]">
+                        <span>Oitava (Octave)</span>
+                        <span class="text-[#00d2ff] font-mono" x-text="'Oitava ' + octave"></span>
+                    </div>
+                    <input 
+                        type="range" 
+                        min="2" 
+                        max="5" 
+                        step="1"
+                        :value="octave"
+                        @input="setOctave($event.target.value)"
+                        class="w-full h-1.5 bg-[#08080a] rounded-lg appearance-none cursor-pointer accent-[#00d2ff] mt-1"
+                    />
+                    <div class="flex justify-between text-[10px] text-[#71788e] font-mono px-0.5">
+                        <span>2 (Grave)</span>
+                        <span>3 (Padrão)</span>
+                        <span>4 (Médio)</span>
+                        <span>5 (Agudo)</span>
+                    </div>
+                </div>
+
+                <!-- 5. Ambience (Reverb & Echo Space) -->
+                <div class="p-3.5 sm:p-4 rounded-2xl bg-[#12141a]/90 border border-[#1e222c] flex flex-col gap-1.5">
+                    <div class="flex items-center justify-between text-[11px] uppercase tracking-wider font-extrabold text-[#71788e]">
+                        <span>Ambience (Reverb & Delay)</span>
+                        <span class="text-[#00d2ff] font-mono" x-text="Math.round(ambienceLevel * 100) + '%'"></span>
+                    </div>
+                    <input 
+                        type="range" 
+                        min="0" 
+                        max="1" 
+                        step="0.01"
+                        :value="ambienceLevel"
+                        @input="setAmbience($event.target.value)"
+                        class="w-full h-1.5 bg-[#08080a] rounded-lg appearance-none cursor-pointer accent-[#00d2ff] mt-1"
+                    />
+                    <div class="flex justify-between text-[10px] text-[#71788e] font-mono px-0.5">
+                        <span>Seco (Dry)</span>
+                        <span>50%</span>
+                        <span>Espacial (Wet)</span>
+                    </div>
+                </div>
+
+                <!-- 6. Movement (LFO Sweep & Chorus) -->
+                <div class="p-3.5 sm:p-4 rounded-2xl bg-[#12141a]/90 border border-[#1e222c] flex flex-col gap-1.5">
+                    <div class="flex items-center justify-between text-[11px] uppercase tracking-wider font-extrabold text-[#71788e]">
+                        <span>Movement (LFO & Modulação)</span>
+                        <span class="text-[#00d2ff] font-mono" x-text="Math.round(movementLevel * 100) + '%'"></span>
+                    </div>
+                    <input 
+                        type="range" 
+                        min="0" 
+                        max="1" 
+                        step="0.01"
+                        :value="movementLevel"
+                        @input="setMovement($event.target.value)"
+                        class="w-full h-1.5 bg-[#08080a] rounded-lg appearance-none cursor-pointer accent-[#00d2ff] mt-1"
+                    />
+                    <div class="flex justify-between text-[10px] text-[#71788e] font-mono px-0.5">
+                        <span>Estático</span>
+                        <span>Orgânico</span>
+                        <span>Ondulante</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer Action Controls: Status e Play/Stop -->
+            <div class="mt-auto pt-4 border-t border-[#1e222c] flex flex-col sm:flex-row items-center justify-between gap-3 shrink-0">
+                <!-- Status text -->
+                <div class="flex items-center gap-2.5">
+                    <span 
+                        class="w-3 h-3 rounded-full transition-all duration-300"
+                        :class="isPlaying ? 'bg-emerald-400 shadow-[0_0_10px_#34d399] animate-pulse' : 'bg-slate-600'"
+                    ></span>
+                    <span class="text-xs sm:text-sm font-bold text-slate-300">
+                        Status: 
+                        <strong 
+                            :class="isPlaying ? 'text-[#00d2ff]' : 'text-slate-400'"
+                            x-text="isPlaying ? 'Tocando em ' + currentKey + ' (' + (chordType === 'major' ? 'Maior' : 'Menor') + ')' : 'Pad em Pausa'"
+                        ></strong>
+                    </span>
+                </div>
+
+                <!-- Botões de Ação -->
+                <div class="flex items-center gap-2.5 w-full sm:w-auto">
+                    <!-- Sincronizar com Cifra -->
+                    <button
+                        type="button"
+                        @click="detectKeyFromDom()"
+                        class="flex-1 sm:flex-none px-3.5 py-2.5 rounded-xl bg-[#12141a] hover:bg-[#181b24] border border-[#1e222c] hover:border-cyan-500/40 text-slate-300 hover:text-white font-bold text-xs uppercase tracking-wider tap-scale transition cursor-pointer flex items-center justify-center gap-1.5"
+                        title="Reconhecer e sincronizar com o tom atual da página de cifra"
+                    >
+                        <svg class="w-4 h-4 text-[#00d2ff]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                        </svg>
+                        <span>Sincronizar Tom</span>
+                    </button>
+
+                    <!-- Botão Master Play/Stop -->
+                    <button
+                        type="button"
+                        @click="togglePad()"
+                        class="flex-1 sm:flex-none px-6 py-2.5 rounded-xl font-black text-xs uppercase tracking-wider shadow-xl tap-scale transition cursor-pointer flex items-center justify-center gap-2"
+                        :class="isPlaying 
+                            ? 'bg-rose-500 hover:bg-rose-600 text-white shadow-rose-500/25 ring-2 ring-rose-400/30' 
+                            : 'bg-[#00d2ff] hover:bg-[#38bdf8] text-black shadow-cyan-500/30 ring-2 ring-cyan-300/40'"
+                    >
+                        <template x-if="isPlaying">
+                            <span class="flex items-center gap-1.5">
+                                <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>
+                                <span>Parar Pad</span>
+                            </span>
+                        </template>
+                        <template x-if="!isPlaying">
+                            <span class="flex items-center gap-1.5">
+                                <svg class="w-4 h-4 fill-current ml-0.5" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                                <span>Iniciar Pad</span>
+                            </span>
+                        </template>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>

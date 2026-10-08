@@ -484,7 +484,7 @@
                 -
             </button>
 
-            <div class="text-center px-1 sm:px-2 min-w-[28px] sm:min-w-[32px]" wire:loading.class="opacity-50 animate-pulse" wire:target="transposeDown, transposeUp, resetKey, toggleCapo">
+            <div id="stage-current-key" data-key="{{ $currentKey ?? 'C' }}" class="text-center px-1 sm:px-2 min-w-[28px] sm:min-w-[32px]" wire:loading.class="opacity-50 animate-pulse" wire:target="transposeDown, transposeUp, resetKey, toggleCapo">
                 <span class="text-xs sm:text-sm font-black text-[#00d2ff] font-mono leading-none">
                     {{ $currentKey ?? 'C' }}
                 </span>

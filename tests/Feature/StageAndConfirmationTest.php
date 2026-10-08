@@ -409,7 +409,7 @@ class StageAndConfirmationTest extends TestCase
             ->assertSeeHtml('Capo:')
             ->assertSeeHtml('3ª casa')
             ->assertDontSeeHtml('hidden sm:flex items-center gap-2 text-xs font-mono')
-            ->assertSeeHtml('Letra');
+            ->assertSeeHtml('id="stage-current-key"');
     }
 
     public function test_stage_view_exit_button_links_to_application_home_dashboard(): void

@@ -115,14 +115,31 @@
                 Tone.Destination
             );
 
-            // Inicia osciladores LFO dos efeitos
-            this.autoFilter.start();
-            this.chorus.start();
+            // Inicia osciladores LFO dos efeitos com verificação de estado
+            try {
+                if (this.autoFilter && this.autoFilter.state !== 'started') {
+                    this.autoFilter.start();
+                }
+            } catch (e) {}
 
             try {
-                await this.reverb.generate();
+                if (this.chorus && this.chorus.state !== 'started') {
+                    this.chorus.start();
+                }
+            } catch (e) {}
+
+            // No Tone.js v14, Reverb inicia geração automaticamente no construtor.
+            // NÃO chamar reverb.generate() pois isso tenta iniciar um segundo OfflineAudioContext concorrente.
+            // Aguardamos reverb.ready com timeout de segurança para não bloquear em navegadores móveis.
+            try {
+                if (this.reverb && this.reverb.ready) {
+                    await Promise.race([
+                        this.reverb.ready,
+                        new Promise((resolve) => setTimeout(resolve, 600))
+                    ]);
+                }
             } catch (err) {
-                // Reverb inicializa em segundo plano em navegadores modernos
+                console.warn('[AmbientPad] Reverb pronto com aviso:', err);
             }
 
             this.isInitialized = true;
@@ -170,10 +187,14 @@
 
             this.activeNotes = notes;
             try {
+                if (typeof Tone !== 'undefined' && Tone.context && Tone.context.state !== 'running') {
+                    await Tone.start();
+                }
                 this.synth.triggerAttack(this.activeNotes);
                 this.isPlaying = true;
             } catch (err) {
                 console.error('[AmbientPad] Erro ao tocar pad:', err);
+                throw err;
             }
         }
 
@@ -217,20 +238,25 @@
         }
     }
 
+    /**
+     * Instância singleton fora do Proxy do Alpine para prevenir InvalidStateError
+     * na API nativa Web Audio C++ dos navegadores
+     */
+    function getAmbientPadEngine() {
+        if (!window.AltarAmbientPadEngineInstance) {
+            window.AltarAmbientPadEngineInstance = new AmbientPadEngine();
+        }
+        return window.AltarAmbientPadEngineInstance;
+    }
+
     if (typeof window.altarAmbientPad !== 'function') {
         window.altarAmbientPad = function() {
             return {
                 isPlaying: false,
                 currentKey: 'C',
-                padEngine: null,
                 observer: null,
 
                 init() {
-                    if (!window.AltarAmbientPadEngineInstance) {
-                        window.AltarAmbientPadEngineInstance = new AmbientPadEngine();
-                    }
-                    this.padEngine = window.AltarAmbientPadEngineInstance;
-
                     this.detectKeyFromDom();
 
                     // Observa alterações no tom da cifra em tempo real no DOM
@@ -280,12 +306,11 @@
 
                     const cleanKey = rawKey.trim();
                     if (cleanKey && cleanKey !== this.currentKey) {
-                        const oldKey = this.currentKey;
                         this.currentKey = cleanKey;
 
                         // Se o Pad já estiver tocando, dispara o crossfade suave em tempo real
-                        if (this.isPlaying && this.padEngine) {
-                            this.padEngine.crossfadeToKey(this.currentKey);
+                        if (this.isPlaying) {
+                            getAmbientPadEngine().crossfadeToKey(this.currentKey);
                         }
                     }
                 },
@@ -301,7 +326,8 @@
                 async startPad() {
                     this.detectKeyFromDom();
                     try {
-                        await this.padEngine.play(this.currentKey);
+                        const engine = getAmbientPadEngine();
+                        await engine.play(this.currentKey);
                         this.isPlaying = true;
                     } catch (err) {
                         console.error('[AmbientPad] Falha ao iniciar Pad:', err);
@@ -309,8 +335,9 @@
                 },
 
                 stopPad() {
-                    if (this.padEngine) {
-                        this.padEngine.stop();
+                    const engine = getAmbientPadEngine();
+                    if (engine) {
+                        engine.stop();
                     }
                     this.isPlaying = false;
                 }

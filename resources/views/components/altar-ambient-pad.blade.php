@@ -168,14 +168,27 @@
 
             switch (type) {
                 case 'analog':
-                    this.synth.set({ oscillator: { type: 'fatsawtooth', count: 3, spread: 30 } });
+                    this.synth.set({
+                        volume: -2,
+                        oscillator: { type: 'fatsawtooth', count: 3, spread: 30 },
+                        envelope: { attack: 2.5, decay: 2.0, sustain: 0.9, release: 6.0 }
+                    });
                     break;
                 case 'ethereal':
-                    this.synth.set({ oscillator: { type: 'fatsine', count: 3, spread: 40 } });
+                    // Ethereal ultra-orgânico: 2 osciladores senoidais com spread suave e envelope macio para evitar estalos de fase e distorção
+                    this.synth.set({
+                        volume: -6,
+                        oscillator: { type: 'fatsine', count: 2, spread: 15 },
+                        envelope: { attack: 3.2, decay: 2.5, sustain: 0.85, release: 6.5 }
+                    });
                     break;
                 case 'lush':
                 default:
-                    this.synth.set({ oscillator: { type: 'fattriangle', count: 4, spread: 50 } });
+                    this.synth.set({
+                        volume: 0,
+                        oscillator: { type: 'fattriangle', count: 4, spread: 50 },
+                        envelope: { attack: 2.5, decay: 2.0, sustain: 0.9, release: 6.0 }
+                    });
                     break;
             }
         }
@@ -598,6 +611,9 @@
                 setTimbre(timbre) {
                     this.timbre = timbre;
                     getAmbientPadEngine().applyTimbre(timbre);
+                    if (this.isPlaying) {
+                        getAmbientPadEngine().crossfadeToKey(this.currentKey);
+                    }
                 },
 
                 setInversion(inv) {
@@ -877,22 +893,11 @@
 
             <!-- ABA 1: TONS (BOTÕES GRANDES, MOBILE-FIRST) -->
             <div x-show="activeTab === 'tones'" x-cloak class="flex flex-col gap-3 sm:gap-4 flex-1">
-                <!-- Sub-header com Tom Selecionado, Status e Alternador Maior/Menor -->
+                <!-- Sub-header com Tom Selecionado e Alternador Maior/Menor -->
                 <div class="flex items-center justify-between p-3 rounded-2xl bg-[#12141a]/90 border border-[#1e222c] shrink-0">
                     <div class="flex items-center gap-2 min-w-0">
                         <span class="text-xs uppercase tracking-wider font-extrabold text-[#71788e]">Tom:</span>
                         <span class="text-base sm:text-lg font-black font-mono text-[#00d2ff] bg-cyan-500/10 px-2.5 py-0.5 rounded-xl border border-cyan-500/30" x-text="currentKey"></span>
-                        <template x-if="isPlaying">
-                            <span class="flex items-center gap-1.5 text-[11px] font-bold text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-full border border-emerald-500/20 animate-pulse">
-                                <span class="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_8px_#34d399]"></span>
-                                <span>TOCANDO</span>
-                            </span>
-                        </template>
-                        <template x-if="!isPlaying">
-                            <span class="text-[11px] font-bold text-slate-400 bg-[#1e222c]/60 px-2.5 py-1 rounded-full border border-slate-700/50">
-                                PARADO
-                            </span>
-                        </template>
                     </div>
 
                     <!-- Alternador Rápido Maior / Menor -->
@@ -900,7 +905,7 @@
                         <button 
                             type="button"
                             @click="setChordType('major')"
-                            class="px-2.5 sm:px-3 py-1 text-xs font-bold rounded-lg transition-all"
+                            class="px-3 py-1 text-xs font-bold rounded-lg transition-all"
                             :class="chordType === 'major' ? 'bg-[#00d2ff] text-black shadow-sm' : 'text-slate-400 hover:text-white'"
                         >
                             Maior
@@ -908,7 +913,7 @@
                         <button 
                             type="button"
                             @click="setChordType('minor')"
-                            class="px-2.5 sm:px-3 py-1 text-xs font-bold rounded-lg transition-all"
+                            class="px-3 py-1 text-xs font-bold rounded-lg transition-all"
                             :class="chordType === 'minor' ? 'bg-[#00d2ff] text-black shadow-sm' : 'text-slate-400 hover:text-white'"
                         >
                             Menor
@@ -967,32 +972,9 @@
                     <span class="text-xs text-[#71788e]">Personalize o timbre, textura e ambiência</span>
                 </div>
 
-                <!-- Controles de Síntese e Efeitos (Grid) -->
+                <!-- Controles de Síntese e Efeitos (Grid sem Tipo de Acorde, pois já está na aba principal) -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-4">
-                    <!-- 1. Tipo de Acorde (Chord Type: Major / Minor) -->
-                    <div class="p-3.5 sm:p-4 rounded-2xl bg-[#12141a]/90 border border-[#1e222c] flex flex-col gap-2">
-                        <label class="text-[11px] uppercase tracking-wider font-extrabold text-[#71788e]">Tipo de Acorde</label>
-                        <div class="flex bg-[#08080a] p-1 rounded-xl border border-[#1e222c]">
-                            <button 
-                                type="button"
-                                @click="setChordType('major')"
-                                class="flex-1 py-1.5 text-xs font-bold rounded-lg transition-all"
-                                :class="chordType === 'major' ? 'bg-[#00d2ff] text-black shadow-md' : 'text-slate-400 hover:text-white'"
-                            >
-                                Maior (Major)
-                            </button>
-                            <button 
-                                type="button"
-                                @click="setChordType('minor')"
-                                class="flex-1 py-1.5 text-xs font-bold rounded-lg transition-all"
-                                :class="chordType === 'minor' ? 'bg-[#00d2ff] text-black shadow-md' : 'text-slate-400 hover:text-white'"
-                            >
-                                Menor (Minor)
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- 2. Timbre / Textura -->
+                    <!-- 1. Timbre / Textura -->
                     <div class="p-3.5 sm:p-4 rounded-2xl bg-[#12141a]/90 border border-[#1e222c] flex flex-col gap-2">
                         <label class="text-[11px] uppercase tracking-wider font-extrabold text-[#71788e]">Timbre & Ondas</label>
                         <div class="flex bg-[#08080a] p-1 rounded-xl border border-[#1e222c] gap-1">
@@ -1019,14 +1001,14 @@
                                 @click="setTimbre('ethereal')"
                                 class="flex-1 py-1.5 text-xs font-bold rounded-lg transition-all"
                                 :class="timbre === 'ethereal' ? 'bg-[#00d2ff] text-black shadow-md' : 'text-slate-400 hover:text-white'"
-                                title="Suave celestial (Fatsine)"
+                                title="Suave celestial orgânico (Fatsine)"
                             >
                                 Ethereal
                             </button>
                         </div>
                     </div>
 
-                    <!-- 3. Voicing / Inversão Harmônica -->
+                    <!-- 2. Voicing / Inversão Harmônica -->
                     <div class="p-3.5 sm:p-4 rounded-2xl bg-[#12141a]/90 border border-[#1e222c] flex flex-col gap-1.5">
                         <div class="flex items-center justify-between text-[11px] uppercase tracking-wider font-extrabold text-[#71788e]">
                             <span>Voicing / Inversão</span>
@@ -1048,7 +1030,7 @@
                         </div>
                     </div>
 
-                    <!-- 4. Oitava Base (Octave Shift) -->
+                    <!-- 3. Oitava Base (Octave Shift) -->
                     <div class="p-3.5 sm:p-4 rounded-2xl bg-[#12141a]/90 border border-[#1e222c] flex flex-col gap-1.5">
                         <div class="flex items-center justify-between text-[11px] uppercase tracking-wider font-extrabold text-[#71788e]">
                             <span>Oitava (Octave)</span>
@@ -1071,7 +1053,7 @@
                         </div>
                     </div>
 
-                    <!-- 5. Ambience (Reverb & Echo Space) -->
+                    <!-- 4. Ambience (Reverb & Echo Space) -->
                     <div class="p-3.5 sm:p-4 rounded-2xl bg-[#12141a]/90 border border-[#1e222c] flex flex-col gap-1.5">
                         <div class="flex items-center justify-between text-[11px] uppercase tracking-wider font-extrabold text-[#71788e]">
                             <span>Ambience (Reverb & Delay)</span>
@@ -1093,7 +1075,7 @@
                         </div>
                     </div>
 
-                    <!-- 6. Movement (LFO Sweep & Chorus) -->
+                    <!-- 5. Movement (LFO Sweep & Chorus) -->
                     <div class="p-3.5 sm:p-4 rounded-2xl bg-[#12141a]/90 border border-[#1e222c] flex flex-col gap-1.5">
                         <div class="flex items-center justify-between text-[11px] uppercase tracking-wider font-extrabold text-[#71788e]">
                             <span>Movement (LFO & Modulação)</span>
@@ -1115,76 +1097,76 @@
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- Footer Action Controls: Status e Play/Stop -->
-            <div class="mt-auto pt-4 border-t border-[#1e222c] flex flex-col sm:flex-row items-center justify-between gap-3 shrink-0">
-                <!-- Status text -->
-                <div class="flex items-center gap-2.5">
-                    <span 
-                        class="w-3 h-3 rounded-full transition-all duration-300"
-                        :class="isPlaying ? 'bg-emerald-400 shadow-[0_0_10px_#34d399] animate-pulse' : 'bg-slate-600'"
-                    ></span>
-                    <span class="text-xs sm:text-sm font-bold text-slate-300">
-                        Status: 
-                        <strong 
-                            :class="isPlaying ? 'text-[#00d2ff]' : 'text-slate-400'"
-                            x-text="isPlaying ? 'Tocando em ' + currentKey + ' (' + (chordType === 'major' ? 'Maior' : 'Menor') + ')' : 'Pad em Pausa'"
-                        ></strong>
-                    </span>
-                </div>
+                <!-- Footer Action Controls Exclusivo da Aba de Configurações: Status, Resetar, Sincronizar e Play/Stop -->
+                <div class="mt-auto pt-4 border-t border-[#1e222c] flex flex-col sm:flex-row items-center justify-between gap-3 shrink-0">
+                    <!-- Status text -->
+                    <div class="flex items-center gap-2.5">
+                        <span 
+                            class="w-3 h-3 rounded-full transition-all duration-300"
+                            :class="isPlaying ? 'bg-emerald-400 shadow-[0_0_10px_#34d399] animate-pulse' : 'bg-slate-600'"
+                        ></span>
+                        <span class="text-xs sm:text-sm font-bold text-slate-300">
+                            Status: 
+                            <strong 
+                                :class="isPlaying ? 'text-[#00d2ff]' : 'text-slate-400'"
+                                x-text="isPlaying ? 'Tocando em ' + currentKey + ' (' + (chordType === 'major' ? 'Maior' : 'Menor') + ')' : 'Pad em Pausa'"
+                            ></strong>
+                        </span>
+                    </div>
 
-                <!-- Botões de Ação -->
-                <div class="flex items-center gap-2.5 w-full sm:w-auto">
-                    <!-- Resetar Posição -->
-                    <button
-                        type="button"
-                        @click="resetFabPosition()"
-                        class="px-3.5 py-2.5 rounded-xl bg-[#12141a] hover:bg-[#181b24] border border-[#1e222c] hover:border-amber-500/40 text-slate-300 hover:text-white font-bold text-xs uppercase tracking-wider tap-scale transition cursor-pointer flex items-center justify-center gap-1.5"
-                        title="Redefinir a posição do botão flutuante para o canto inferior direito padrão"
-                    >
-                        <svg class="w-4 h-4 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                        </svg>
-                        <span class="hidden sm:inline">Resetar Posição</span>
-                        <span class="sm:hidden">Resetar</span>
-                    </button>
+                    <!-- Botões de Ação -->
+                    <div class="flex items-center gap-2.5 w-full sm:w-auto">
+                        <!-- Resetar Posição -->
+                        <button
+                            type="button"
+                            @click="resetFabPosition()"
+                            class="px-3.5 py-2.5 rounded-xl bg-[#12141a] hover:bg-[#181b24] border border-[#1e222c] hover:border-amber-500/40 text-slate-300 hover:text-white font-bold text-xs uppercase tracking-wider tap-scale transition cursor-pointer flex items-center justify-center gap-1.5"
+                            title="Redefinir a posição do botão flutuante para o canto inferior direito padrão"
+                        >
+                            <svg class="w-4 h-4 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                            </svg>
+                            <span class="hidden sm:inline">Resetar Posição</span>
+                            <span class="sm:hidden">Resetar</span>
+                        </button>
 
-                    <!-- Sincronizar com Cifra -->
-                    <button
-                        type="button"
-                        @click="detectKeyFromDom()"
-                        class="flex-1 sm:flex-none px-3.5 py-2.5 rounded-xl bg-[#12141a] hover:bg-[#181b24] border border-[#1e222c] hover:border-cyan-500/40 text-slate-300 hover:text-white font-bold text-xs uppercase tracking-wider tap-scale transition cursor-pointer flex items-center justify-center gap-1.5"
-                        title="Reconhecer e sincronizar com o tom atual da página de cifra"
-                    >
-                        <svg class="w-4 h-4 text-[#00d2ff]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                        </svg>
-                        <span>Sincronizar Tom</span>
-                    </button>
+                        <!-- Sincronizar com Cifra -->
+                        <button
+                            type="button"
+                            @click="detectKeyFromDom()"
+                            class="flex-1 sm:flex-none px-3.5 py-2.5 rounded-xl bg-[#12141a] hover:bg-[#181b24] border border-[#1e222c] hover:border-cyan-500/40 text-slate-300 hover:text-white font-bold text-xs uppercase tracking-wider tap-scale transition cursor-pointer flex items-center justify-center gap-1.5"
+                            title="Reconhecer e sincronizar com o tom atual da página de cifra"
+                        >
+                            <svg class="w-4 h-4 text-[#00d2ff]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                            </svg>
+                            <span>Sincronizar Tom</span>
+                        </button>
 
-                    <!-- Botão Master Play/Stop -->
-                    <button
-                        type="button"
-                        @click="togglePad()"
-                        class="flex-1 sm:flex-none px-6 py-2.5 rounded-xl font-black text-xs uppercase tracking-wider shadow-xl tap-scale transition cursor-pointer flex items-center justify-center gap-2"
-                        :class="isPlaying 
-                            ? 'bg-rose-500 hover:bg-rose-600 text-white shadow-rose-500/25 ring-2 ring-rose-400/30' 
-                            : 'bg-[#00d2ff] hover:bg-[#38bdf8] text-black shadow-cyan-500/30 ring-2 ring-cyan-300/40'"
-                    >
-                        <template x-if="isPlaying">
-                            <span class="flex items-center gap-1.5">
-                                <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>
-                                <span>Parar Pad</span>
-                            </span>
-                        </template>
-                        <template x-if="!isPlaying">
-                            <span class="flex items-center gap-1.5">
-                                <svg class="w-4 h-4 fill-current ml-0.5" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-                                <span>Iniciar Pad</span>
-                            </span>
-                        </template>
-                    </button>
+                        <!-- Botão Master Play/Stop -->
+                        <button
+                            type="button"
+                            @click="togglePad()"
+                            class="flex-1 sm:flex-none px-6 py-2.5 rounded-xl font-black text-xs uppercase tracking-wider shadow-xl tap-scale transition cursor-pointer flex items-center justify-center gap-2"
+                            :class="isPlaying 
+                                ? 'bg-rose-500 hover:bg-rose-600 text-white shadow-rose-500/25 ring-2 ring-rose-400/30' 
+                                : 'bg-[#00d2ff] hover:bg-[#38bdf8] text-black shadow-cyan-500/30 ring-2 ring-cyan-300/40'"
+                        >
+                            <template x-if="isPlaying">
+                                <span class="flex items-center gap-1.5">
+                                    <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>
+                                    <span>Parar Pad</span>
+                                </span>
+                            </template>
+                            <template x-if="!isPlaying">
+                                <span class="flex items-center gap-1.5">
+                                    <svg class="w-4 h-4 fill-current ml-0.5" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                                    <span>Iniciar Pad</span>
+                                </span>
+                            </template>
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>

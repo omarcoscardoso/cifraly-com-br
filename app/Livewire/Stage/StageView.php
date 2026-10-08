@@ -72,6 +72,7 @@ class StageView extends Component
         if ($eventSong) {
             $this->selectedEventSongId = $eventSong->id;
             $this->adHocSongId = null;
+            $this->useCapo = true;
             $this->currentKey = $eventSong->target_key ?? $eventSong->song?->original_key ?? 'C';
             $this->isDrawerOpen = false;
             $this->isAutoScrolling = false;
@@ -87,6 +88,7 @@ class StageView extends Component
         if ($song) {
             $this->selectedEventSongId = null;
             $this->adHocSongId = $song->id;
+            $this->useCapo = true;
             $this->currentKey = $song->original_key ?? 'C';
             $this->isDrawerOpen = false;
             $this->isAutoScrolling = false;
@@ -163,6 +165,13 @@ class StageView extends Component
         $selected = $this->getSelectedEventSong();
 
         return $selected?->target_key ?? $selected?->song?->original_key ?? 'C';
+    }
+
+    public function getActiveCapoFret(): ?int
+    {
+        return $this->getCurrentSongVersion()?->capo_fret
+            ?? $this->getSelectedEventSong()?->capo_fret
+            ?? $this->getCurrentSong()?->capo_fret;
     }
 
     public function toggleDrawer(): void

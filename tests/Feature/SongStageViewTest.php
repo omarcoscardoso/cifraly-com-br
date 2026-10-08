@@ -267,4 +267,61 @@ class SongStageViewTest extends TestCase
         $response->assertSee($song3StageUrl);
         $response->assertDontSee('Cifra Proibida de Outra Igreja');
     }
+
+    public function test_song_stage_view_toggles_capo_and_transposes_chords_to_non_capo_pitch(): void
+    {
+        $songWithCapo = Song::factory()->create([
+            'organization_id' => $this->organization->id,
+            'title' => 'Música com Capo',
+            'original_key' => 'C',
+            'capo_fret' => 2,
+        ]);
+
+        SongVersion::factory()->create([
+            'song_id' => $songWithCapo->id,
+            'base_key' => 'C',
+            'capo_fret' => 2,
+            'chordpro_content' => "[C]Graça [G]maravilhosa\n[Am]Deus [F]fiel",
+            'is_default' => true,
+        ]);
+
+        $component = Livewire::test(SongStageView::class, [
+            'organization' => $this->organization,
+            'song' => $songWithCapo,
+        ]);
+
+        $component->assertSet('useCapo', true)
+            ->assertSet('currentKey', 'C')
+            ->assertSeeHtml('Capo:')
+            ->assertSeeHtml('2ª casa')
+            ->assertSee('Graça');
+
+        $this->assertStringContainsString('>C</span>', $component->instance()->getFormattedChords()->toHtml());
+        $this->assertStringContainsString('>G</span>', $component->instance()->getFormattedChords()->toHtml());
+
+        // Toggle para desativar capo: sobe 2 semitons (C -> D)
+        $component->call('toggleCapo')
+            ->assertSet('useCapo', false)
+            ->assertSet('currentKey', 'D');
+
+        $this->assertStringContainsString('>D</span>', $component->instance()->getFormattedChords()->toHtml());
+        $this->assertStringContainsString('>A</span>', $component->instance()->getFormattedChords()->toHtml());
+        $this->assertStringContainsString('>Bm</span>', $component->instance()->getFormattedChords()->toHtml());
+
+        // Toggle para reativar capo: volta para C
+        $component->call('toggleCapo')
+            ->assertSet('useCapo', true)
+            ->assertSet('currentKey', 'C');
+
+        $this->assertStringContainsString('>C</span>', $component->instance()->getFormattedChords()->toHtml());
+        $this->assertStringContainsString('>G</span>', $component->instance()->getFormattedChords()->toHtml());
+
+        // Resetar tom quando o capo está desativado deve restaurar capo ativo e tom original
+        $component->call('toggleCapo')
+            ->assertSet('useCapo', false)
+            ->assertSet('currentKey', 'D')
+            ->call('resetKey')
+            ->assertSet('useCapo', true)
+            ->assertSet('currentKey', 'C');
+    }
 }

@@ -10,6 +10,8 @@ trait InteractsWithStageControls
 {
     public ?string $currentKey = null;
 
+    public bool $useCapo = true;
+
     public int $fontSize = 18;
 
     public int $scrollSpeed = 3;
@@ -19,6 +21,25 @@ trait InteractsWithStageControls
     public bool $twoColumns = false;
 
     public bool $showLyricsOnly = false;
+
+    public function toggleCapo(): void
+    {
+        $capoFret = $this->getActiveCapoFret();
+
+        if (! $capoFret) {
+            return;
+        }
+
+        $service = app(ChordTransposerService::class);
+        $preferFlats = $service->keyPrefersFlats($this->currentKey ?? 'C');
+        $this->useCapo = ! $this->useCapo;
+
+        if ($this->useCapo) {
+            $this->currentKey = $service->transposeNote($this->currentKey ?? 'C', -$capoFret, $preferFlats);
+        } else {
+            $this->currentKey = $service->transposeNote($this->currentKey ?? 'C', $capoFret, $preferFlats);
+        }
+    }
 
     public function transposeUp(): void
     {
@@ -34,6 +55,7 @@ trait InteractsWithStageControls
 
     public function resetKey(): void
     {
+        $this->useCapo = true;
         $this->currentKey = $this->getDefaultKey();
     }
 
@@ -66,4 +88,9 @@ trait InteractsWithStageControls
      * Get the default baseline key for the active song.
      */
     abstract protected function getDefaultKey(): string;
+
+    /**
+     * Get the active capo fret for the current song or version.
+     */
+    abstract public function getActiveCapoFret(): ?int;
 }

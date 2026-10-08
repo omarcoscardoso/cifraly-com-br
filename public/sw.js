@@ -3,7 +3,7 @@
  * Focus: Mobile performance, offline resilience, and future extensible sync/push capabilities.
  */
 
-const CACHE_VERSION = 'cifraly-v1.0.7';
+const CACHE_VERSION = 'cifraly-v1.0.8';
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const RUNTIME_CACHE = `${CACHE_VERSION}-runtime`;
 const STAGE_CACHE = `${CACHE_VERSION}-stage`;
@@ -21,7 +21,8 @@ const PRECACHE_ASSETS = [
     '/icons/icon-maskable-512x512.png',
     '/apple-touch-icon.png',
     '/favicon.svg',
-    '/favicon.ico'
+    '/favicon.ico',
+    '/js/tone.js'
 ];
 
 // Dynamic and mutation patterns that MUST NOT be cached (mutations, livewire RPC updates, auth, telescope)

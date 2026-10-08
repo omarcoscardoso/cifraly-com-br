@@ -40,10 +40,12 @@
                     @endphp
 
                     @if ($isFirst)
-                        {{-- Card 1 Destaque: Gradiente Azul Cifraly com cantos arredondados e sombra sutil --}}
-                        <div
-                            class="cifraly-event-card cifraly-event-card-featured"
-                            style="flex: 0 0 280px; width: 280px; min-width: 280px; max-width: 280px; scroll-snap-align: start; border-radius: 20px; padding: 18px; display: flex; flex-direction: column; justify-content: space-between; min-height: 190px; box-sizing: border-box; background: linear-gradient(135deg, #1565e0 0%, #1992fe 60%, #00b4d8 100%); color: #ffffff; box-shadow: 0 8px 24px rgba(25, 146, 254, 0.35); border: 1px solid rgba(255, 255, 255, 0.2);"
+                        {{-- Card 1 Destaque: Gradiente Azul Cifraly com cantos arredondados e sombra sutil (Card Clicável para o Setlist) --}}
+                        <a
+                            href="{{ $stageUrl ?? '#' }}"
+                            class="cifraly-event-card cifraly-event-card-featured tap-scale"
+                            style="flex: 0 0 280px; width: 280px; min-width: 280px; max-width: 280px; scroll-snap-align: start; border-radius: 20px; padding: 18px; display: flex; flex-direction: column; justify-content: space-between; min-height: 190px; box-sizing: border-box; background: linear-gradient(135deg, #1565e0 0%, #1992fe 60%, #00b4d8 100%); color: #ffffff; box-shadow: 0 8px 24px rgba(25, 146, 254, 0.35); border: 1px solid rgba(255, 255, 255, 0.2); text-decoration: none; cursor: pointer;"
+                            title="Abrir Setlist (Modo Palco) de {{ $event->title }}"
                         >
                             <div>
                                 <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 12px;">
@@ -77,23 +79,23 @@
                                 </div>
 
                                 @if ($stageUrl)
-                                    <a
-                                        href="{{ $stageUrl }}"
-                                        style="width: 34px; height: 34px; min-width: 34px; min-height: 34px; border-radius: 9999px; background: #ffffff; color: #1565e0; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2); text-decoration: none; transition: transform 0.15s ease;"
-                                        title="Abrir Modo Palco"
+                                    <span
+                                        style="width: 34px; height: 34px; min-width: 34px; min-height: 34px; border-radius: 9999px; background: #ffffff; color: #1565e0; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);"
                                     >
                                         <svg width="15" height="15" style="width: 15px; height: 15px; min-width: 15px; min-height: 15px; max-width: 15px; max-height: 15px;" stroke-width="2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
                                         </svg>
-                                    </a>
+                                    </span>
                                 @endif
                             </div>
-                        </div>
+                        </a>
                     @else
-                        {{-- Card 2+ Secundário: Fundo Clean Dark / Light com Borda e Ícone --}}
-                        <div
-                            class="cifraly-event-card cifraly-event-card-standard"
-                            style="flex: 0 0 280px; width: 280px; min-width: 280px; max-width: 280px; scroll-snap-align: start; border-radius: 20px; padding: 18px; display: flex; flex-direction: column; justify-content: space-between; min-height: 190px; box-sizing: border-box; background: #12141a; color: #f8fafc; border: 1px solid #1e222c; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);"
+                        {{-- Card 2+ Secundário: Fundo Clean Dark / Light com Borda e Ícone (Card Clicável para o Setlist) --}}
+                        <a
+                            href="{{ $stageUrl ?? '#' }}"
+                            class="cifraly-event-card cifraly-event-card-standard tap-scale"
+                            style="flex: 0 0 280px; width: 280px; min-width: 280px; max-width: 280px; scroll-snap-align: start; border-radius: 20px; padding: 18px; display: flex; flex-direction: column; justify-content: space-between; min-height: 190px; box-sizing: border-box; background: #12141a; color: #f8fafc; border: 1px solid #1e222c; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25); text-decoration: none; cursor: pointer;"
+                            title="Abrir Setlist (Modo Palco) de {{ $event->title }}"
                         >
                             <div>
                                 <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 12px;">
@@ -124,18 +126,16 @@
                                 </span>
 
                                 @if ($stageUrl)
-                                    <a
-                                        href="{{ $stageUrl }}"
-                                        style="width: 34px; height: 34px; min-width: 34px; min-height: 34px; border-radius: 9999px; background: rgba(255, 255, 255, 0.1); color: #f8fafc; display: flex; align-items: center; justify-content: center; text-decoration: none; transition: background 0.15s ease;"
-                                        title="Abrir Modo Palco"
+                                    <span
+                                        style="width: 34px; height: 34px; min-width: 34px; min-height: 34px; border-radius: 9999px; background: rgba(255, 255, 255, 0.1); color: #f8fafc; display: flex; align-items: center; justify-content: center;"
                                     >
                                         <svg width="15" height="15" style="width: 15px; height: 15px; min-width: 15px; min-height: 15px; max-width: 15px; max-height: 15px;" stroke-width="2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
                                         </svg>
-                                    </a>
+                                    </span>
                                 @endif
                             </div>
-                        </div>
+                        </a>
                     @endif
                 @endforeach
             </div>

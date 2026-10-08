@@ -47,7 +47,7 @@ class AdminPanelProvider extends PanelProvider
             ->userMenu(position: UserMenuPosition::Sidebar)
             ->profile(EditProfile::class)
             ->homeUrl(fn () => Filament::getTenant() ? route('filament.app.pages.dashboard', ['tenant' => Filament::getTenant()]) : '/app')
-            ->brandLogo(fn () => view('components.brand-logo', ['class' => 'h-full w-auto text-black']))
+            ->brandLogo(fn () => view('components.brand-logo', ['class' => 'h-full w-auto text-white', 'prefixColor' => '#ffffff']))
             ->brandLogoHeight('2.85rem')
             ->favicon(asset('favicon.svg').'?v=1.0.5')
             ->tenant(Organization::class, slugAttribute: 'slug')

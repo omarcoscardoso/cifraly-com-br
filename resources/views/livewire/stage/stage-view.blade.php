@@ -132,7 +132,12 @@
             this.$watch('fontSize', val => localStorage.setItem('cifraly_stage_font_size', val));
             this.$watch('scrollSpeed', val => localStorage.setItem('cifraly_stage_scroll_speed', val));
             this.$watch('twoColumns', val => localStorage.setItem('cifraly_stage_two_columns', val));
-            this.$watch('showLyricsOnly', val => localStorage.setItem('cifraly_stage_lyrics_only', val));
+            this.$watch('showLyricsOnly', val => {
+                localStorage.setItem('cifraly_stage_lyrics_only', val);
+                window.dispatchEvent(new CustomEvent('cifraly:stage-status', {
+                    detail: { showLyricsOnly: val, isAutoScrolling: this.isAutoScrolling }
+                }));
+            });
 
             this.requestWakeLock();
             document.addEventListener('visibilitychange', () => {
@@ -144,7 +149,34 @@
             document.addEventListener('fullscreenchange', () => {
                 this.isFullscreen = !!document.fullscreenElement;
             });
+
+            // Listeners para os botões flutuantes empilhados
+            window.addEventListener('cifraly:toggle-lyrics', (e) => {
+                if (e.detail && typeof e.detail.showLyricsOnly !== 'undefined') {
+                    this.showLyricsOnly = e.detail.showLyricsOnly;
+                } else {
+                    this.showLyricsOnly = !this.showLyricsOnly;
+                }
+            });
+
+            window.addEventListener('cifraly:toggle-scroll', (e) => {
+                if (e.detail && typeof e.detail.isAutoScrolling !== 'undefined') {
+                    this.isAutoScrolling = e.detail.isAutoScrolling;
+                } else {
+                    this.isAutoScrolling = !this.isAutoScrolling;
+                }
+            });
+
+            this.$nextTick(() => {
+                window.dispatchEvent(new CustomEvent('cifraly:stage-status', {
+                    detail: { showLyricsOnly: this.showLyricsOnly, isAutoScrolling: this.isAutoScrolling }
+                }));
+            });
+
             this.$watch('isAutoScrolling', value => {
+                window.dispatchEvent(new CustomEvent('cifraly:stage-status', {
+                    detail: { showLyricsOnly: this.showLyricsOnly, isAutoScrolling: value }
+                }));
                 if (value) {
                     this.startAutoScroll();
                 } else {
@@ -774,65 +806,8 @@
                     </div>
                 </div>
 
-                <!-- ALTAR Floating Navigation & Chorus Jump Bar (Docked Bottom) -->
-                <div class="absolute bottom-12 sm:bottom-6 inset-x-0 px-3 sm:px-8 flex items-center justify-between pointer-events-none z-20 stage-safe-bottom">
-                    
-                    <!-- Left: Quick Jump to Chorus Button & Auto-Scroll Play Button -->
-                    <div class="flex items-center gap-1.5 sm:gap-2.5 pointer-events-auto">
-                        <!-- Botão Letra (Alternar entre Cifra Completa e Apenas Letra) -->
-                        <button
-                            type="button"
-                            @click="showLyricsOnly = !showLyricsOnly"
-                            class="px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-xl border font-bold text-[10px] sm:text-[11px] uppercase tracking-wider shadow-lg backdrop-blur-md tap-scale transition-all cursor-pointer flex items-center gap-1 sm:gap-1.5"
-                            :class="showLyricsOnly ? 'bg-cyan-500/20 border-[#00d2ff] text-[#00d2ff] shadow-cyan-500/20 ring-1 ring-cyan-500/30' : 'bg-[#12141a]/95 border-[#1e222c] hover:bg-[#181b24] text-slate-300 hover:text-white'"
-                            title="Alternar entre Cifra Completa e Apenas Letra"
-                        >
-                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                            </svg>
-                            <span>Letra</span>
-                        </button>
-
-                        <!-- Botão de Iniciar/Parar Rolagem (+50% Destacado, Apenas Ícone) -->
-                        <div class="flex items-center bg-[#12141a]/95 border border-[#1e222c] rounded-2xl p-1.5 gap-1.5 sm:gap-2 shadow-2xl backdrop-blur-md">
-                            <button
-                                type="button"
-                                @click="isAutoScrolling = !isAutoScrolling"
-                                class="w-11 h-11 sm:w-12 sm:h-12 flex items-center justify-center rounded-xl transition-all tap-scale cursor-pointer shrink-0"
-                                :class="isAutoScrolling ? 'bg-[#00d2ff] text-black shadow-xl shadow-cyan-500/40 ring-2 ring-cyan-400' : 'bg-[#181b24] hover:bg-[#202531] text-white border border-[#2a2f3d] shadow-lg'"
-                                title="Ativar/Desativar Rolagem Automática (Espaço ou Duplo Toque)"
-                            >
-                                <template x-if="isAutoScrolling">
-                                    <svg class="w-5 h-5 sm:w-6 sm:h-6 fill-current" viewBox="0 0 24 24"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>
-                                </template>
-                                <template x-if="!isAutoScrolling">
-                                    <svg class="w-5 h-5 sm:w-6 sm:h-6 fill-current ml-0.5" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-                                </template>
-                            </button>
-
-                            <!-- Speed Toggle for Mobile (Tap to cycle 1x..10x) / Range Slider for Desktop -->
-                            <button
-                                type="button"
-                                @click="scrollSpeed = scrollSpeed >= 10 ? 1 : scrollSpeed + 1"
-                                class="sm:hidden text-xs text-[#71788e] hover:text-[#00d2ff] font-mono font-bold px-2.5 py-1.5 rounded-lg bg-[#08080a] tap-scale transition cursor-pointer"
-                                title="Toque para alternar velocidade (1x a 10x)"
-                            >
-                                <span x-text="scrollSpeed + 'x'">3x</span>
-                            </button>
-
-                            <div class="hidden sm:flex items-center gap-2 px-1.5">
-                                <span class="text-xs text-[#71788e] font-mono font-bold" x-text="scrollSpeed + 'x'">3x</span>
-                                <input
-                                    type="range"
-                                    min="1"
-                                    max="10"
-                                    x-model="scrollSpeed"
-                                    class="w-16 sm:w-20 h-1.5 bg-[#08080a] rounded-lg appearance-none cursor-pointer accent-[#00d2ff]"
-                                    title="Velocidade de Rolagem"
-                                />
-                            </div>
-                        </div>
-                    </div>
+                <!-- ALTAR Navigation Buttons (Docked Bottom Right) -->
+                <div class="absolute bottom-12 sm:bottom-6 right-3 sm:right-8 flex items-center pointer-events-none z-20 stage-safe-bottom">
 
                     <!-- Right: Previous & Next / Finish Navigation Buttons (-25%) -->
                     <div class="flex items-center gap-1.5 sm:gap-2.5 pointer-events-auto">

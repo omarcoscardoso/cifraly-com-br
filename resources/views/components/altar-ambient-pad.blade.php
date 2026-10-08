@@ -549,6 +549,10 @@
                 movementLevel: 0.4,
                 volumeDb: -12,
 
+                // Controles Integrados do Modo Palco (Letra e Auto-Scroll)
+                showLyricsOnly: localStorage.getItem('cifraly_stage_lyrics_only') === 'true',
+                isAutoScrolling: false,
+
                 // Drag & Drop do Botão Flutuante (FAB)
                 fabX: null,
                 fabY: null,
@@ -576,10 +580,11 @@
                     if (savedX !== null && savedY !== null) {
                         const px = parseFloat(savedX);
                         const py = parseFloat(savedY);
-                        // Garante que não está colado no topo (bug anterior gravava 8px) nem fora da tela
+                        // Garante que não está colado no topo nem fora da tela (considerando os 3 botões empilhados)
+                        const maxSafeY = window.innerHeight - 230;
                         if (!isNaN(px) && !isNaN(py) && px >= 16 && px <= window.innerWidth - 74 && py >= 60 && py <= window.innerHeight - 74) {
                             this.fabX = px;
-                            this.fabY = py;
+                            this.fabY = Math.min(py, Math.max(60, maxSafeY));
                         } else {
                             localStorage.removeItem('cifraly_pad_fab_x');
                             localStorage.removeItem('cifraly_pad_fab_y');
@@ -591,7 +596,7 @@
                     window.addEventListener('resize', () => {
                         if (this.fabX !== null && this.fabY !== null) {
                             const maxX = Math.max(16, window.innerWidth - 74);
-                            const maxY = Math.max(60, window.innerHeight - 74);
+                            const maxY = Math.max(60, window.innerHeight - 230);
                             if (this.fabX > maxX || this.fabY > maxY) {
                                 this.fabX = Math.min(this.fabX, maxX);
                                 this.fabY = Math.min(this.fabY, maxY);
@@ -611,6 +616,18 @@
                     // Listener para evento customizado de abertura externa (ex: Barra Inferior Mobile)
                     window.addEventListener('cifraly:open-pad', () => {
                         this.openModal();
+                    });
+
+                    // Listener para sincronização de estado do modo palco (Letra e Auto-Scroll)
+                    window.addEventListener('cifraly:stage-status', (e) => {
+                        if (e.detail) {
+                            if (typeof e.detail.showLyricsOnly !== 'undefined') {
+                                this.showLyricsOnly = e.detail.showLyricsOnly;
+                            }
+                            if (typeof e.detail.isAutoScrolling !== 'undefined') {
+                                this.isAutoScrolling = e.detail.isAutoScrolling;
+                            }
+                        }
                     });
 
                     // Notifica o estado inicial se já houver engine ativa
@@ -634,7 +651,7 @@
                     if (this.fabX !== null && this.fabY !== null) {
                         return `position: fixed; left: ${this.fabX}px; top: ${this.fabY}px; right: auto !important; bottom: auto !important; z-index: 50; touch-action: none;`;
                     }
-                    return 'position: fixed; bottom: calc(env(safe-area-inset-bottom, 0px) + 6.5rem); right: max(env(safe-area-inset-right, 0px), 1rem); z-index: 50; touch-action: none;';
+                    return 'position: fixed; bottom: calc(env(safe-area-inset-bottom, 0px) + 2rem); right: max(env(safe-area-inset-right, 0px), 1rem); z-index: 50; touch-action: none;';
                 },
 
                 resetFabPosition() {
@@ -722,7 +739,7 @@
                     }
 
                     const width = 64;
-                    const height = this.isPlaying ? 120 : 64;
+                    const height = this.isPlaying ? 260 : 210;
 
                     const maxX = Math.max(16, window.innerWidth - width - 16);
                     const maxY = Math.max(60, window.innerHeight - height - 16);
@@ -747,6 +764,25 @@
                     // Se foi arrasto, não dispara o toggle de play/stop
                     if (this.hasMoved) return;
                     this.togglePad();
+                },
+
+                handleScrollButtonClick() {
+                    // Se foi arrasto, não dispara o toggle de scroll
+                    if (this.hasMoved) return;
+                    this.isAutoScrolling = !this.isAutoScrolling;
+                    window.dispatchEvent(new CustomEvent('cifraly:toggle-scroll', {
+                        detail: { isAutoScrolling: this.isAutoScrolling }
+                    }));
+                },
+
+                handleLyricsButtonClick() {
+                    // Se foi arrasto, não dispara o toggle de letra
+                    if (this.hasMoved) return;
+                    this.showLyricsOnly = !this.showLyricsOnly;
+                    localStorage.setItem('cifraly_stage_lyrics_only', this.showLyricsOnly);
+                    window.dispatchEvent(new CustomEvent('cifraly:toggle-lyrics', {
+                        detail: { showLyricsOnly: this.showLyricsOnly }
+                    }));
                 },
 
                 async togglePad() {
@@ -936,18 +972,18 @@
 
 <!-- Ambient Pad Synthesizer: Root Wrapper -->
 <div x-data="altarAmbientPad()" class="select-none pointer-events-auto">
-    <!-- Draggable Floating Action Button (FAB) Container (Exclusivo para os botões do PAD) -->
+    <!-- Draggable Floating Action Buttons (FAB) Stack (PAD + Play/Scroll + Letra) -->
     @if ($showFab)
     <div
         x-ref="fabWrapper"
-        class="fixed bottom-28 sm:bottom-24 right-4 sm:right-6 z-50 flex flex-col items-end touch-none select-none"
+        class="fixed bottom-28 sm:bottom-24 right-4 sm:right-6 z-50 flex flex-col items-center gap-2 sm:gap-2.5 touch-none select-none"
         :style="fabContainerStyle"
         @pointerdown="onPointerDown($event)"
         @pointermove.window="onPointerMove($event)"
         @pointerup.window="onPointerUp($event)"
         @pointercancel.window="onPointerUp($event)"
     >
-        <!-- Botão de Configurações (Engrenagem) - Aparece acima do PAD quando ativo -->
+        <!-- 1. Botão de Configurações (Engrenagem) - Aparece acima do PAD quando ativo -->
         <button
             type="button"
             x-show="isPlaying"
@@ -960,7 +996,7 @@
             x-transition:leave-end="opacity-0 scale-75 -translate-y-2"
             @click.stop="openModal()"
             data-no-drag="true"
-            class="mb-2 w-10 h-10 rounded-xl bg-[#12141a]/95 hover:bg-[#1c202d] border border-cyan-500/40 text-cyan-300 hover:text-white flex items-center justify-center shadow-lg shadow-cyan-500/10 tap-scale transition-all cursor-pointer backdrop-blur-md shrink-0"
+            class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-[#12141a]/95 hover:bg-[#1c202d] border border-cyan-500/40 text-cyan-300 hover:text-white flex items-center justify-center shadow-lg shadow-cyan-500/10 tap-scale transition-all cursor-pointer backdrop-blur-md shrink-0"
             title="Abrir configurações completas do Pad (Overlay)"
             aria-label="Configurações do Ambient Pad"
         >
@@ -970,9 +1006,9 @@
             </svg>
         </button>
 
-        <!-- Botão Principal do PAD (Quadrado com Cantos Arredondados, Mobile-First, Arrastável) -->
+        <!-- 2. Botão Principal do PAD (Quadrado com Cantos Arredondados, Mobile-First, Arrastável) -->
         <div class="relative">
-            <!-- Aura pulsante / breathing quando ativo -->
+            <!-- Aura pulsante quando ativo -->
             <template x-if="isPlaying">
                 <span class="absolute -inset-1.5 rounded-2xl bg-gradient-to-r from-fuchsia-500 via-indigo-500 to-cyan-400 opacity-70 blur-md animate-pulse pointer-events-none"></span>
             </template>
@@ -1030,6 +1066,113 @@
                 </div>
             </button>
         </div>
+
+        <!-- 3. Botão PLAY / AUTO-SCROLL (Mesmo Layout e Tamanho, Apenas Ícone Play/Pause) -->
+        <div class="relative">
+            <!-- Aura pulsante quando rolando -->
+            <template x-if="isAutoScrolling">
+                <span class="absolute -inset-1.5 rounded-2xl bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-400 opacity-70 blur-md animate-pulse pointer-events-none"></span>
+            </template>
+
+            <button
+                type="button"
+                @click="handleScrollButtonClick()"
+                class="relative w-14 h-14 sm:w-16 sm:h-16 rounded-2xl flex flex-col items-center justify-center p-1.5 shadow-2xl transition-all duration-300 tap-scale cursor-pointer group shrink-0"
+                style="min-width: 3.5rem; min-height: 3.5rem;"
+                :class="isAutoScrolling 
+                    ? 'bg-gradient-to-br from-emerald-600 via-teal-600 to-cyan-500 text-white border border-white/40 shadow-emerald-500/50 scale-105 ring-2 ring-white/30' 
+                    : 'bg-[#12141a]/95 hover:bg-[#181b24] border border-[#2a2f3d] hover:border-emerald-500/50 text-slate-300 hover:text-white shadow-black/60 backdrop-blur-md'"
+                :title="isAutoScrolling ? 'Rolagem Automática ATIVA (Toque para Pausar | Arraste para Mover)' : 'Iniciar Rolagem Automática (Arraste para Mover)'"
+                aria-label="Rolagem Automática"
+            >
+                <!-- Topo: Label SCROLL -->
+                <div class="flex items-center gap-1 leading-none pointer-events-none">
+                    <svg class="w-2.5 h-2.5 transition" :class="isAutoScrolling ? 'text-emerald-200' : 'text-[#71788e] group-hover:text-slate-400'" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                    </svg>
+                    <span 
+                        class="text-[8px] sm:text-[9px] font-black uppercase tracking-wider transition"
+                        :class="isAutoScrolling ? 'text-emerald-200 font-bold' : 'text-[#71788e] group-hover:text-slate-300'"
+                    >
+                        SCROLL
+                    </span>
+                </div>
+
+                <!-- Centro: Ícone Play (triângulo) ou Pause (barras) -->
+                <div class="mt-0.5 pointer-events-none flex items-center justify-center">
+                    <template x-if="!isAutoScrolling">
+                        <svg class="w-6 h-6 sm:w-7 sm:h-7 fill-current ml-0.5 text-slate-200 group-hover:text-emerald-300 transition-colors" viewBox="0 0 24 24">
+                            <path d="M8 5v14l11-7z"/>
+                        </svg>
+                    </template>
+                    <template x-if="isAutoScrolling">
+                        <svg class="w-6 h-6 sm:w-7 sm:h-7 fill-current text-white" viewBox="0 0 24 24">
+                            <rect x="6" y="5" width="4" height="14" rx="1"/>
+                            <rect x="14" y="5" width="4" height="14" rx="1"/>
+                        </svg>
+                    </template>
+                </div>
+
+                <!-- Rodapé: Led de Status -->
+                <div class="flex items-center gap-1 mt-0.5 pointer-events-none">
+                    <span 
+                        class="w-1.5 h-1.5 rounded-full transition-all duration-300"
+                        :class="isAutoScrolling 
+                            ? 'bg-emerald-300 shadow-[0_0_8px_#34d399] scale-125 animate-pulse' 
+                            : 'bg-slate-600'"
+                    ></span>
+                </div>
+            </button>
+        </div>
+
+        <!-- 4. Botão LETRA (Mesmo Layout e Tamanho, Letra L Grande no Centro) -->
+        <div class="relative">
+            <!-- Aura pulsante quando modo letra ativo -->
+            <template x-if="showLyricsOnly">
+                <span class="absolute -inset-1.5 rounded-2xl bg-gradient-to-r from-cyan-500 via-sky-500 to-indigo-500 opacity-70 blur-md animate-pulse pointer-events-none"></span>
+            </template>
+
+            <button
+                type="button"
+                @click="handleLyricsButtonClick()"
+                class="relative w-14 h-14 sm:w-16 sm:h-16 rounded-2xl flex flex-col items-center justify-center p-1.5 shadow-2xl transition-all duration-300 tap-scale cursor-pointer group shrink-0"
+                style="min-width: 3.5rem; min-height: 3.5rem;"
+                :class="showLyricsOnly 
+                    ? 'bg-gradient-to-br from-cyan-600 via-sky-600 to-indigo-600 text-white border border-white/40 shadow-cyan-500/50 scale-105 ring-2 ring-white/30' 
+                    : 'bg-[#12141a]/95 hover:bg-[#181b24] border border-[#2a2f3d] hover:border-cyan-500/50 text-slate-300 hover:text-white shadow-black/60 backdrop-blur-md'"
+                :title="showLyricsOnly ? 'Modo Apenas Letra ATIVO (Toque para Cifra Completa | Arraste para Mover)' : 'Alternar para Apenas Letra (Arraste para Mover)'"
+                aria-label="Alternar Letra / Cifra"
+            >
+                <!-- Topo: Label LETRA -->
+                <div class="flex items-center gap-1 leading-none pointer-events-none">
+                    <svg class="w-2.5 h-2.5 transition" :class="showLyricsOnly ? 'text-cyan-200' : 'text-[#71788e] group-hover:text-slate-400'" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    <span 
+                        class="text-[8px] sm:text-[9px] font-black uppercase tracking-wider transition"
+                        :class="showLyricsOnly ? 'text-cyan-200 font-bold' : 'text-[#71788e] group-hover:text-slate-300'"
+                    >
+                        LETRA
+                    </span>
+                </div>
+
+                <!-- Centro: Letra 'L' Marcante -->
+                <span 
+                    class="text-xl sm:text-2xl font-black font-mono leading-none tracking-tight transition-transform duration-200 mt-0.5 pointer-events-none"
+                    :class="showLyricsOnly ? 'text-white drop-shadow-md scale-110' : 'text-slate-200 group-hover:text-white'"
+                >L</span>
+
+                <!-- Rodapé: Led de Status -->
+                <div class="flex items-center gap-1 mt-0.5 pointer-events-none">
+                    <span 
+                        class="w-1.5 h-1.5 rounded-full transition-all duration-300"
+                        :class="showLyricsOnly 
+                            ? 'bg-cyan-300 shadow-[0_0_8px_#00d2ff] scale-125' 
+                            : 'bg-slate-600'"
+                    ></span>
+                </div>
+            </button>
+        </div>
     </div>
     @endif
 
@@ -1067,7 +1210,7 @@
                             <span>AMBIENT PAD</span>
                             <span style="font-size: 10px; font-family: monospace; padding: 2px 8px; border-radius: 9999px; background: rgba(0, 210, 255, 0.2); color: #00d2ff; font-weight: 700; border: 1px solid rgba(0, 210, 255, 0.3); text-transform: uppercase;">Synth</span>
                         </h2>
-                        <p style="font-size: 0.75rem; color: #71788e; margin: 2px 0 0 0;">Sintetizador worship contínuo para atmosfera de louvor</p>
+                        <p style="font-size: 0.75rem; color: #71788e; margin: 2px 0 0 0;">Atmosfera de louvor</p>
                     </div>
                 </div>
 

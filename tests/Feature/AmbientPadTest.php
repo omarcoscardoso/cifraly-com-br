@@ -173,4 +173,23 @@ class AmbientPadTest extends TestCase
         $response->assertSee('altarAmbientPad()', false);
         $response->assertSee('PAD', false);
     }
+
+    public function test_ambient_pad_fab_stack_includes_stacked_scroll_play_and_lyrics_l_buttons(): void
+    {
+        $view = view('components.altar-ambient-pad')->render();
+
+        // Botão PAD presente
+        $this->assertStringContainsString('handleMainButtonClick()', $view);
+
+        // Botão Play / Auto-Scroll presente no stack
+        $this->assertStringContainsString('handleScrollButtonClick()', $view);
+        $this->assertStringContainsString('SCROLL', $view);
+        $this->assertStringContainsString('isAutoScrolling', $view);
+
+        // Botão Letra com "L" presente no stack
+        $this->assertStringContainsString('handleLyricsButtonClick()', $view);
+        $this->assertStringContainsString('LETRA', $view);
+        $this->assertStringContainsString('>L</span>', $view);
+        $this->assertStringContainsString('showLyricsOnly', $view);
+    }
 }

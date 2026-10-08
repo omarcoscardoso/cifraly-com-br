@@ -54,7 +54,7 @@ class PwaPerformanceTest extends TestCase
         $this->assertStringNotContainsString('/livewire(\\/|$)/', $content);
 
         // Versão do cache atualizada
-        $this->assertStringContainsString('cifraly-v1.0.7', $content);
+        $this->assertStringContainsString('cifraly-v1.0.8', $content);
     }
 
     public function test_stage_views_use_request_animation_frame_for_smooth_auto_scroll(): void

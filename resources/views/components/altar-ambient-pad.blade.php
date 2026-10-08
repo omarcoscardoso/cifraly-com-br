@@ -330,7 +330,8 @@
 <!-- Ambient Pad Synthesizer: Floating Action Button (FAB) -->
 <div
     x-data="altarAmbientPad()"
-    class="fixed bottom-28 sm:bottom-24 right-4 sm:right-6 z-40 select-none pointer-events-auto"
+    class="fixed bottom-28 sm:bottom-24 right-4 sm:right-6 z-50 select-none pointer-events-auto"
+    style="position: fixed; bottom: calc(env(safe-area-inset-bottom, 0px) + 6.5rem); right: max(env(safe-area-inset-right, 0px), 1rem); z-index: 50;"
 >
     <!-- Aura pulsante / breathing quando ativo -->
     <template x-if="isPlaying">
@@ -342,6 +343,7 @@
         type="button"
         @click="togglePad()"
         class="relative w-14 h-14 sm:w-16 sm:h-16 rounded-2xl flex flex-col items-center justify-center p-1.5 shadow-2xl transition-all duration-300 tap-scale cursor-pointer group"
+        style="min-width: 3.5rem; min-height: 3.5rem;"
         :class="isPlaying 
             ? 'bg-gradient-to-br from-fuchsia-600 via-indigo-600 to-cyan-500 text-white border border-white/40 shadow-indigo-500/50 scale-105 ring-2 ring-white/30' 
             : 'bg-[#12141a]/95 hover:bg-[#181b24] border border-[#2a2f3d] hover:border-indigo-500/50 text-slate-300 hover:text-white shadow-black/60 backdrop-blur-md'"
@@ -377,7 +379,7 @@
             class="text-base sm:text-lg font-black font-mono leading-none tracking-tight transition-transform duration-200 mt-0.5"
             :class="isPlaying ? 'text-white drop-shadow-md scale-110' : 'text-slate-200 group-hover:text-white'"
             x-text="currentKey"
-        ></span>
+        >C</span>
 
         <!-- Rodapé: Led de Status -->
         <div class="flex items-center gap-1 mt-0.5">

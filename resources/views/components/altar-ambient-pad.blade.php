@@ -322,21 +322,20 @@
         }
 
         /**
-         * Recria o AudioContext com buffer estendido (latencyHint 'playback') e lookahead amplo (0.25s)
-         * para evitar underruns que causam som picotado, travado e com chiado em tela cheia e smartphones.
-         * Precisa ocorrer antes de qualquer nó de áudio ser criado.
+         * Ajusta o lookAhead do AudioContext existente do Tone.js para buffer amplo (0.25s),
+         * prevenindo buffer underrun sem recriar o AudioContext (o que causaria InvalidAccessError
+         * pois Tone.Destination pertence ao contexto nativo original do Tone.js).
          */
         configureAudioContext() {
             if (window.AltarAmbientPadContextConfigured) return;
             window.AltarAmbientPadContextConfigured = true;
 
             try {
-                Tone.setContext(new Tone.Context({
-                    latencyHint: 'playback',
-                    lookAhead: 0.25,
-                }));
+                if (typeof Tone !== 'undefined' && Tone.context) {
+                    Tone.context.lookAhead = 0.25;
+                }
             } catch (e) {
-                console.warn('[AmbientPad] Não foi possível configurar o AudioContext otimizado:', e);
+                console.warn('[AmbientPad] Não foi possível ajustar lookAhead:', e);
             }
         }
 
@@ -347,7 +346,7 @@
             const resumeIfPlaying = async () => {
                 try {
                     if (this.isPlaying && typeof Tone !== 'undefined' && Tone.context && Tone.context.state === 'suspended') {
-                        await Tone.start();
+                        await Tone.context.resume();
                     }
                 } catch (e) {}
             };
@@ -438,19 +437,29 @@
                 wet: 0.5
             });
 
-            // 4. Espacialidade: PingPongDelay (4n, wet 0.4) em cadeia com Reverb massivo (12s, wet 0.7)
+            // 4. Espacialidade: PingPongDelay em cadeia com Reverb
             this.delay = new Tone.PingPongDelay({
                 delayTime: '4n',
-                feedback: 0.25,
+                feedback: this.isLowPower ? 0.2 : 0.25,
                 wet: 0.4
             });
 
-            // Convolução otimizada (decay 3.5s em mobile, 5s no desktop) para máxima ambiência com zero travamentos
-            this.reverb = new Tone.Reverb({
-                decay: this.isLowPower ? 3.5 : 5,
-                preDelay: 0.05,
-                wet: 0.7
-            });
+            // Reverb: Em dispositivos móveis / tablets (isLowPower), usamos Tone.Freeverb (Schroeder/Moorer algorítmico).
+            // O Freeverb utiliza filtros biquad nativos e linhas de atraso com custo de CPU < 1%,
+            // eliminando completamente travamentos, chiados e picotamentos de ConvolverNode.
+            if (this.isLowPower && typeof Tone.Freeverb !== 'undefined') {
+                this.reverb = new Tone.Freeverb({
+                    roomSize: 0.88,
+                    dampening: 2500,
+                    wet: 0.7
+                });
+            } else {
+                this.reverb = new Tone.Reverb({
+                    decay: 5,
+                    preDelay: 0.05,
+                    wet: 0.7
+                });
+            }
 
             // 5. Volume Master: Roteado para Tone.Destination com volume inicial -12dB
             this.volume = new Tone.Volume(-12);
@@ -487,8 +496,7 @@
                 }
             } catch (e) {}
 
-            // No Tone.js v14, Reverb inicia geração automaticamente no construtor.
-            // Aguardamos reverb.ready com timeout defensivo de segurança
+            // Aguardamos reverb.ready se existir (apenas Tone.Reverb convolutivo no desktop)
             try {
                 if (this.reverb && this.reverb.ready) {
                     await Promise.race([

@@ -6,7 +6,6 @@
         scrollSpeed: 3,
         showLyricsOnly: false,
         twoColumns: false,
-        isFullscreen: false,
         isDrawerOpen: false,
         fontSize: parseInt(localStorage.getItem('cifraly_stage_font_size') || '18', 10),
         wakeLock: null,
@@ -96,13 +95,6 @@
                 }
             }
         },
-        toggleFullscreen() {
-            if (!document.fullscreenElement) {
-                document.documentElement.requestFullscreen().then(() => this.isFullscreen = true).catch(() => {});
-            } else {
-                document.exitFullscreen().then(() => this.isFullscreen = false).catch(() => {});
-            }
-        },
         init() {
             const savedSize = localStorage.getItem('cifraly_stage_font_size');
             if (savedSize) {
@@ -136,10 +128,6 @@
                 if (document.visibilityState === 'visible') {
                     this.requestWakeLock();
                 }
-            });
-
-            document.addEventListener('fullscreenchange', () => {
-                this.isFullscreen = !!document.fullscreenElement;
             });
 
             // Listeners para os botões flutuantes empilhados
@@ -383,29 +371,18 @@
             </button>
         </div>
 
-        <!-- Right: Wake Lock & Fullscreen (Metrônomo fica no stack flutuante) -->
+        <!-- Right: Wake Lock (Metrônomo fica no stack flutuante) -->
         <div class="flex items-center gap-2 shrink-0">
             <!-- Wake Lock Active Badge -->
             <div 
                 x-show="wakeLockActive" 
                 x-cloak
-                class="hidden lg:flex items-center gap-1.5 px-2.5 py-1.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/25 text-emerald-400 text-[11px] font-mono font-bold select-none"
+                class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/25 text-emerald-400 text-[11px] font-mono font-bold select-none"
                 title="Tela Ativa: Seu dispositivo permanecerá ligado durante o louvor"
             >
                 <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_6px_#34d399]"></span>
-                <span class="hidden xl:inline">Tela Ativa</span>
+                <span class="hidden sm:inline">Tela Ativa</span>
             </div>
-
-            <!-- Fullscreen Toggle -->
-            <button
-                @click="toggleFullscreen"
-                class="w-10 h-10 rounded-full bg-[#12141a] hover:bg-[#181b24] border border-[#1e222c] text-slate-400 hover:text-white flex items-center justify-center tap-scale transition cursor-pointer"
-                title="Tela Cheia"
-            >
-                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-5h-4m4 0v4m0 0l-5-5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
-                </svg>
-            </button>
         </div>
     </header>
 

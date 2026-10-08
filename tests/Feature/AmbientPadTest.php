@@ -95,8 +95,9 @@ class AmbientPadTest extends TestCase
         $this->assertStringContainsString('Tone.PingPongDelay', $view);
         $this->assertStringContainsString("'4n'", $view);
         $this->assertStringContainsString('wet: 0.4', $view);
+        $this->assertStringContainsString('Tone.Freeverb', $view);
         $this->assertStringContainsString('Tone.Reverb', $view);
-        $this->assertStringContainsString('decay: this.isLowPower ? 3.5 : 5', $view);
+        $this->assertStringContainsString('decay: 5', $view);
         $this->assertStringContainsString('wet: 0.7', $view);
 
         // 7. Volume Master + Limiter
@@ -199,8 +200,9 @@ class AmbientPadTest extends TestCase
         $view = view('components.altar-ambient-pad')->render();
 
         $this->assertStringContainsString('detectLowPowerDevice', $view);
-        $this->assertStringContainsString("latencyHint: 'playback'", $view);
-        $this->assertStringContainsString('Tone.setContext', $view);
+        $this->assertStringContainsString('lookAhead = 0.25', $view);
+        $this->assertStringContainsString('Tone.Freeverb', $view);
+        $this->assertStringNotContainsString('Tone.setContext', $view);
         $this->assertStringContainsString('this.synth.maxPolyphony = this.isLowPower ? 8 : 12', $view);
         $this->assertStringContainsString('canvas.width = 320', $view);
         $this->assertStringContainsString('setupAudioRecovery', $view);
@@ -238,5 +240,7 @@ class AmbientPadTest extends TestCase
         $response->assertSee('data-time-signature="6/8"', false);
         $response->assertDontSee('Abrir Metrônomo ALTAR', false);
         $response->assertDontSee('openMetronome(', false);
+        $response->assertDontSee('toggleFullscreen', false);
+        $response->assertDontSee('title="Tela Cheia"', false);
     }
 }

@@ -359,13 +359,36 @@
                 availableNotes: ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'],
 
                 init() {
-                    // Carrega posição prévia salva do botão arrastável
+                    // Carrega posição prévia salva do botão arrastável com validação estrita de viewport
                     const savedX = localStorage.getItem('cifraly_pad_fab_x');
                     const savedY = localStorage.getItem('cifraly_pad_fab_y');
                     if (savedX !== null && savedY !== null) {
-                        this.fabX = parseFloat(savedX);
-                        this.fabY = parseFloat(savedY);
+                        const px = parseFloat(savedX);
+                        const py = parseFloat(savedY);
+                        // Garante que não está colado no topo (bug anterior gravava 8px) nem fora da tela
+                        if (!isNaN(px) && !isNaN(py) && px >= 16 && px <= window.innerWidth - 74 && py >= 60 && py <= window.innerHeight - 74) {
+                            this.fabX = px;
+                            this.fabY = py;
+                        } else {
+                            localStorage.removeItem('cifraly_pad_fab_x');
+                            localStorage.removeItem('cifraly_pad_fab_y');
+                            this.fabX = null;
+                            this.fabY = null;
+                        }
                     }
+
+                    window.addEventListener('resize', () => {
+                        if (this.fabX !== null && this.fabY !== null) {
+                            const maxX = Math.max(16, window.innerWidth - 74);
+                            const maxY = Math.max(60, window.innerHeight - 74);
+                            if (this.fabX > maxX || this.fabY > maxY) {
+                                this.fabX = Math.min(this.fabX, maxX);
+                                this.fabY = Math.min(this.fabY, maxY);
+                                localStorage.setItem('cifraly_pad_fab_x', this.fabX.toString());
+                                localStorage.setItem('cifraly_pad_fab_y', this.fabY.toString());
+                            }
+                        }
+                    });
 
                     this.detectKeyFromDom();
 
@@ -385,9 +408,16 @@
 
                 get fabContainerStyle() {
                     if (this.fabX !== null && this.fabY !== null) {
-                        return `position: fixed; left: ${this.fabX}px; top: ${this.fabY}px; z-index: 50; touch-action: none;`;
+                        return `position: fixed; left: ${this.fabX}px; top: ${this.fabY}px; right: auto !important; bottom: auto !important; z-index: 50; touch-action: none;`;
                     }
                     return 'position: fixed; bottom: calc(env(safe-area-inset-bottom, 0px) + 6.5rem); right: max(env(safe-area-inset-right, 0px), 1rem); z-index: 50; touch-action: none;';
+                },
+
+                resetFabPosition() {
+                    localStorage.removeItem('cifraly_pad_fab_x');
+                    localStorage.removeItem('cifraly_pad_fab_y');
+                    this.fabX = null;
+                    this.fabY = null;
                 },
 
                 setupKeyObserver() {
@@ -444,7 +474,7 @@
 
                 // --- Drag and Drop Logic (Mobile + Desktop) ---
                 onPointerDown(e) {
-                    if (e.target.closest('button[data-no-drag]')) return;
+                    if (e.target.closest('button[data-no-drag]') || this.isModalOpen) return;
 
                     this.isDragging = true;
                     this.hasMoved = false;
@@ -460,7 +490,7 @@
                 },
 
                 onPointerMove(e) {
-                    if (!this.isDragging) return;
+                    if (!this.isDragging || this.isModalOpen) return;
 
                     const dx = e.clientX - this.dragStartX;
                     const dy = e.clientY - this.dragStartY;
@@ -469,15 +499,14 @@
                         this.hasMoved = true;
                     }
 
-                    const el = this.$refs.fabWrapper;
-                    const width = el ? el.offsetWidth : 64;
-                    const height = el ? el.offsetHeight : 64;
+                    const width = 64;
+                    const height = this.isPlaying ? 120 : 64;
 
-                    const maxX = window.innerWidth - width - 8;
-                    const maxY = window.innerHeight - height - 8;
+                    const maxX = Math.max(16, window.innerWidth - width - 16);
+                    const maxY = Math.max(60, window.innerHeight - height - 16);
 
-                    this.fabX = Math.max(8, Math.min(maxX, this.initialElemX + dx));
-                    this.fabY = Math.max(8, Math.min(maxY, this.initialElemY + dy));
+                    this.fabX = Math.max(16, Math.min(maxX, this.initialElemX + dx));
+                    this.fabY = Math.max(60, Math.min(maxY, this.initialElemY + dy));
                 },
 
                 onPointerUp(e) {
@@ -485,8 +514,10 @@
                     this.isDragging = false;
 
                     if (this.hasMoved && this.fabX !== null && this.fabY !== null) {
-                        localStorage.setItem('cifraly_pad_fab_x', this.fabX.toString());
-                        localStorage.setItem('cifraly_pad_fab_y', this.fabY.toString());
+                        if (this.fabX >= 16 && this.fabX <= window.innerWidth - 74 && this.fabY >= 60 && this.fabY <= window.innerHeight - 74) {
+                            localStorage.setItem('cifraly_pad_fab_x', this.fabX.toString());
+                            localStorage.setItem('cifraly_pad_fab_y', this.fabY.toString());
+                        }
                     }
                 },
 
@@ -657,102 +688,104 @@
     }
 </script>
 
-<!-- Ambient Pad Synthesizer: Draggable Floating Action Button (FAB) -->
-<div
-    x-data="altarAmbientPad()"
-    x-ref="fabWrapper"
-    class="fixed bottom-28 sm:bottom-24 right-4 sm:right-6 z-50 select-none pointer-events-auto flex flex-col items-end"
-    :style="fabContainerStyle"
-    @pointerdown="onPointerDown($event)"
-    @pointermove.window="onPointerMove($event)"
-    @pointerup.window="onPointerUp($event)"
-    @pointercancel.window="onPointerUp($event)"
->
-    <!-- Botão de Configurações (Engrenagem) - Aparece acima do PAD quando ativo -->
-    <button
-        type="button"
-        x-show="isPlaying"
-        x-cloak
-        x-transition:enter="transition ease-out duration-200 transform"
-        x-transition:enter-start="opacity-0 scale-75 -translate-y-2"
-        x-transition:enter-end="opacity-100 scale-100 translate-y-0"
-        x-transition:leave="transition ease-in duration-150 transform"
-        x-transition:leave-start="opacity-100 scale-100 translate-y-0"
-        x-transition:leave-end="opacity-0 scale-75 -translate-y-2"
-        @click.stop="openModal()"
-        data-no-drag="true"
-        class="mb-2 w-10 h-10 rounded-xl bg-[#12141a]/95 hover:bg-[#1c202d] border border-cyan-500/40 text-cyan-300 hover:text-white flex items-center justify-center shadow-lg shadow-cyan-500/10 tap-scale transition-all cursor-pointer backdrop-blur-md shrink-0"
-        title="Abrir configurações completas do Pad (Overlay)"
-        aria-label="Configurações do Ambient Pad"
+<!-- Ambient Pad Synthesizer: Root Wrapper -->
+<div x-data="altarAmbientPad()" class="select-none pointer-events-auto">
+    <!-- Draggable Floating Action Button (FAB) Container (Exclusivo para os botões do PAD) -->
+    <div
+        x-ref="fabWrapper"
+        class="fixed bottom-28 sm:bottom-24 right-4 sm:right-6 z-50 flex flex-col items-end touch-none select-none"
+        :style="fabContainerStyle"
+        @pointerdown="onPointerDown($event)"
+        @pointermove.window="onPointerMove($event)"
+        @pointerup.window="onPointerUp($event)"
+        @pointercancel.window="onPointerUp($event)"
     >
-        <svg class="w-5 h-5 animate-[spin_10s_linear_infinite]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-        </svg>
-    </button>
-
-    <!-- Botão Principal do PAD (Quadrado com Cantos Arredondados, Mobile-First, Arrastável) -->
-    <div class="relative">
-        <!-- Aura pulsante / breathing quando ativo -->
-        <template x-if="isPlaying">
-            <span class="absolute -inset-1.5 rounded-2xl bg-gradient-to-r from-fuchsia-500 via-indigo-500 to-cyan-400 opacity-70 blur-md animate-pulse pointer-events-none"></span>
-        </template>
-
+        <!-- Botão de Configurações (Engrenagem) - Aparece acima do PAD quando ativo -->
         <button
             type="button"
-            @click="handleMainButtonClick()"
-            class="relative w-14 h-14 sm:w-16 sm:h-16 rounded-2xl flex flex-col items-center justify-center p-1.5 shadow-2xl transition-all duration-300 tap-scale cursor-pointer group shrink-0"
-            style="min-width: 3.5rem; min-height: 3.5rem;"
-            :class="isPlaying 
-                ? 'bg-gradient-to-br from-fuchsia-600 via-indigo-600 to-cyan-500 text-white border border-white/40 shadow-indigo-500/50 scale-105 ring-2 ring-white/30' 
-                : 'bg-[#12141a]/95 hover:bg-[#181b24] border border-[#2a2f3d] hover:border-indigo-500/50 text-slate-300 hover:text-white shadow-black/60 backdrop-blur-md'"
-            :title="isPlaying ? 'Pad Contínuo ATIVO em ' + currentKey + ' (Toque para Parar | Arraste para Mover)' : 'Ativar Pad Contínuo em ' + currentKey + ' (Arraste para Mover)'"
-            aria-label="Ambient Pad Synthesizer"
+            x-show="isPlaying"
+            x-cloak
+            x-transition:enter="transition ease-out duration-200 transform"
+            x-transition:enter-start="opacity-0 scale-75 -translate-y-2"
+            x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+            x-transition:leave="transition ease-in duration-150 transform"
+            x-transition:leave-start="opacity-100 scale-100 translate-y-0"
+            x-transition:leave-end="opacity-0 scale-75 -translate-y-2"
+            @click.stop="openModal()"
+            data-no-drag="true"
+            class="mb-2 w-10 h-10 rounded-xl bg-[#12141a]/95 hover:bg-[#1c202d] border border-cyan-500/40 text-cyan-300 hover:text-white flex items-center justify-center shadow-lg shadow-cyan-500/10 tap-scale transition-all cursor-pointer backdrop-blur-md shrink-0"
+            title="Abrir configurações completas do Pad (Overlay)"
+            aria-label="Configurações do Ambient Pad"
         >
-            <!-- Topo: Label e Ícone de Áudio -->
-            <div class="flex items-center gap-1 leading-none pointer-events-none">
-                <template x-if="isPlaying">
-                    <!-- Barras de onda sonora animadas -->
-                    <span class="flex items-center gap-0.5 text-cyan-200">
-                        <span class="w-0.5 h-2 bg-current rounded-full animate-pulse"></span>
-                        <span class="w-0.5 h-3 bg-current rounded-full animate-pulse" style="animation-delay: 150ms;"></span>
-                        <span class="w-0.5 h-2 bg-current rounded-full animate-pulse" style="animation-delay: 300ms;"></span>
-                    </span>
-                </template>
-                <template x-if="!isPlaying">
-                    <!-- Ícone estático de onda sonora -->
-                    <svg class="w-2.5 h-2.5 text-[#71788e] group-hover:text-slate-400 transition" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
-                    </svg>
-                </template>
-                <span 
-                    class="text-[8px] sm:text-[9px] font-black uppercase tracking-wider transition"
-                    :class="isPlaying ? 'text-cyan-200 font-bold' : 'text-[#71788e] group-hover:text-slate-300'"
-                >
-                    PAD
-                </span>
-            </div>
-
-            <!-- Centro: Tom da Cifra em Destaque -->
-            <span 
-                class="text-base sm:text-lg font-black font-mono leading-none tracking-tight transition-transform duration-200 mt-0.5 pointer-events-none"
-                :class="isPlaying ? 'text-white drop-shadow-md scale-110' : 'text-slate-200 group-hover:text-white'"
-                x-text="currentKey"
-            >C</span>
-
-            <!-- Rodapé: Led de Status -->
-            <div class="flex items-center gap-1 mt-0.5 pointer-events-none">
-                <span 
-                    class="w-1.5 h-1.5 rounded-full transition-all duration-300"
-                    :class="isPlaying 
-                        ? 'bg-emerald-300 shadow-[0_0_8px_#34d399] scale-125' 
-                        : 'bg-slate-600'"
-                ></span>
-            </div>
+            <svg class="w-5 h-5 animate-[spin_10s_linear_infinite]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
         </button>
+
+        <!-- Botão Principal do PAD (Quadrado com Cantos Arredondados, Mobile-First, Arrastável) -->
+        <div class="relative">
+            <!-- Aura pulsante / breathing quando ativo -->
+            <template x-if="isPlaying">
+                <span class="absolute -inset-1.5 rounded-2xl bg-gradient-to-r from-fuchsia-500 via-indigo-500 to-cyan-400 opacity-70 blur-md animate-pulse pointer-events-none"></span>
+            </template>
+
+            <button
+                type="button"
+                @click="handleMainButtonClick()"
+                class="relative w-14 h-14 sm:w-16 sm:h-16 rounded-2xl flex flex-col items-center justify-center p-1.5 shadow-2xl transition-all duration-300 tap-scale cursor-pointer group shrink-0"
+                style="min-width: 3.5rem; min-height: 3.5rem;"
+                :class="isPlaying 
+                    ? 'bg-gradient-to-br from-fuchsia-600 via-indigo-600 to-cyan-500 text-white border border-white/40 shadow-indigo-500/50 scale-105 ring-2 ring-white/30' 
+                    : 'bg-[#12141a]/95 hover:bg-[#181b24] border border-[#2a2f3d] hover:border-indigo-500/50 text-slate-300 hover:text-white shadow-black/60 backdrop-blur-md'"
+                :title="isPlaying ? 'Pad Contínuo ATIVO em ' + currentKey + ' (Toque para Parar | Arraste para Mover)' : 'Ativar Pad Contínuo em ' + currentKey + ' (Arraste para Mover)'"
+                aria-label="Ambient Pad Synthesizer"
+            >
+                <!-- Topo: Label e Ícone de Áudio -->
+                <div class="flex items-center gap-1 leading-none pointer-events-none">
+                    <template x-if="isPlaying">
+                        <!-- Barras de onda sonora animadas -->
+                        <span class="flex items-center gap-0.5 text-cyan-200">
+                            <span class="w-0.5 h-2 bg-current rounded-full animate-pulse"></span>
+                            <span class="w-0.5 h-3 bg-current rounded-full animate-pulse" style="animation-delay: 150ms;"></span>
+                            <span class="w-0.5 h-2 bg-current rounded-full animate-pulse" style="animation-delay: 300ms;"></span>
+                        </span>
+                    </template>
+                    <template x-if="!isPlaying">
+                        <!-- Ícone estático de onda sonora -->
+                        <svg class="w-2.5 h-2.5 text-[#71788e] group-hover:text-slate-400 transition" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
+                        </svg>
+                    </template>
+                    <span 
+                        class="text-[8px] sm:text-[9px] font-black uppercase tracking-wider transition"
+                        :class="isPlaying ? 'text-cyan-200 font-bold' : 'text-[#71788e] group-hover:text-slate-300'"
+                    >
+                        PAD
+                    </span>
+                </div>
+
+                <!-- Centro: Tom da Cifra em Destaque -->
+                <span 
+                    class="text-base sm:text-lg font-black font-mono leading-none tracking-tight transition-transform duration-200 mt-0.5 pointer-events-none"
+                    :class="isPlaying ? 'text-white drop-shadow-md scale-110' : 'text-slate-200 group-hover:text-white'"
+                    x-text="currentKey"
+                >C</span>
+
+                <!-- Rodapé: Led de Status -->
+                <div class="flex items-center gap-1 mt-0.5 pointer-events-none">
+                    <span 
+                        class="w-1.5 h-1.5 rounded-full transition-all duration-300"
+                        :class="isPlaying 
+                            ? 'bg-emerald-300 shadow-[0_0_8px_#34d399] scale-125' 
+                            : 'bg-slate-600'"
+                    ></span>
+                </div>
+            </button>
+        </div>
     </div>
 
-    <!-- MODAL OVERLAY COMPLETO EM TELA CHEIA (FULL-SCREEN AMBIENT PAD) -->
+    <!-- MODAL OVERLAY COMPLETO EM TELA CHEIA (FULL-SCREEN AMBIENT PAD) - Separado do fabWrapper -->
     <div
         x-show="isModalOpen"
         x-cloak
@@ -763,6 +796,9 @@
         x-transition:leave-start="opacity-100 scale-100"
         x-transition:leave-end="opacity-0 scale-95"
         class="fixed inset-0 z-[100000] flex flex-col bg-[#08080a]/95 backdrop-blur-2xl text-slate-100 overflow-y-auto overscroll-contain select-none p-4 sm:p-8"
+        @pointerdown.stop
+        @pointermove.stop
+        @pointerup.stop
         @keydown.escape.window="closeModal()"
     >
         <!-- Background Neon Wave Visualizer Canvas -->
@@ -1001,6 +1037,20 @@
 
                 <!-- Botões de Ação -->
                 <div class="flex items-center gap-2.5 w-full sm:w-auto">
+                    <!-- Resetar Posição -->
+                    <button
+                        type="button"
+                        @click="resetFabPosition()"
+                        class="px-3.5 py-2.5 rounded-xl bg-[#12141a] hover:bg-[#181b24] border border-[#1e222c] hover:border-amber-500/40 text-slate-300 hover:text-white font-bold text-xs uppercase tracking-wider tap-scale transition cursor-pointer flex items-center justify-center gap-1.5"
+                        title="Redefinir a posição do botão flutuante para o canto inferior direito padrão"
+                    >
+                        <svg class="w-4 h-4 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                        </svg>
+                        <span class="hidden sm:inline">Resetar Posição</span>
+                        <span class="sm:hidden">Resetar</span>
+                    </button>
+
                     <!-- Sincronizar com Cifra -->
                     <button
                         type="button"

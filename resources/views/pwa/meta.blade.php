@@ -266,6 +266,7 @@
         scroll-snap-align: start !important;
         border-radius: 20px !important;
         box-sizing: border-box !important;
+        text-decoration: none !important;
     }
     .cifraly-event-card-featured {
         border-radius: 20px !important;

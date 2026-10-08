@@ -1,3 +1,11 @@
+@props([
+    'showFab' => true,
+])
+
+@once
+<script src="/js/tone.js"></script>
+@endonce
+
 <script>
     /**
      * Ambient Pad Synthesizer Audio Engine (Powered by Tone.js)
@@ -46,6 +54,21 @@
 
         async init() {
             if (this.isInitialized) return;
+
+            // Fallback para carregamento dinâmico do Tone.js se necessário
+            if (typeof Tone === 'undefined') {
+                await new Promise((resolve) => {
+                    const s = document.createElement('script');
+                    s.src = '/js/tone.js';
+                    s.onload = () => resolve();
+                    s.onerror = () => {
+                        console.error('[AmbientPad] Não foi possível carregar /js/tone.js');
+                        resolve();
+                    };
+                    document.head.appendChild(s);
+                });
+            }
+
             if (typeof Tone === 'undefined') {
                 console.warn('[AmbientPad] Tone.js não encontrado.');
                 return;
@@ -411,6 +434,19 @@
                         this.setupKeyObserver();
                     });
 
+                    // Listener para evento customizado de abertura externa (ex: Barra Inferior Mobile)
+                    window.addEventListener('cifraly:open-pad', () => {
+                        this.openModal();
+                    });
+
+                    // Notifica o estado inicial se já houver engine ativa
+                    const engine = getAmbientPadEngine();
+                    if (engine && engine.isPlaying) {
+                        this.isPlaying = true;
+                        this.currentKey = engine.currentKey;
+                    }
+                    this.dispatchStatus();
+
                     // Para o pad ao navegar para fora do modo palco
                     document.addEventListener('livewire:navigating', () => {
                         this.stopPad();
@@ -459,12 +495,9 @@
 
                 detectKeyFromDom() {
                     const keyEl = document.getElementById('stage-current-key');
-                    let rawKey = 'C';
+                    if (!keyEl) return;
 
-                    if (keyEl) {
-                        rawKey = keyEl.getAttribute('data-key') || keyEl.textContent.trim() || 'C';
-                    }
-
+                    const rawKey = keyEl.getAttribute('data-key') || keyEl.textContent.trim() || 'C';
                     const cleanKey = rawKey.trim();
                     if (cleanKey && cleanKey !== this.currentKey) {
                         this.currentKey = cleanKey;
@@ -483,6 +516,7 @@
                         if (this.isPlaying) {
                             getAmbientPadEngine().crossfadeToKey(this.currentKey);
                         }
+                        this.dispatchStatus();
                     }
                 },
 
@@ -549,12 +583,23 @@
                     }
                 },
 
+                dispatchStatus() {
+                    window.dispatchEvent(new CustomEvent('cifraly:pad-status', {
+                        detail: {
+                            isPlaying: this.isPlaying,
+                            currentKey: this.currentKey,
+                            chordType: this.chordType,
+                        }
+                    }));
+                },
+
                 async startPad() {
                     this.detectKeyFromDom();
                     try {
                         const engine = getAmbientPadEngine();
                         await engine.play(this.currentKey);
                         this.isPlaying = true;
+                        this.dispatchStatus();
                     } catch (err) {
                         console.error('[AmbientPad] Falha ao iniciar Pad:', err);
                     }
@@ -566,6 +611,7 @@
                         engine.stop();
                     }
                     this.isPlaying = false;
+                    this.dispatchStatus();
                 },
 
                 // --- Modal de Configurações ---
@@ -594,6 +640,7 @@
                         this.startPad();
                     } else {
                         getAmbientPadEngine().crossfadeToKey(this.currentKey);
+                        this.dispatchStatus();
                     }
                 },
 
@@ -716,6 +763,7 @@
 <!-- Ambient Pad Synthesizer: Root Wrapper -->
 <div x-data="altarAmbientPad()" class="select-none pointer-events-auto">
     <!-- Draggable Floating Action Button (FAB) Container (Exclusivo para os botões do PAD) -->
+    @if ($showFab)
     <div
         x-ref="fabWrapper"
         class="fixed bottom-28 sm:bottom-24 right-4 sm:right-6 z-50 flex flex-col items-end touch-none select-none"
@@ -809,6 +857,7 @@
             </button>
         </div>
     </div>
+    @endif
 
     <!-- MODAL OVERLAY COMPLETO EM TELA CHEIA (FULL-SCREEN AMBIENT PAD) - Separado do fabWrapper -->
     <div

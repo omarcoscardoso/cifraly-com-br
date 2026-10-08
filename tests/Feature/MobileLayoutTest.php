@@ -55,8 +55,12 @@ class MobileLayoutTest extends TestCase
         $response->assertSuccessful();
         $response->assertSee('Início');
         $response->assertSee('Músicas');
+        $response->assertSee('PAD');
         $response->assertSee('Eventos');
         $response->assertSee('Perfil');
+        $response->assertSee('cifraly:open-pad', false);
+        $response->assertSee('isPadPlaying', false);
+        $response->assertSee('altarAmbientPad()', false);
         $response->assertDontSee('Ações Rápidas');
         $response->assertDontSee('aria-label="Ações Rápidas"', false);
     }
@@ -97,7 +101,9 @@ class MobileLayoutTest extends TestCase
             ->assertSee('Culto de Celebração')
             ->assertSee('Culto de Oração')
             ->assertSee('Modo Palco')
-            ->assertSee('Ver todos');
+            ->assertSee('Ver todos')
+            ->assertSee('events/'.$event1->id.'/stage', false)
+            ->assertSee('events/'.$event2->id.'/stage', false);
     }
 
     public function test_roster_confirmation_widget_renders_mobile_task_list(): void

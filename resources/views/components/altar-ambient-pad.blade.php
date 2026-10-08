@@ -3,8 +3,182 @@
 ])
 
 @once
-<script src="/js/tone.js"></script>
+<script src="{{ asset('js/tone.js') }}"></script>
+@vite(['resources/css/app.css'])
 @endonce
+
+<style>
+    /* Estilos Estritos do Modal em Tela Cheia do Ambient Pad (Garantia visual independente do framework CSS) */
+    .altar-pad-overlay {
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        bottom: 0 !important;
+        width: 100vw !important;
+        height: 100vh !important;
+        z-index: 100000 !important;
+        display: flex;
+        flex-direction: column !important;
+        background: rgba(8, 8, 10, 0.96) !important;
+        backdrop-filter: blur(24px) !important;
+        -webkit-backdrop-filter: blur(24px) !important;
+        color: #f8fafc !important;
+        overflow-y: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+        padding: 16px !important;
+        box-sizing: border-box !important;
+        font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif !important;
+    }
+    @media (min-width: 640px) {
+        .altar-pad-overlay {
+            padding: 32px !important;
+        }
+    }
+    [x-cloak], .altar-pad-overlay[style*="display: none"], .altar-pad-tab-content[style*="display: none"] {
+        display: none !important;
+    }
+    .altar-pad-tab-content {
+        display: flex;
+        flex-direction: column !important;
+        gap: 0.875rem !important;
+        flex: 1 1 0% !important;
+    }
+    .altar-pad-container {
+        position: relative !important;
+        z-index: 10 !important;
+        max-width: 56rem !important;
+        width: 100% !important;
+        margin: 0 auto !important;
+        display: flex !important;
+        flex-direction: column !important;
+        flex: 1 1 0% !important;
+        gap: 1.25rem !important;
+    }
+    .altar-pad-header {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        border-bottom: 1px solid #1e222c !important;
+        padding-bottom: 1rem !important;
+        flex-shrink: 0 !important;
+    }
+    .altar-pad-tabs-nav {
+        display: flex !important;
+        align-items: center !important;
+        padding: 4px !important;
+        border-radius: 1rem !important;
+        background: #12141a !important;
+        border: 1px solid #1e222c !important;
+        flex-shrink: 0 !important;
+    }
+    .altar-pad-tab-btn {
+        flex: 1 1 0% !important;
+        padding: 0.625rem 1rem !important;
+        border-radius: 0.75rem !important;
+        font-size: 0.8125rem !important;
+        font-weight: 900 !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.05em !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        gap: 0.5rem !important;
+        cursor: pointer !important;
+        transition: all 0.15s ease !important;
+        border: none !important;
+    }
+    .altar-pad-sub-header {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        padding: 0.75rem !important;
+        border-radius: 1rem !important;
+        background: rgba(18, 20, 26, 0.9) !important;
+        border: 1px solid #1e222c !important;
+        flex-shrink: 0 !important;
+    }
+    .altar-pad-grid-tones {
+        display: grid !important;
+        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+        gap: 0.625rem !important;
+        width: 100% !important;
+        flex: 1 1 0% !important;
+    }
+    @media (min-width: 640px) {
+        .altar-pad-grid-tones {
+            grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+            gap: 0.75rem !important;
+        }
+    }
+    @media (min-width: 768px) {
+        .altar-pad-grid-tones {
+            grid-template-columns: repeat(6, minmax(0, 1fr)) !important;
+        }
+    }
+    .altar-pad-tone-btn {
+        position: relative !important;
+        border-radius: 1rem !important;
+        padding: 0.75rem !important;
+        min-height: 76px !important;
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        justify-content: center !important;
+        cursor: pointer !important;
+        user-select: none !important;
+        transition: all 0.15s ease !important;
+        border: 1.5px solid #1e222c !important;
+        background: rgba(18, 20, 26, 0.95) !important;
+        color: #f1f5f9 !important;
+        text-align: center !important;
+    }
+    @media (min-width: 640px) {
+        .altar-pad-tone-btn {
+            min-height: 88px !important;
+            padding: 1rem !important;
+        }
+    }
+    .altar-pad-tone-btn:hover {
+        background: #181b24 !important;
+        border-color: #334155 !important;
+        color: #ffffff !important;
+    }
+    .altar-pad-tone-btn.active {
+        background: linear-gradient(135deg, rgba(6,182,212,0.25) 0%, rgba(99,102,241,0.25) 50%, rgba(217,70,239,0.25) 100%) !important;
+        border: 2px solid #00d2ff !important;
+        box-shadow: 0 0 20px rgba(0, 210, 255, 0.45) !important;
+        color: #ffffff !important;
+        transform: scale(1.02) !important;
+    }
+    .altar-pad-grid-settings {
+        display: grid !important;
+        grid-template-columns: 1fr !important;
+        gap: 0.875rem !important;
+        width: 100% !important;
+        flex: 1 1 0% !important;
+    }
+    @media (min-width: 640px) {
+        .altar-pad-grid-settings {
+            grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+            gap: 1rem !important;
+        }
+    }
+    @media (min-width: 1024px) {
+        .altar-pad-grid-settings {
+            grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+        }
+    }
+    .altar-pad-card {
+        background: rgba(18, 20, 26, 0.9) !important;
+        border: 1px solid #1e222c !important;
+        border-radius: 1rem !important;
+        padding: 0.875rem 1rem !important;
+        box-sizing: border-box !important;
+        display: flex !important;
+        flex-direction: column !important;
+    }
+</style>
 
 <script>
     /**
@@ -869,30 +1043,31 @@
         x-transition:leave="transition ease-in duration-200"
         x-transition:leave-start="opacity-100 scale-100"
         x-transition:leave-end="opacity-0 scale-95"
-        class="fixed inset-0 z-[100000] flex flex-col bg-[#08080a]/95 backdrop-blur-2xl text-slate-100 overflow-y-auto overscroll-contain select-none p-4 sm:p-8"
+        class="altar-pad-overlay fixed inset-0 z-[100000] flex flex-col bg-[#08080a]/95 backdrop-blur-2xl text-slate-100 overflow-y-auto overscroll-contain select-none p-4 sm:p-8"
+        style="position: fixed !important; top: 0 !important; left: 0 !important; right: 0 !important; bottom: 0 !important; width: 100vw !important; height: 100vh !important; z-index: 100000 !important; background: rgba(8, 8, 10, 0.96) !important; backdrop-filter: blur(24px) !important; -webkit-backdrop-filter: blur(24px) !important; overflow-y: auto !important; -webkit-overflow-scrolling: touch !important; padding: 16px !important; box-sizing: border-box !important;"
         @pointerdown.stop
         @pointermove.stop
         @pointerup.stop
         @keydown.escape.window="closeModal()"
     >
         <!-- Background Neon Wave Visualizer Canvas -->
-        <canvas x-ref="visualizerCanvas" class="absolute inset-0 w-full h-full pointer-events-none opacity-25 z-0"></canvas>
+        <canvas x-ref="visualizerCanvas" class="absolute inset-0 w-full h-full pointer-events-none opacity-25 z-0" style="position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; opacity: 0.25; z-index: 0;"></canvas>
 
-        <div class="relative z-10 max-w-4xl w-full mx-auto flex flex-col flex-1 gap-5">
+        <div class="altar-pad-container relative z-10 max-w-4xl w-full mx-auto flex flex-col flex-1 gap-5" style="position: relative; z-index: 10; max-width: 56rem; width: 100%; margin: 0 auto; display: flex; flex-direction: column; flex: 1 1 0%; gap: 1.25rem;">
             <!-- Modal Header -->
-            <div class="flex items-center justify-between border-b border-[#1e222c] pb-4 shrink-0">
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-2xl bg-cyan-500/15 border border-cyan-500/40 flex items-center justify-center text-[#00d2ff] shadow-lg shadow-cyan-500/20">
-                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <div class="altar-pad-header flex items-center justify-between border-b border-[#1e222c] pb-4 shrink-0" style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #1e222c; padding-bottom: 1rem; flex-shrink: 0;">
+                <div style="display: flex; align-items: center; gap: 0.75rem;">
+                    <div style="width: 2.5rem; height: 2.5rem; border-radius: 1rem; background: rgba(0, 210, 255, 0.15); border: 1px solid rgba(0, 210, 255, 0.4); display: flex; align-items: center; justify-content: center; color: #00d2ff; box-shadow: 0 10px 15px -3px rgba(0, 210, 255, 0.2); flex-shrink: 0;">
+                        <svg style="width: 1.25rem; height: 1.25rem;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
                         </svg>
                     </div>
                     <div>
-                        <h2 class="text-base sm:text-lg font-black tracking-wider text-white flex items-center gap-2">
+                        <h2 style="font-size: 1.125rem; font-weight: 900; letter-spacing: 0.05em; color: #ffffff; margin: 0; display: flex; align-items: center; gap: 0.5rem;">
                             <span>AMBIENT PAD</span>
-                            <span class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-cyan-500/20 text-[#00d2ff] font-bold border border-cyan-500/30 uppercase">Synth</span>
+                            <span style="font-size: 10px; font-family: monospace; padding: 2px 8px; border-radius: 9999px; background: rgba(0, 210, 255, 0.2); color: #00d2ff; font-weight: 700; border: 1px solid rgba(0, 210, 255, 0.3); text-transform: uppercase;">Synth</span>
                         </h2>
-                        <p class="text-[11px] sm:text-xs text-[#71788e]">Sintetizador worship contínuo para atmosfera de louvor</p>
+                        <p style="font-size: 0.75rem; color: #71788e; margin: 2px 0 0 0;">Sintetizador worship contínuo para atmosfera de louvor</p>
                     </div>
                 </div>
 
@@ -900,27 +1075,29 @@
                 <button
                     type="button"
                     @click="closeModal()"
-                    class="p-2 sm:px-3 sm:py-2 rounded-2xl bg-[#12141a] hover:bg-[#1c202d] border border-[#1e222c] hover:border-cyan-500/40 text-slate-300 hover:text-white flex items-center gap-1.5 tap-scale transition cursor-pointer"
+                    class="tap-scale"
+                    style="padding: 0.5rem 1rem; border-radius: 1rem; background: #12141a; border: 1px solid #1e222c; color: #cbd5e1; display: flex; align-items: center; gap: 0.375rem; cursor: pointer; font-size: 0.75rem; font-weight: 700; text-transform: uppercase;"
                     title="Fechar configurações (Esc)"
                 >
-                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <svg style="width: 1.25rem; height: 1.25rem;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12" />
                     </svg>
-                    <span class="text-xs font-bold uppercase hidden sm:inline">Fechar</span>
+                    <span>Fechar</span>
                 </button>
             </div>
 
             <!-- Navegação por Abas (Tabs) Mobile-First: Tons vs Configurações -->
-            <div class="flex items-center p-1 rounded-2xl bg-[#12141a] border border-[#1e222c] shrink-0">
+            <div class="altar-pad-tabs-nav flex items-center p-1 rounded-2xl bg-[#12141a] border border-[#1e222c] shrink-0" style="display: flex; align-items: center; padding: 4px; border-radius: 1rem; background: #12141a; border: 1px solid #1e222c; flex-shrink: 0;">
                 <button
                     type="button"
                     @click="activeTab = 'tones'"
-                    class="flex-1 py-2 sm:py-2.5 px-3 sm:px-4 rounded-xl text-xs sm:text-sm font-black uppercase tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer"
-                    :class="activeTab === 'tones' 
-                        ? 'bg-[#00d2ff] text-black shadow-lg shadow-cyan-500/25 ring-2 ring-cyan-400/40' 
-                        : 'text-slate-400 hover:text-white'"
+                    class="altar-pad-tab-btn flex-1 py-2 sm:py-2.5 px-3 sm:px-4 rounded-xl text-xs sm:text-sm font-black uppercase tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer"
+                    style="flex: 1 1 0%; padding: 0.625rem 1rem; border-radius: 0.75rem; font-size: 0.8125rem; font-weight: 900; text-transform: uppercase; letter-spacing: 0.05em; display: flex; align-items: center; justify-content: center; gap: 0.5rem; cursor: pointer; transition: all 0.15s ease; border: none;"
+                    :style="activeTab === 'tones' 
+                        ? 'background: #00d2ff; color: #000000; box-shadow: 0 4px 14px rgba(0, 210, 255, 0.35);' 
+                        : 'background: transparent; color: #94a3b8;'"
                 >
-                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <svg style="width: 1rem; height: 1rem;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
                     </svg>
                     <span>Tons</span>
@@ -928,42 +1105,43 @@
                 <button
                     type="button"
                     @click="activeTab = 'settings'"
-                    class="flex-1 py-2 sm:py-2.5 px-3 sm:px-4 rounded-xl text-xs sm:text-sm font-black uppercase tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer"
-                    :class="activeTab === 'settings' 
-                        ? 'bg-[#00d2ff] text-black shadow-lg shadow-cyan-500/25 ring-2 ring-cyan-400/40' 
-                        : 'text-slate-400 hover:text-white'"
+                    class="altar-pad-tab-btn flex-1 py-2 sm:py-2.5 px-3 sm:px-4 rounded-xl text-xs sm:text-sm font-black uppercase tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer"
+                    style="flex: 1 1 0%; padding: 0.625rem 1rem; border-radius: 0.75rem; font-size: 0.8125rem; font-weight: 900; text-transform: uppercase; letter-spacing: 0.05em; display: flex; align-items: center; justify-content: center; gap: 0.5rem; cursor: pointer; transition: all 0.15s ease; border: none;"
+                    :style="activeTab === 'settings' 
+                        ? 'background: #00d2ff; color: #000000; box-shadow: 0 4px 14px rgba(0, 210, 255, 0.35);' 
+                        : 'background: transparent; color: #94a3b8;'"
                 >
-                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+                    <svg style="width: 1rem; height: 1rem;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
                     </svg>
                     <span>Configurações</span>
                 </button>
             </div>
 
             <!-- ABA 1: TONS (BOTÕES GRANDES, MOBILE-FIRST) -->
-            <div x-show="activeTab === 'tones'" x-cloak class="flex flex-col gap-3 sm:gap-4 flex-1">
+            <div x-show="activeTab === 'tones'" x-cloak class="altar-pad-tab-content">
                 <!-- Sub-header com Tom Selecionado e Alternador Maior/Menor -->
-                <div class="flex items-center justify-between p-3 rounded-2xl bg-[#12141a]/90 border border-[#1e222c] shrink-0">
-                    <div class="flex items-center gap-2 min-w-0">
-                        <span class="text-xs uppercase tracking-wider font-extrabold text-[#71788e]">Tom:</span>
-                        <span class="text-base sm:text-lg font-black font-mono text-[#00d2ff] bg-cyan-500/10 px-2.5 py-0.5 rounded-xl border border-cyan-500/30" x-text="currentKey"></span>
+                <div class="altar-pad-sub-header flex items-center justify-between p-3 rounded-2xl bg-[#12141a]/90 border border-[#1e222c] shrink-0" style="display: flex; align-items: center; justify-content: space-between; padding: 0.75rem; border-radius: 1rem; background: rgba(18, 20, 26, 0.9); border: 1px solid #1e222c; flex-shrink: 0;">
+                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                        <span style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 800; color: #71788e;">Tom:</span>
+                        <span style="font-size: 1.125rem; font-weight: 900; font-family: monospace; color: #00d2ff; background: rgba(0, 210, 255, 0.1); padding: 2px 10px; border-radius: 0.75rem; border: 1px solid rgba(0, 210, 255, 0.3);" x-text="currentKey"></span>
                     </div>
 
                     <!-- Alternador Rápido Maior / Menor -->
-                    <div class="flex bg-[#08080a] p-1 rounded-xl border border-[#1e222c] shrink-0">
+                    <div style="display: flex; background: #08080a; padding: 4px; border-radius: 0.75rem; border: 1px solid #1e222c; flex-shrink: 0; gap: 4px;">
                         <button 
                             type="button"
                             @click="setChordType('major')"
-                            class="px-3 py-1 text-xs font-bold rounded-lg transition-all"
-                            :class="chordType === 'major' ? 'bg-[#00d2ff] text-black shadow-sm' : 'text-slate-400 hover:text-white'"
+                            style="padding: 4px 12px; font-size: 0.75rem; font-weight: 700; border-radius: 0.5rem; transition: all 0.15s ease; border: none; cursor: pointer;"
+                            :style="chordType === 'major' ? 'background: #00d2ff; color: #000000;' : 'background: transparent; color: #94a3b8;'"
                         >
                             Maior
                         </button>
                         <button 
                             type="button"
                             @click="setChordType('minor')"
-                            class="px-3 py-1 text-xs font-bold rounded-lg transition-all"
-                            :class="chordType === 'minor' ? 'bg-[#00d2ff] text-black shadow-sm' : 'text-slate-400 hover:text-white'"
+                            style="padding: 4px 12px; font-size: 0.75rem; font-weight: 700; border-radius: 0.5rem; transition: all 0.15s ease; border: none; cursor: pointer;"
+                            :style="chordType === 'minor' ? 'background: #00d2ff; color: #000000;' : 'background: transparent; color: #94a3b8;'"
                         >
                             Menor
                         </button>
@@ -971,40 +1149,41 @@
                 </div>
 
                 <!-- Dica mobile discreta -->
-                <p class="text-[11px] text-[#71788e] text-center shrink-0">
+                <p style="font-size: 11px; color: #71788e; text-align: center; margin: 0; flex-shrink: 0;">
                     Toque em um tom para tocar • Toque no mesmo tom novamente para encerrar
                 </p>
 
                 <!-- Grade de 12 Tons com Botões Grandes (3 colunas no celular, 4 no tablet, 6 no desktop) -->
-                <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2.5 sm:gap-3 flex-1">
+                <div class="altar-pad-grid-tones grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2.5 sm:gap-3 flex-1">
                     <template x-for="note in availableNotes" :key="note">
                         <button
                             type="button"
                             @click="selectPadKey(note)"
-                            class="relative rounded-2xl p-3 sm:p-4 min-h-[76px] sm:min-h-[88px] flex flex-col items-center justify-center border transition-all tap-scale cursor-pointer group select-none"
-                            :class="(getCleanRootKey() === note && isPlaying)
-                                ? 'bg-gradient-to-br from-cyan-500/30 via-indigo-600/30 to-fuchsia-600/30 border-2 border-[#00d2ff] shadow-[0_0_20px_rgba(0,210,255,0.4)] text-white scale-[1.02] ring-2 ring-cyan-400/40' 
-                                : (getCleanRootKey() === note)
-                                    ? 'bg-[#181b24] border-2 border-cyan-500/70 text-cyan-300 ring-1 ring-cyan-500/30'
-                                    : 'bg-[#12141a]/95 hover:bg-[#181b24] border-[#1e222c] hover:border-slate-600 text-slate-200 hover:text-white'"
+                            class="altar-pad-tone-btn tap-scale cursor-pointer"
+                            :class="((getCleanRootKey() === note && isPlaying) ? 'active' : '')"
+                            :style="(getCleanRootKey() === note && isPlaying) 
+                                ? 'background: linear-gradient(135deg, rgba(6,182,212,0.25) 0%, rgba(99,102,241,0.25) 50%, rgba(217,70,239,0.25) 100%) !important; border: 2px solid #00d2ff !important; box-shadow: 0 0 20px rgba(0, 210, 255, 0.45) !important; color: #ffffff !important;' 
+                                : ((getCleanRootKey() === note) 
+                                    ? 'background: #181b24 !important; border: 2px solid rgba(0, 210, 255, 0.7) !important; color: #00d2ff !important;' 
+                                    : 'background: rgba(18, 20, 26, 0.95); border: 1.5px solid #1e222c; color: #f1f5f9;')"
                         >
                             <!-- Nome da Nota Grande e Destacado -->
-                            <span class="text-2xl sm:text-3xl font-black font-mono leading-none tracking-tight" x-text="note"></span>
+                            <span style="font-size: 1.75rem; font-weight: 900; font-family: monospace; line-height: 1; letter-spacing: -0.02em;" x-text="note"></span>
                             
                             <!-- Barra de Acento / Indicador -->
-                            <div class="w-full flex items-center justify-center mt-2">
+                            <div style="width: 100%; display: flex; align-items: center; justify-content: center; margin-top: 8px;">
                                 <template x-if="getCleanRootKey() === note && isPlaying">
                                     <!-- Barras de onda sonoras animadas no botão ativo -->
-                                    <span class="flex items-center gap-1 text-cyan-200">
-                                        <span class="w-1 h-2 bg-current rounded-full animate-pulse"></span>
-                                        <span class="w-1 h-3.5 bg-current rounded-full animate-pulse" style="animation-delay: 150ms;"></span>
-                                        <span class="w-1 h-2 bg-current rounded-full animate-pulse" style="animation-delay: 300ms;"></span>
+                                    <span style="display: flex; align-items: center; gap: 4px; color: #00d2ff;">
+                                        <span class="w-1 h-2 bg-current rounded-full animate-pulse" style="width: 3px; height: 8px; background: currentColor; border-radius: 9999px;"></span>
+                                        <span class="w-1 h-3.5 bg-current rounded-full animate-pulse" style="width: 3px; height: 14px; background: currentColor; border-radius: 9999px;"></span>
+                                        <span class="w-1 h-2 bg-current rounded-full animate-pulse" style="width: 3px; height: 8px; background: currentColor; border-radius: 9999px;"></span>
                                     </span>
                                 </template>
                                 <template x-if="!(getCleanRootKey() === note && isPlaying)">
                                     <!-- Barra de acento de cor do tom -->
                                     <span 
-                                        class="w-10 h-1 rounded-full opacity-60 group-hover:opacity-100 transition-opacity"
+                                        style="width: 36px; height: 4px; border-radius: 9999px; opacity: 0.75;"
                                         :style="'background-color: ' + noteColors[note] + ';'"
                                     ></span>
                                 </template>
@@ -1015,23 +1194,23 @@
             </div>
 
             <!-- ABA 2: CONFIGURAÇÕES DO SINTETIZADOR E EFEITOS -->
-            <div x-show="activeTab === 'settings'" x-cloak class="flex flex-col gap-3.5 sm:gap-4 flex-1">
-                <div class="flex items-center justify-between">
-                    <span class="text-xs uppercase tracking-wider font-extrabold text-[#71788e]">Ajustes do Sintetizador</span>
-                    <span class="text-xs text-[#71788e]">Personalize o timbre, textura e ambiência</span>
+            <div x-show="activeTab === 'settings'" x-cloak class="altar-pad-tab-content">
+                <div style="display: flex; align-items: center; justify-content: space-between; flex-shrink: 0;">
+                    <span style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 800; color: #71788e;">Ajustes do Sintetizador</span>
+                    <span style="font-size: 0.75rem; color: #71788e;">Personalize timbre, textura e ambiência</span>
                 </div>
 
-                <!-- Controles de Síntese e Efeitos (Grid sem Tipo de Acorde, pois já está na aba principal) -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-4">
+                <!-- Controles de Síntese e Efeitos -->
+                <div class="altar-pad-grid-settings grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-4">
                     <!-- 1. Timbre / Textura -->
-                    <div class="p-3.5 sm:p-4 rounded-2xl bg-[#12141a]/90 border border-[#1e222c] flex flex-col gap-2">
-                        <label class="text-[11px] uppercase tracking-wider font-extrabold text-[#71788e]">Timbre & Ondas</label>
-                        <div class="flex bg-[#08080a] p-1 rounded-xl border border-[#1e222c] gap-1">
+                    <div class="altar-pad-card p-3.5 sm:p-4 rounded-2xl bg-[#12141a]/90 border border-[#1e222c] flex flex-col gap-2" style="background: rgba(18, 20, 26, 0.9); border: 1px solid #1e222c; border-radius: 1rem; padding: 1rem; display: flex; flex-direction: column; gap: 0.5rem;">
+                        <label style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 800; color: #71788e;">Timbre &amp; Ondas</label>
+                        <div style="display: flex; background: #08080a; padding: 4px; border-radius: 0.75rem; border: 1px solid #1e222c; gap: 4px;">
                             <button 
                                 type="button"
                                 @click="setTimbre('lush')"
-                                class="flex-1 py-1.5 text-xs font-bold rounded-lg transition-all"
-                                :class="timbre === 'lush' ? 'bg-[#00d2ff] text-black shadow-md' : 'text-slate-400 hover:text-white'"
+                                style="flex: 1; padding: 6px 0; font-size: 0.75rem; font-weight: 700; border-radius: 0.5rem; transition: all 0.15s ease; border: none; cursor: pointer;"
+                                :style="timbre === 'lush' ? 'background: #00d2ff; color: #000000;' : 'background: transparent; color: #94a3b8;'"
                                 title="Worship aveludado profundo (Fattriangle)"
                             >
                                 Lush
@@ -1039,8 +1218,8 @@
                             <button 
                                 type="button"
                                 @click="setTimbre('analog')"
-                                class="flex-1 py-1.5 text-xs font-bold rounded-lg transition-all"
-                                :class="timbre === 'analog' ? 'bg-[#00d2ff] text-black shadow-md' : 'text-slate-400 hover:text-white'"
+                                style="flex: 1; padding: 6px 0; font-size: 0.75rem; font-weight: 700; border-radius: 0.5rem; transition: all 0.15s ease; border: none; cursor: pointer;"
+                                :style="timbre === 'analog' ? 'background: #00d2ff; color: #000000;' : 'background: transparent; color: #94a3b8;'"
                                 title="Quente analógico (Fatsawtooth)"
                             >
                                 Analog
@@ -1048,8 +1227,8 @@
                             <button 
                                 type="button"
                                 @click="setTimbre('ethereal')"
-                                class="flex-1 py-1.5 text-xs font-bold rounded-lg transition-all"
-                                :class="timbre === 'ethereal' ? 'bg-[#00d2ff] text-black shadow-md' : 'text-slate-400 hover:text-white'"
+                                style="flex: 1; padding: 6px 0; font-size: 0.75rem; font-weight: 700; border-radius: 0.5rem; transition: all 0.15s ease; border: none; cursor: pointer;"
+                                :style="timbre === 'ethereal' ? 'background: #00d2ff; color: #000000;' : 'background: transparent; color: #94a3b8;'"
                                 title="Suave celestial orgânico (Fatsine)"
                             >
                                 Ethereal
@@ -1058,21 +1237,21 @@
                     </div>
 
                     <!-- 2. Voicing / Inversão Harmônica -->
-                    <div class="p-3.5 sm:p-4 rounded-2xl bg-[#12141a]/90 border border-[#1e222c] flex flex-col gap-1.5">
-                        <div class="flex items-center justify-between text-[11px] uppercase tracking-wider font-extrabold text-[#71788e]">
+                    <div class="altar-pad-card p-3.5 sm:p-4 rounded-2xl bg-[#12141a]/90 border border-[#1e222c] flex flex-col gap-1.5" style="background: rgba(18, 20, 26, 0.9); border: 1px solid #1e222c; border-radius: 1rem; padding: 1rem; display: flex; flex-direction: column; gap: 0.5rem;">
+                        <div style="display: flex; align-items: center; justify-content: space-between; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 800; color: #71788e;">
                             <span>Voicing / Inversão</span>
-                            <span class="text-[#00d2ff] font-mono" x-text="inversion === 0 ? 'Fundamental (Root)' : (inversion === 1 ? '1ª Inversão' : '2ª Inversão')"></span>
+                            <span style="color: #00d2ff; font-family: monospace;" x-text="inversion === 0 ? 'Fundamental (Root)' : (inversion === 1 ? '1ª Inversão' : '2ª Inversão')"></span>
                         </div>
                         <input 
                             type="range" 
                             min="0" 
                             max="2" 
-                            step="1"
+                            step="1" 
                             :value="inversion"
                             @input="setInversion($event.target.value)"
-                            class="w-full h-1.5 bg-[#08080a] rounded-lg appearance-none cursor-pointer accent-[#00d2ff] mt-1"
+                            style="width: 100%; height: 6px; border-radius: 0.5rem; background: #08080a; appearance: none; cursor: pointer; accent-color: #00d2ff; margin-top: 4px;"
                         />
-                        <div class="flex justify-between text-[10px] text-[#71788e] font-mono px-0.5">
+                        <div style="display: flex; justify-content: space-between; font-size: 10px; color: #71788e; font-family: monospace; padding: 0 2px;">
                             <span>Root</span>
                             <span>1st Inv</span>
                             <span>2nd Inv</span>
@@ -1080,21 +1259,21 @@
                     </div>
 
                     <!-- 3. Oitava Base (Octave Shift) -->
-                    <div class="p-3.5 sm:p-4 rounded-2xl bg-[#12141a]/90 border border-[#1e222c] flex flex-col gap-1.5">
-                        <div class="flex items-center justify-between text-[11px] uppercase tracking-wider font-extrabold text-[#71788e]">
+                    <div class="altar-pad-card p-3.5 sm:p-4 rounded-2xl bg-[#12141a]/90 border border-[#1e222c] flex flex-col gap-1.5" style="background: rgba(18, 20, 26, 0.9); border: 1px solid #1e222c; border-radius: 1rem; padding: 1rem; display: flex; flex-direction: column; gap: 0.5rem;">
+                        <div style="display: flex; align-items: center; justify-content: space-between; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 800; color: #71788e;">
                             <span>Oitava (Octave)</span>
-                            <span class="text-[#00d2ff] font-mono" x-text="'Oitava ' + octave"></span>
+                            <span style="color: #00d2ff; font-family: monospace;" x-text="'Oitava ' + octave"></span>
                         </div>
                         <input 
                             type="range" 
                             min="2" 
                             max="5" 
-                            step="1"
+                            step="1" 
                             :value="octave"
                             @input="setOctave($event.target.value)"
-                            class="w-full h-1.5 bg-[#08080a] rounded-lg appearance-none cursor-pointer accent-[#00d2ff] mt-1"
+                            style="width: 100%; height: 6px; border-radius: 0.5rem; background: #08080a; appearance: none; cursor: pointer; accent-color: #00d2ff; margin-top: 4px;"
                         />
-                        <div class="flex justify-between text-[10px] text-[#71788e] font-mono px-0.5">
+                        <div style="display: flex; justify-content: space-between; font-size: 10px; color: #71788e; font-family: monospace; padding: 0 2px;">
                             <span>2 (Grave)</span>
                             <span>3 (Padrão)</span>
                             <span>4 (Médio)</span>
@@ -1103,21 +1282,21 @@
                     </div>
 
                     <!-- 4. Ambience (Reverb & Echo Space) -->
-                    <div class="p-3.5 sm:p-4 rounded-2xl bg-[#12141a]/90 border border-[#1e222c] flex flex-col gap-1.5">
-                        <div class="flex items-center justify-between text-[11px] uppercase tracking-wider font-extrabold text-[#71788e]">
-                            <span>Ambience (Reverb & Delay)</span>
-                            <span class="text-[#00d2ff] font-mono" x-text="Math.round(ambienceLevel * 100) + '%'"></span>
+                    <div class="altar-pad-card p-3.5 sm:p-4 rounded-2xl bg-[#12141a]/90 border border-[#1e222c] flex flex-col gap-1.5" style="background: rgba(18, 20, 26, 0.9); border: 1px solid #1e222c; border-radius: 1rem; padding: 1rem; display: flex; flex-direction: column; gap: 0.5rem;">
+                        <div style="display: flex; align-items: center; justify-content: space-between; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 800; color: #71788e;">
+                            <span>Ambience (Reverb &amp; Delay)</span>
+                            <span style="color: #00d2ff; font-family: monospace;" x-text="Math.round(ambienceLevel * 100) + '%'"></span>
                         </div>
                         <input 
                             type="range" 
                             min="0" 
                             max="1" 
-                            step="0.01"
+                            step="0.01" 
                             :value="ambienceLevel"
                             @input="setAmbience($event.target.value)"
-                            class="w-full h-1.5 bg-[#08080a] rounded-lg appearance-none cursor-pointer accent-[#00d2ff] mt-1"
+                            style="width: 100%; height: 6px; border-radius: 0.5rem; background: #08080a; appearance: none; cursor: pointer; accent-color: #00d2ff; margin-top: 4px;"
                         />
-                        <div class="flex justify-between text-[10px] text-[#71788e] font-mono px-0.5">
+                        <div style="display: flex; justify-content: space-between; font-size: 10px; color: #71788e; font-family: monospace; padding: 0 2px;">
                             <span>Seco (Dry)</span>
                             <span>50%</span>
                             <span>Espacial (Wet)</span>
@@ -1125,21 +1304,21 @@
                     </div>
 
                     <!-- 5. Movement (LFO Sweep & Chorus) -->
-                    <div class="p-3.5 sm:p-4 rounded-2xl bg-[#12141a]/90 border border-[#1e222c] flex flex-col gap-1.5">
-                        <div class="flex items-center justify-between text-[11px] uppercase tracking-wider font-extrabold text-[#71788e]">
-                            <span>Movement (LFO & Modulação)</span>
-                            <span class="text-[#00d2ff] font-mono" x-text="Math.round(movementLevel * 100) + '%'"></span>
+                    <div class="altar-pad-card p-3.5 sm:p-4 rounded-2xl bg-[#12141a]/90 border border-[#1e222c] flex flex-col gap-1.5" style="background: rgba(18, 20, 26, 0.9); border: 1px solid #1e222c; border-radius: 1rem; padding: 1rem; display: flex; flex-direction: column; gap: 0.5rem;">
+                        <div style="display: flex; align-items: center; justify-content: space-between; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 800; color: #71788e;">
+                            <span>Movement (LFO &amp; Modulação)</span>
+                            <span style="color: #00d2ff; font-family: monospace;" x-text="Math.round(movementLevel * 100) + '%'"></span>
                         </div>
                         <input 
                             type="range" 
                             min="0" 
                             max="1" 
-                            step="0.01"
+                            step="0.01" 
                             :value="movementLevel"
                             @input="setMovement($event.target.value)"
-                            class="w-full h-1.5 bg-[#08080a] rounded-lg appearance-none cursor-pointer accent-[#00d2ff] mt-1"
+                            style="width: 100%; height: 6px; border-radius: 0.5rem; background: #08080a; appearance: none; cursor: pointer; accent-color: #00d2ff; margin-top: 4px;"
                         />
-                        <div class="flex justify-between text-[10px] text-[#71788e] font-mono px-0.5">
+                        <div style="display: flex; justify-content: space-between; font-size: 10px; color: #71788e; font-family: monospace; padding: 0 2px;">
                             <span>Estático</span>
                             <span>Orgânico</span>
                             <span>Ondulante</span>

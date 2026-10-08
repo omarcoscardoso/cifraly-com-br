@@ -72,36 +72,38 @@
                 <span style="font-size: 10px; font-weight: {{ $isSongsActive ? '700' : '500' }}; margin-top: 3px; letter-spacing: -0.01em;">Músicas</span>
             </a>
 
-            {{-- 3. PAD (Sintetizador Worship - Botão Redondo Central Elevado) --}}
-            <div style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative;">
+            {{-- 3. PAD (Sintetizador Worship - Botão Redondo Saltando da Barra de Menu) --}}
+            <div style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; height: 100%;">
                 <button
                     type="button"
                     @click="openPad()"
                     class="tap-scale"
                     :class="isPadPlaying ? 'animate-pulse' : ''"
                     style="
-                        width: 44px;
-                        height: 44px;
-                        min-width: 44px;
-                        min-height: 44px;
+                        position: absolute;
+                        top: -24px;
+                        width: 58px;
+                        height: 58px;
+                        min-width: 58px;
+                        min-height: 58px;
                         border-radius: 9999px;
-                        margin-top: -14px;
                         display: flex;
                         align-items: center;
                         justify-content: center;
                         cursor: pointer;
-                        transition: all 0.2s ease;
+                        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
                         outline: none;
+                        z-index: 30;
                     "
                     :style="isPadPlaying 
-                        ? 'background: linear-gradient(135deg, #c026d3 0%, #6366f1 50%, #00d2ff 100%); border: 2px solid #ffffff; box-shadow: 0 0 16px rgba(0, 210, 255, 0.7), 0 4px 12px rgba(0,0,0,0.5); color: #ffffff;' 
-                        : 'background: linear-gradient(135deg, #0e1626 0%, #17233d 100%); border: 1.5px solid rgba(0, 210, 255, 0.45); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4), 0 0 10px rgba(0, 210, 255, 0.15); color: #00d2ff;'"
+                        ? 'background: linear-gradient(135deg, #d946ef 0%, #6366f1 50%, #00d2ff 100%); border: 4px solid #12141a; box-shadow: 0 0 0 2px #00d2ff, 0 -8px 24px rgba(0, 210, 255, 0.7), 0 8px 20px rgba(0,0,0,0.8); color: #ffffff;' 
+                        : 'background: linear-gradient(135deg, #00d2ff 0%, #0099cc 100%); border: 4px solid #12141a; box-shadow: 0 -4px 18px rgba(0, 210, 255, 0.5), 0 6px 16px rgba(0, 0, 0, 0.5); color: #08080a;'"
                     title="Abrir Ambient Pad"
                     aria-label="Ambient Pad"
                 >
                     {{-- Ícone de Ondas Sonoras / Sintetizador PAD --}}
                     <template x-if="!isPadPlaying">
-                        <svg width="22" height="22" style="width: 22px; height: 22px; min-width: 22px; min-height: 22px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <svg width="26" height="26" style="width: 26px; height: 26px; min-width: 26px; min-height: 26px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M3 10v4" />
                             <path d="M7 6v12" />
                             <path d="M11 3v18" />
@@ -110,12 +112,12 @@
                         </svg>
                     </template>
                     <template x-if="isPadPlaying">
-                        <span style="font-size: 13px; font-weight: 900; font-family: monospace; letter-spacing: -0.03em; color: #ffffff;" x-text="padKey"></span>
+                        <span style="font-size: 15px; font-weight: 900; font-family: monospace; letter-spacing: -0.03em; color: #ffffff;" x-text="padKey"></span>
                     </template>
                 </button>
                 <span 
-                    style="font-size: 10px; margin-top: 3px; letter-spacing: -0.01em; transition: color 0.15s ease;"
-                    :style="isPadPlaying ? 'color: #00d2ff; font-weight: 800;' : 'color: {{ $inactiveColor }}; font-weight: 600;'"
+                    style="font-size: 10px; margin-top: 38px; letter-spacing: -0.01em; transition: color 0.15s ease;"
+                    :style="isPadPlaying ? 'color: #00d2ff; font-weight: 900;' : 'color: #00d2ff; font-weight: 800;'"
                     x-text="isPadPlaying ? 'PAD ON' : 'PAD'"
                 >PAD</span>
             </div>
@@ -145,7 +147,7 @@
             </a>
         </div>
     </nav>
-
-    {{-- Componente Completo do Ambient Pad (sem o botão flutuante FAB, controlado pelo botão central) --}}
-    <x-altar-ambient-pad :show-fab="false" />
 </div>
+
+{{-- Componente Completo do Ambient Pad renderizado fora da barra fixa para cobrir a tela cheia com estilo autônomo --}}
+<x-altar-ambient-pad :show-fab="false" />

@@ -328,6 +328,7 @@
                 currentKey: 'C',
                 observer: null,
                 isModalOpen: false,
+                activeTab: 'tones', // 'tones' | 'settings'
 
                 // Configurações e Controles
                 chordType: 'major',
@@ -557,6 +558,7 @@
                 // --- Modal de Configurações ---
                 openModal() {
                     this.isModalOpen = true;
+                    this.activeTab = 'tones';
                     this.$nextTick(() => {
                         this.initVisualizer();
                     });
@@ -567,18 +569,25 @@
                 },
 
                 selectPadKey(note) {
-                    this.currentKey = note;
-                    const engine = getAmbientPadEngine();
+                    // Se o tom já for o atual e o pad estiver tocando, encerra o Pad (Toggle)
+                    if (this.getCleanRootKey() === note && this.isPlaying) {
+                        this.stopPad();
+                        return;
+                    }
+
+                    this.currentKey = this.chordType === 'minor' ? (note + 'm') : note;
 
                     if (!this.isPlaying) {
                         this.startPad();
                     } else {
-                        engine.crossfadeToKey(this.currentKey);
+                        getAmbientPadEngine().crossfadeToKey(this.currentKey);
                     }
                 },
 
                 setChordType(type) {
                     this.chordType = type;
+                    const cleanRoot = this.getCleanRootKey();
+                    this.currentKey = type === 'minor' ? (cleanRoot + 'm') : cleanRoot;
                     const engine = getAmbientPadEngine();
                     engine.chordType = type;
                     if (this.isPlaying) {
@@ -836,184 +845,274 @@
                 </button>
             </div>
 
-            <!-- Grade de 12 Notas Fundamentais (Seleção Rápida de Tom) -->
-            <div class="flex flex-col gap-2">
-                <div class="flex items-center justify-between">
-                    <span class="text-xs uppercase tracking-wider font-extrabold text-[#71788e]">Tom Fundamental (Root Key)</span>
-                    <span class="text-xs font-mono font-bold text-[#00d2ff]">
-                        Tom Selecionado: <strong class="text-white text-sm" x-text="currentKey"></strong>
-                    </span>
+            <!-- Navegação por Abas (Tabs) Mobile-First: Tons vs Configurações -->
+            <div class="flex items-center p-1 rounded-2xl bg-[#12141a] border border-[#1e222c] shrink-0">
+                <button
+                    type="button"
+                    @click="activeTab = 'tones'"
+                    class="flex-1 py-2 sm:py-2.5 px-3 sm:px-4 rounded-xl text-xs sm:text-sm font-black uppercase tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer"
+                    :class="activeTab === 'tones' 
+                        ? 'bg-[#00d2ff] text-black shadow-lg shadow-cyan-500/25 ring-2 ring-cyan-400/40' 
+                        : 'text-slate-400 hover:text-white'"
+                >
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
+                    </svg>
+                    <span>Tons</span>
+                </button>
+                <button
+                    type="button"
+                    @click="activeTab = 'settings'"
+                    class="flex-1 py-2 sm:py-2.5 px-3 sm:px-4 rounded-xl text-xs sm:text-sm font-black uppercase tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer"
+                    :class="activeTab === 'settings' 
+                        ? 'bg-[#00d2ff] text-black shadow-lg shadow-cyan-500/25 ring-2 ring-cyan-400/40' 
+                        : 'text-slate-400 hover:text-white'"
+                >
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+                    </svg>
+                    <span>Configurações</span>
+                </button>
+            </div>
+
+            <!-- ABA 1: TONS (BOTÕES GRANDES, MOBILE-FIRST) -->
+            <div x-show="activeTab === 'tones'" x-cloak class="flex flex-col gap-3 sm:gap-4 flex-1">
+                <!-- Sub-header com Tom Selecionado, Status e Alternador Maior/Menor -->
+                <div class="flex items-center justify-between p-3 rounded-2xl bg-[#12141a]/90 border border-[#1e222c] shrink-0">
+                    <div class="flex items-center gap-2 min-w-0">
+                        <span class="text-xs uppercase tracking-wider font-extrabold text-[#71788e]">Tom:</span>
+                        <span class="text-base sm:text-lg font-black font-mono text-[#00d2ff] bg-cyan-500/10 px-2.5 py-0.5 rounded-xl border border-cyan-500/30" x-text="currentKey"></span>
+                        <template x-if="isPlaying">
+                            <span class="flex items-center gap-1.5 text-[11px] font-bold text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-full border border-emerald-500/20 animate-pulse">
+                                <span class="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_8px_#34d399]"></span>
+                                <span>TOCANDO</span>
+                            </span>
+                        </template>
+                        <template x-if="!isPlaying">
+                            <span class="text-[11px] font-bold text-slate-400 bg-[#1e222c]/60 px-2.5 py-1 rounded-full border border-slate-700/50">
+                                PARADO
+                            </span>
+                        </template>
+                    </div>
+
+                    <!-- Alternador Rápido Maior / Menor -->
+                    <div class="flex bg-[#08080a] p-1 rounded-xl border border-[#1e222c] shrink-0">
+                        <button 
+                            type="button"
+                            @click="setChordType('major')"
+                            class="px-2.5 sm:px-3 py-1 text-xs font-bold rounded-lg transition-all"
+                            :class="chordType === 'major' ? 'bg-[#00d2ff] text-black shadow-sm' : 'text-slate-400 hover:text-white'"
+                        >
+                            Maior
+                        </button>
+                        <button 
+                            type="button"
+                            @click="setChordType('minor')"
+                            class="px-2.5 sm:px-3 py-1 text-xs font-bold rounded-lg transition-all"
+                            :class="chordType === 'minor' ? 'bg-[#00d2ff] text-black shadow-sm' : 'text-slate-400 hover:text-white'"
+                        >
+                            Menor
+                        </button>
+                    </div>
                 </div>
 
-                <div class="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-12 gap-2">
+                <!-- Dica mobile discreta -->
+                <p class="text-[11px] text-[#71788e] text-center shrink-0">
+                    Toque em um tom para tocar • Toque no mesmo tom novamente para encerrar
+                </p>
+
+                <!-- Grade de 12 Tons com Botões Grandes (3 colunas no celular, 4 no tablet, 6 no desktop) -->
+                <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2.5 sm:gap-3 flex-1">
                     <template x-for="note in availableNotes" :key="note">
                         <button
                             type="button"
                             @click="selectPadKey(note)"
-                            class="relative rounded-xl p-2 sm:p-2.5 flex flex-col items-center justify-center border transition-all tap-scale cursor-pointer group"
+                            class="relative rounded-2xl p-3 sm:p-4 min-h-[76px] sm:min-h-[88px] flex flex-col items-center justify-center border transition-all tap-scale cursor-pointer group select-none"
                             :class="(getCleanRootKey() === note && isPlaying)
-                                ? 'bg-gradient-to-b from-cyan-500/30 to-indigo-600/30 border-[#00d2ff] shadow-[0_0_15px_rgba(0,210,255,0.3)] text-white scale-105' 
+                                ? 'bg-gradient-to-br from-cyan-500/30 via-indigo-600/30 to-fuchsia-600/30 border-2 border-[#00d2ff] shadow-[0_0_20px_rgba(0,210,255,0.4)] text-white scale-[1.02] ring-2 ring-cyan-400/40' 
                                 : (getCleanRootKey() === note)
-                                    ? 'bg-[#181b24] border-cyan-500/60 text-cyan-300'
-                                    : 'bg-[#12141a] hover:bg-[#181b24] border-[#1e222c] hover:border-slate-600 text-slate-300 hover:text-white'"
+                                    ? 'bg-[#181b24] border-2 border-cyan-500/70 text-cyan-300 ring-1 ring-cyan-500/30'
+                                    : 'bg-[#12141a]/95 hover:bg-[#181b24] border-[#1e222c] hover:border-slate-600 text-slate-200 hover:text-white'"
                         >
-                            <span class="text-sm sm:text-base font-black font-mono leading-none" x-text="note"></span>
-                            <!-- Barra de acento de cor do tom -->
-                            <span 
-                                class="w-full h-1 rounded-full mt-1.5 opacity-60 group-hover:opacity-100 transition-opacity"
-                                :style="'background-color: ' + noteColors[note] + ';'"
-                            ></span>
+                            <!-- Nome da Nota Grande e Destacado -->
+                            <span class="text-2xl sm:text-3xl font-black font-mono leading-none tracking-tight" x-text="note"></span>
+                            
+                            <!-- Barra de Acento / Indicador -->
+                            <div class="w-full flex items-center justify-center mt-2">
+                                <template x-if="getCleanRootKey() === note && isPlaying">
+                                    <!-- Barras de onda sonoras animadas no botão ativo -->
+                                    <span class="flex items-center gap-1 text-cyan-200">
+                                        <span class="w-1 h-2 bg-current rounded-full animate-pulse"></span>
+                                        <span class="w-1 h-3.5 bg-current rounded-full animate-pulse" style="animation-delay: 150ms;"></span>
+                                        <span class="w-1 h-2 bg-current rounded-full animate-pulse" style="animation-delay: 300ms;"></span>
+                                    </span>
+                                </template>
+                                <template x-if="!(getCleanRootKey() === note && isPlaying)">
+                                    <!-- Barra de acento de cor do tom -->
+                                    <span 
+                                        class="w-10 h-1 rounded-full opacity-60 group-hover:opacity-100 transition-opacity"
+                                        :style="'background-color: ' + noteColors[note] + ';'"
+                                    ></span>
+                                </template>
+                            </div>
                         </button>
                     </template>
                 </div>
             </div>
 
-            <!-- Controles de Síntese e Efeitos (Grid 3 Colunas) -->
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-4">
-                
-                <!-- 1. Tipo de Acorde (Chord Type: Major / Minor) -->
-                <div class="p-3.5 sm:p-4 rounded-2xl bg-[#12141a]/90 border border-[#1e222c] flex flex-col gap-2">
-                    <label class="text-[11px] uppercase tracking-wider font-extrabold text-[#71788e]">Tipo de Acorde</label>
-                    <div class="flex bg-[#08080a] p-1 rounded-xl border border-[#1e222c]">
-                        <button 
-                            type="button"
-                            @click="setChordType('major')"
-                            class="flex-1 py-1.5 text-xs font-bold rounded-lg transition-all"
-                            :class="chordType === 'major' ? 'bg-[#00d2ff] text-black shadow-md' : 'text-slate-400 hover:text-white'"
-                        >
-                            Maior (Major)
-                        </button>
-                        <button 
-                            type="button"
-                            @click="setChordType('minor')"
-                            class="flex-1 py-1.5 text-xs font-bold rounded-lg transition-all"
-                            :class="chordType === 'minor' ? 'bg-[#00d2ff] text-black shadow-md' : 'text-slate-400 hover:text-white'"
-                        >
-                            Menor (Minor)
-                        </button>
-                    </div>
+            <!-- ABA 2: CONFIGURAÇÕES DO SINTETIZADOR E EFEITOS -->
+            <div x-show="activeTab === 'settings'" x-cloak class="flex flex-col gap-3.5 sm:gap-4 flex-1">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs uppercase tracking-wider font-extrabold text-[#71788e]">Ajustes do Sintetizador</span>
+                    <span class="text-xs text-[#71788e]">Personalize o timbre, textura e ambiência</span>
                 </div>
 
-                <!-- 2. Timbre / Textura -->
-                <div class="p-3.5 sm:p-4 rounded-2xl bg-[#12141a]/90 border border-[#1e222c] flex flex-col gap-2">
-                    <label class="text-[11px] uppercase tracking-wider font-extrabold text-[#71788e]">Timbre & Ondas</label>
-                    <div class="flex bg-[#08080a] p-1 rounded-xl border border-[#1e222c] gap-1">
-                        <button 
-                            type="button"
-                            @click="setTimbre('lush')"
-                            class="flex-1 py-1.5 text-xs font-bold rounded-lg transition-all"
-                            :class="timbre === 'lush' ? 'bg-[#00d2ff] text-black shadow-md' : 'text-slate-400 hover:text-white'"
-                            title="Worship aveludado profundo (Fattriangle)"
-                        >
-                            Lush
-                        </button>
-                        <button 
-                            type="button"
-                            @click="setTimbre('analog')"
-                            class="flex-1 py-1.5 text-xs font-bold rounded-lg transition-all"
-                            :class="timbre === 'analog' ? 'bg-[#00d2ff] text-black shadow-md' : 'text-slate-400 hover:text-white'"
-                            title="Quente analógico (Fatsawtooth)"
-                        >
-                            Analog
-                        </button>
-                        <button 
-                            type="button"
-                            @click="setTimbre('ethereal')"
-                            class="flex-1 py-1.5 text-xs font-bold rounded-lg transition-all"
-                            :class="timbre === 'ethereal' ? 'bg-[#00d2ff] text-black shadow-md' : 'text-slate-400 hover:text-white'"
-                            title="Suave celestial (Fatsine)"
-                        >
-                            Ethereal
-                        </button>
+                <!-- Controles de Síntese e Efeitos (Grid) -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-4">
+                    <!-- 1. Tipo de Acorde (Chord Type: Major / Minor) -->
+                    <div class="p-3.5 sm:p-4 rounded-2xl bg-[#12141a]/90 border border-[#1e222c] flex flex-col gap-2">
+                        <label class="text-[11px] uppercase tracking-wider font-extrabold text-[#71788e]">Tipo de Acorde</label>
+                        <div class="flex bg-[#08080a] p-1 rounded-xl border border-[#1e222c]">
+                            <button 
+                                type="button"
+                                @click="setChordType('major')"
+                                class="flex-1 py-1.5 text-xs font-bold rounded-lg transition-all"
+                                :class="chordType === 'major' ? 'bg-[#00d2ff] text-black shadow-md' : 'text-slate-400 hover:text-white'"
+                            >
+                                Maior (Major)
+                            </button>
+                            <button 
+                                type="button"
+                                @click="setChordType('minor')"
+                                class="flex-1 py-1.5 text-xs font-bold rounded-lg transition-all"
+                                :class="chordType === 'minor' ? 'bg-[#00d2ff] text-black shadow-md' : 'text-slate-400 hover:text-white'"
+                            >
+                                Menor (Minor)
+                            </button>
+                        </div>
                     </div>
-                </div>
 
-                <!-- 3. Voicing / Inversão Harmônica -->
-                <div class="p-3.5 sm:p-4 rounded-2xl bg-[#12141a]/90 border border-[#1e222c] flex flex-col gap-1.5">
-                    <div class="flex items-center justify-between text-[11px] uppercase tracking-wider font-extrabold text-[#71788e]">
-                        <span>Voicing / Inversão</span>
-                        <span class="text-[#00d2ff] font-mono" x-text="inversion === 0 ? 'Fundamental (Root)' : (inversion === 1 ? '1ª Inversão' : '2ª Inversão')"></span>
+                    <!-- 2. Timbre / Textura -->
+                    <div class="p-3.5 sm:p-4 rounded-2xl bg-[#12141a]/90 border border-[#1e222c] flex flex-col gap-2">
+                        <label class="text-[11px] uppercase tracking-wider font-extrabold text-[#71788e]">Timbre & Ondas</label>
+                        <div class="flex bg-[#08080a] p-1 rounded-xl border border-[#1e222c] gap-1">
+                            <button 
+                                type="button"
+                                @click="setTimbre('lush')"
+                                class="flex-1 py-1.5 text-xs font-bold rounded-lg transition-all"
+                                :class="timbre === 'lush' ? 'bg-[#00d2ff] text-black shadow-md' : 'text-slate-400 hover:text-white'"
+                                title="Worship aveludado profundo (Fattriangle)"
+                            >
+                                Lush
+                            </button>
+                            <button 
+                                type="button"
+                                @click="setTimbre('analog')"
+                                class="flex-1 py-1.5 text-xs font-bold rounded-lg transition-all"
+                                :class="timbre === 'analog' ? 'bg-[#00d2ff] text-black shadow-md' : 'text-slate-400 hover:text-white'"
+                                title="Quente analógico (Fatsawtooth)"
+                            >
+                                Analog
+                            </button>
+                            <button 
+                                type="button"
+                                @click="setTimbre('ethereal')"
+                                class="flex-1 py-1.5 text-xs font-bold rounded-lg transition-all"
+                                :class="timbre === 'ethereal' ? 'bg-[#00d2ff] text-black shadow-md' : 'text-slate-400 hover:text-white'"
+                                title="Suave celestial (Fatsine)"
+                            >
+                                Ethereal
+                            </button>
+                        </div>
                     </div>
-                    <input 
-                        type="range" 
-                        min="0" 
-                        max="2" 
-                        step="1"
-                        :value="inversion"
-                        @input="setInversion($event.target.value)"
-                        class="w-full h-1.5 bg-[#08080a] rounded-lg appearance-none cursor-pointer accent-[#00d2ff] mt-1"
-                    />
-                    <div class="flex justify-between text-[10px] text-[#71788e] font-mono px-0.5">
-                        <span>Root</span>
-                        <span>1st Inv</span>
-                        <span>2nd Inv</span>
-                    </div>
-                </div>
 
-                <!-- 4. Oitava Base (Octave Shift) -->
-                <div class="p-3.5 sm:p-4 rounded-2xl bg-[#12141a]/90 border border-[#1e222c] flex flex-col gap-1.5">
-                    <div class="flex items-center justify-between text-[11px] uppercase tracking-wider font-extrabold text-[#71788e]">
-                        <span>Oitava (Octave)</span>
-                        <span class="text-[#00d2ff] font-mono" x-text="'Oitava ' + octave"></span>
+                    <!-- 3. Voicing / Inversão Harmônica -->
+                    <div class="p-3.5 sm:p-4 rounded-2xl bg-[#12141a]/90 border border-[#1e222c] flex flex-col gap-1.5">
+                        <div class="flex items-center justify-between text-[11px] uppercase tracking-wider font-extrabold text-[#71788e]">
+                            <span>Voicing / Inversão</span>
+                            <span class="text-[#00d2ff] font-mono" x-text="inversion === 0 ? 'Fundamental (Root)' : (inversion === 1 ? '1ª Inversão' : '2ª Inversão')"></span>
+                        </div>
+                        <input 
+                            type="range" 
+                            min="0" 
+                            max="2" 
+                            step="1"
+                            :value="inversion"
+                            @input="setInversion($event.target.value)"
+                            class="w-full h-1.5 bg-[#08080a] rounded-lg appearance-none cursor-pointer accent-[#00d2ff] mt-1"
+                        />
+                        <div class="flex justify-between text-[10px] text-[#71788e] font-mono px-0.5">
+                            <span>Root</span>
+                            <span>1st Inv</span>
+                            <span>2nd Inv</span>
+                        </div>
                     </div>
-                    <input 
-                        type="range" 
-                        min="2" 
-                        max="5" 
-                        step="1"
-                        :value="octave"
-                        @input="setOctave($event.target.value)"
-                        class="w-full h-1.5 bg-[#08080a] rounded-lg appearance-none cursor-pointer accent-[#00d2ff] mt-1"
-                    />
-                    <div class="flex justify-between text-[10px] text-[#71788e] font-mono px-0.5">
-                        <span>2 (Grave)</span>
-                        <span>3 (Padrão)</span>
-                        <span>4 (Médio)</span>
-                        <span>5 (Agudo)</span>
-                    </div>
-                </div>
 
-                <!-- 5. Ambience (Reverb & Echo Space) -->
-                <div class="p-3.5 sm:p-4 rounded-2xl bg-[#12141a]/90 border border-[#1e222c] flex flex-col gap-1.5">
-                    <div class="flex items-center justify-between text-[11px] uppercase tracking-wider font-extrabold text-[#71788e]">
-                        <span>Ambience (Reverb & Delay)</span>
-                        <span class="text-[#00d2ff] font-mono" x-text="Math.round(ambienceLevel * 100) + '%'"></span>
+                    <!-- 4. Oitava Base (Octave Shift) -->
+                    <div class="p-3.5 sm:p-4 rounded-2xl bg-[#12141a]/90 border border-[#1e222c] flex flex-col gap-1.5">
+                        <div class="flex items-center justify-between text-[11px] uppercase tracking-wider font-extrabold text-[#71788e]">
+                            <span>Oitava (Octave)</span>
+                            <span class="text-[#00d2ff] font-mono" x-text="'Oitava ' + octave"></span>
+                        </div>
+                        <input 
+                            type="range" 
+                            min="2" 
+                            max="5" 
+                            step="1"
+                            :value="octave"
+                            @input="setOctave($event.target.value)"
+                            class="w-full h-1.5 bg-[#08080a] rounded-lg appearance-none cursor-pointer accent-[#00d2ff] mt-1"
+                        />
+                        <div class="flex justify-between text-[10px] text-[#71788e] font-mono px-0.5">
+                            <span>2 (Grave)</span>
+                            <span>3 (Padrão)</span>
+                            <span>4 (Médio)</span>
+                            <span>5 (Agudo)</span>
+                        </div>
                     </div>
-                    <input 
-                        type="range" 
-                        min="0" 
-                        max="1" 
-                        step="0.01"
-                        :value="ambienceLevel"
-                        @input="setAmbience($event.target.value)"
-                        class="w-full h-1.5 bg-[#08080a] rounded-lg appearance-none cursor-pointer accent-[#00d2ff] mt-1"
-                    />
-                    <div class="flex justify-between text-[10px] text-[#71788e] font-mono px-0.5">
-                        <span>Seco (Dry)</span>
-                        <span>50%</span>
-                        <span>Espacial (Wet)</span>
-                    </div>
-                </div>
 
-                <!-- 6. Movement (LFO Sweep & Chorus) -->
-                <div class="p-3.5 sm:p-4 rounded-2xl bg-[#12141a]/90 border border-[#1e222c] flex flex-col gap-1.5">
-                    <div class="flex items-center justify-between text-[11px] uppercase tracking-wider font-extrabold text-[#71788e]">
-                        <span>Movement (LFO & Modulação)</span>
-                        <span class="text-[#00d2ff] font-mono" x-text="Math.round(movementLevel * 100) + '%'"></span>
+                    <!-- 5. Ambience (Reverb & Echo Space) -->
+                    <div class="p-3.5 sm:p-4 rounded-2xl bg-[#12141a]/90 border border-[#1e222c] flex flex-col gap-1.5">
+                        <div class="flex items-center justify-between text-[11px] uppercase tracking-wider font-extrabold text-[#71788e]">
+                            <span>Ambience (Reverb & Delay)</span>
+                            <span class="text-[#00d2ff] font-mono" x-text="Math.round(ambienceLevel * 100) + '%'"></span>
+                        </div>
+                        <input 
+                            type="range" 
+                            min="0" 
+                            max="1" 
+                            step="0.01"
+                            :value="ambienceLevel"
+                            @input="setAmbience($event.target.value)"
+                            class="w-full h-1.5 bg-[#08080a] rounded-lg appearance-none cursor-pointer accent-[#00d2ff] mt-1"
+                        />
+                        <div class="flex justify-between text-[10px] text-[#71788e] font-mono px-0.5">
+                            <span>Seco (Dry)</span>
+                            <span>50%</span>
+                            <span>Espacial (Wet)</span>
+                        </div>
                     </div>
-                    <input 
-                        type="range" 
-                        min="0" 
-                        max="1" 
-                        step="0.01"
-                        :value="movementLevel"
-                        @input="setMovement($event.target.value)"
-                        class="w-full h-1.5 bg-[#08080a] rounded-lg appearance-none cursor-pointer accent-[#00d2ff] mt-1"
-                    />
-                    <div class="flex justify-between text-[10px] text-[#71788e] font-mono px-0.5">
-                        <span>Estático</span>
-                        <span>Orgânico</span>
-                        <span>Ondulante</span>
+
+                    <!-- 6. Movement (LFO Sweep & Chorus) -->
+                    <div class="p-3.5 sm:p-4 rounded-2xl bg-[#12141a]/90 border border-[#1e222c] flex flex-col gap-1.5">
+                        <div class="flex items-center justify-between text-[11px] uppercase tracking-wider font-extrabold text-[#71788e]">
+                            <span>Movement (LFO & Modulação)</span>
+                            <span class="text-[#00d2ff] font-mono" x-text="Math.round(movementLevel * 100) + '%'"></span>
+                        </div>
+                        <input 
+                            type="range" 
+                            min="0" 
+                            max="1" 
+                            step="0.01"
+                            :value="movementLevel"
+                            @input="setMovement($event.target.value)"
+                            class="w-full h-1.5 bg-[#08080a] rounded-lg appearance-none cursor-pointer accent-[#00d2ff] mt-1"
+                        />
+                        <div class="flex justify-between text-[10px] text-[#71788e] font-mono px-0.5">
+                            <span>Estático</span>
+                            <span>Orgânico</span>
+                            <span>Ondulante</span>
+                        </div>
                     </div>
                 </div>
             </div>

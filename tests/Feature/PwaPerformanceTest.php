@@ -82,6 +82,8 @@ class PwaPerformanceTest extends TestCase
         $this->assertStringContainsString('initWorker', $view);
         $this->assertStringContainsString('timerWorker', $view);
         $this->assertStringContainsString('new Worker', $view);
+        $this->assertStringContainsString('x-data="altarMetronome()"', $view);
+        $this->assertStringContainsString('window.altarMetronome', $view);
     }
 
     public function test_manifest_and_meta_tags_use_official_altar_dark_theme_color(): void
@@ -94,5 +96,15 @@ class PwaPerformanceTest extends TestCase
 
         $metaView = view('pwa.meta')->render();
         $this->assertStringContainsString('content="#08080a"', $metaView);
+    }
+
+    public function test_manifest_has_explicit_share_target_enctype(): void
+    {
+        foreach (['manifest.json', 'manifest.webmanifest'] as $filename) {
+            $path = public_path($filename);
+            $json = json_decode((string) file_get_contents($path), true);
+            $this->assertArrayHasKey('share_target', $json);
+            $this->assertSame('application/x-www-form-urlencoded', $json['share_target']['enctype'] ?? null);
+        }
     }
 }

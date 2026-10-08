@@ -1,168 +1,188 @@
-<div
-    x-data="{
-        isOpen: false,
-        isPlaying: false,
-        bpm: 120,
-        timeSignature: '4/4',
-        beatsPerMeasure: 4,
-        currentBeat: 0,
-        audioCtx: null,
-        timerWorker: null,
-        nextNoteTime: 0.0,
-        scheduleAheadTime: 0.1,
-        lookahead: 25,
-        timerId: null,
-        tapTimes: [],
-        flashBeat: false,
+<script>
+    if (typeof window.altarMetronome !== 'function') {
+        window.altarMetronome = function() {
+            return {
+                isOpen: false,
+                isPlaying: false,
+                bpm: 120,
+                timeSignature: '4/4',
+                beatsPerMeasure: 4,
+                currentBeat: 0,
+                audioCtx: null,
+                timerWorker: null,
+                nextNoteTime: 0.0,
+                scheduleAheadTime: 0.1,
+                lookahead: 25,
+                timerId: null,
+                tapTimes: [],
+                flashBeat: false,
 
-        init() {
-            this.updateBeatsPerMeasure();
-            window.addEventListener('open-altar-metronome', (e) => {
-                if (e.detail?.bpm) {
-                    this.bpm = Math.min(220, Math.max(40, parseInt(e.detail.bpm, 10)));
-                }
-                if (e.detail?.timeSignature) {
-                    this.timeSignature = e.detail.timeSignature;
+                init() {
                     this.updateBeatsPerMeasure();
-                }
-                this.isOpen = true;
-            });
-            window.addEventListener('keydown', (e) => {
-                if (this.isOpen && e.key === 'Escape') {
-                    this.isOpen = false;
-                }
-            });
-        },
-
-        updateBeatsPerMeasure() {
-            const parts = this.timeSignature.split('/');
-            this.beatsPerMeasure = parseInt(parts[0], 10) || 4;
-        },
-
-        ensureAudioContext() {
-            if (!this.audioCtx) {
-                const AudioCtxClass = window.AudioContext || window.webkitAudioContext;
-                this.audioCtx = new AudioCtxClass();
-            }
-            if (this.audioCtx.state === 'suspended') {
-                this.audioCtx.resume();
-            }
-        },
-
-        initWorker() {
-            if (this.timerWorker) return;
-            try {
-                const workerScript = `
-                    let timer = null;
-                    let interval = 25;
-                    self.onmessage = function(e) {
-                        if (e.data === "start") {
-                            if (!timer) timer = setInterval(() => self.postMessage("tick"), interval);
-                        } else if (e.data === "stop") {
-                            clearInterval(timer);
-                            timer = null;
+                    window.addEventListener('open-altar-metronome', (e) => {
+                        if (e.detail?.bpm) {
+                            this.bpm = Math.min(220, Math.max(40, parseInt(e.detail.bpm, 10)));
                         }
-                    };
-                `;
-                const blob = new Blob([workerScript], { type: 'application/javascript' });
-                this.timerWorker = new Worker(URL.createObjectURL(blob));
-                this.timerWorker.onmessage = (e) => {
-                    if (e.data === 'tick') {
-                        this.scheduler();
+                        if (e.detail?.timeSignature) {
+                            this.timeSignature = e.detail.timeSignature;
+                            this.updateBeatsPerMeasure();
+                        }
+                        this.isOpen = true;
+                    });
+                    window.addEventListener('keydown', (e) => {
+                        if (this.isOpen && e.key === 'Escape') {
+                            this.isOpen = false;
+                        }
+                    });
+                },
+
+                updateBeatsPerMeasure() {
+                    const parts = this.timeSignature.split('/');
+                    this.beatsPerMeasure = parseInt(parts[0], 10) || 4;
+                },
+
+                ensureAudioContext() {
+                    if (!this.audioCtx) {
+                        const AudioCtxClass = window.AudioContext || window.webkitAudioContext;
+                        this.audioCtx = new AudioCtxClass();
                     }
-                };
-            } catch (err) {
-                console.warn('[Metronome] Web Worker fallback to setTimeout:', err);
-            }
-        },
+                    if (this.audioCtx.state === 'suspended') {
+                        this.audioCtx.resume();
+                    }
+                },
 
-        togglePlay() {
-            this.ensureAudioContext();
-            this.isPlaying = !this.isPlaying;
-            if (this.isPlaying) {
-                this.initWorker();
-                this.currentBeat = 0;
-                this.nextNoteTime = this.audioCtx.currentTime + 0.05;
-                if (this.timerWorker) {
-                    this.timerWorker.postMessage('start');
-                } else {
-                    this.scheduler();
+                initWorker() {
+                    if (this.timerWorker) return;
+                    try {
+                        const workerCode = [
+                            'let timer = null;',
+                            'let interval = 25;',
+                            'self.onmessage = function(e) {',
+                            "    if (e.data === 'start') {",
+                            "        if (!timer) timer = setInterval(function() { self.postMessage('tick'); }, interval);",
+                            "    } else if (e.data === 'stop') {",
+                            '        if (timer) { clearInterval(timer); timer = null; }',
+                            '    }',
+                            '};'
+                        ].join('\n');
+                        const blob = new Blob([workerCode], { type: 'application/javascript' });
+                        this.timerWorker = new Worker(URL.createObjectURL(blob));
+                        this.timerWorker.onmessage = (e) => {
+                            if (e.data === 'tick') {
+                                this.scheduler();
+                            }
+                        };
+                        this.timerWorker.onerror = (e) => {
+                            console.warn('[Metronome] Worker error, fallback to setTimeout:', e);
+                            this.timerWorker = null;
+                        };
+                    } catch (err) {
+                        console.warn('[Metronome] Web Worker fallback to setTimeout:', err);
+                        this.timerWorker = null;
+                    }
+                },
+
+                togglePlay() {
+                    this.ensureAudioContext();
+                    this.isPlaying = !this.isPlaying;
+                    if (this.isPlaying) {
+                        this.initWorker();
+                        this.currentBeat = 0;
+                        this.nextNoteTime = this.audioCtx.currentTime + 0.05;
+                        if (this.timerWorker) {
+                            this.timerWorker.postMessage('start');
+                        } else {
+                            this.scheduler();
+                        }
+                    } else {
+                        if (this.timerWorker) {
+                            this.timerWorker.postMessage('stop');
+                        }
+                        clearTimeout(this.timerId);
+                        this.flashBeat = false;
+                    }
+                },
+
+                scheduler() {
+                    if (!this.isPlaying) return;
+                    while (this.nextNoteTime < this.audioCtx.currentTime + this.scheduleAheadTime) {
+                        this.scheduleNote(this.currentBeat, this.nextNoteTime);
+                        this.nextNote();
+                    }
+                    if (!this.timerWorker) {
+                        this.timerId = setTimeout(() => this.scheduler(), this.lookahead);
+                    }
+                },
+
+                nextNote() {
+                    const secondsPerBeat = 60.0 / this.bpm;
+                    this.nextNoteTime += secondsPerBeat;
+                    this.currentBeat = (this.currentBeat + 1) % this.beatsPerMeasure;
+                },
+
+                scheduleNote(beatNumber, time) {
+                    const osc = this.audioCtx.createOscillator();
+                    const gain = this.audioCtx.createGain();
+
+                    osc.connect(gain);
+                    gain.connect(this.audioCtx.destination);
+
+                    const isAccent = beatNumber === 0;
+                    osc.frequency.value = isAccent ? 1200 : 800;
+
+                    gain.gain.setValueAtTime(0.7, time);
+                    gain.gain.exponentialRampToValueAtTime(0.001, time + 0.06);
+
+                    osc.start(time);
+                    osc.stop(time + 0.07);
+
+                    const delay = Math.max(0, (time - this.audioCtx.currentTime) * 1000);
+                    setTimeout(() => {
+                        if (this.isPlaying) {
+                            this.flashBeat = true;
+                            setTimeout(() => this.flashBeat = false, 90);
+                        }
+                    }, delay);
+                },
+
+                tapTempo() {
+                    const now = performance.now();
+                    if (this.tapTimes.length > 0 && (now - this.tapTimes[this.tapTimes.length - 1] > 2200)) {
+                        this.tapTimes = [];
+                    }
+                    this.tapTimes.push(now);
+                    if (this.tapTimes.length > 5) {
+                        this.tapTimes.shift();
+                    }
+                    if (this.tapTimes.length >= 2) {
+                        let intervals = [];
+                        for (let i = 1; i < this.tapTimes.length; i++) {
+                            intervals.push(this.tapTimes[i] - this.tapTimes[i - 1]);
+                        }
+                        const avgInterval = intervals.reduce((a, b) => a + b, 0) / intervals.length;
+                        const calculatedBpm = Math.round(60000 / avgInterval);
+                        this.bpm = Math.min(220, Math.max(40, calculatedBpm));
+                    }
+                },
+
+                adjustBpm(amount) {
+                    this.bpm = Math.min(220, Math.max(40, this.bpm + amount));
                 }
-            } else {
-                if (this.timerWorker) {
-                    this.timerWorker.postMessage('stop');
-                }
-                clearTimeout(this.timerId);
-                this.flashBeat = false;
-            }
-        },
+            };
+        };
 
-        scheduler() {
-            if (!this.isPlaying) return;
-            while (this.nextNoteTime < this.audioCtx.currentTime + this.scheduleAheadTime) {
-                this.scheduleNote(this.currentBeat, this.nextNoteTime);
-                this.nextNote();
-            }
-            if (!this.timerWorker) {
-                this.timerId = setTimeout(() => this.scheduler(), this.lookahead);
-            }
-        },
-
-        nextNote() {
-            const secondsPerBeat = 60.0 / this.bpm;
-            this.nextNoteTime += secondsPerBeat;
-            this.currentBeat = (this.currentBeat + 1) % this.beatsPerMeasure;
-        },
-
-        scheduleNote(beatNumber, time) {
-            const osc = this.audioCtx.createOscillator();
-            const gain = this.audioCtx.createGain();
-
-            osc.connect(gain);
-            gain.connect(this.audioCtx.destination);
-
-            const isAccent = beatNumber === 0;
-            osc.frequency.value = isAccent ? 1200 : 800;
-
-            gain.gain.setValueAtTime(0.7, time);
-            gain.gain.exponentialRampToValueAtTime(0.001, time + 0.06);
-
-            osc.start(time);
-            osc.stop(time + 0.07);
-
-            const delay = Math.max(0, (time - this.audioCtx.currentTime) * 1000);
-            setTimeout(() => {
-                if (this.isPlaying) {
-                    this.flashBeat = true;
-                    setTimeout(() => this.flashBeat = false, 90);
-                }
-            }, delay);
-        },
-
-        tapTempo() {
-            const now = performance.now();
-            if (this.tapTimes.length > 0 && (now - this.tapTimes[this.tapTimes.length - 1] > 2200)) {
-                this.tapTimes = [];
-            }
-            this.tapTimes.push(now);
-            if (this.tapTimes.length > 5) {
-                this.tapTimes.shift();
-            }
-            if (this.tapTimes.length >= 2) {
-                let intervals = [];
-                for (let i = 1; i < this.tapTimes.length; i++) {
-                    intervals.push(this.tapTimes[i] - this.tapTimes[i - 1]);
-                }
-                const avgInterval = intervals.reduce((a, b) => a + b, 0) / intervals.length;
-                const calculatedBpm = Math.round(60000 / avgInterval);
-                this.bpm = Math.min(220, Math.max(40, calculatedBpm));
-            }
-        },
-
-        adjustBpm(amount) {
-            this.bpm = Math.min(220, Math.max(40, this.bpm + amount));
+        if (window.Alpine) {
+            window.Alpine.data('altarMetronome', window.altarMetronome);
+        } else {
+            document.addEventListener('alpine:init', () => {
+                window.Alpine.data('altarMetronome', window.altarMetronome);
+            });
         }
-    }"
+    }
+</script>
+
+<div
+    x-data="altarMetronome()"
     x-show="isOpen"
     x-transition:enter="transition ease-out duration-200"
     x-transition:enter-start="opacity-0 scale-95"

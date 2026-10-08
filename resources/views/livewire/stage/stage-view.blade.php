@@ -158,21 +158,47 @@
                 }
             });
         },
+        animationFrameId: null,
+
         startAutoScroll() {
             this.stopAutoScroll();
             const container = this.$refs.chordContainer;
             if (!container) return;
-            const delay = Math.max(20, Math.round((75 - (this.scrollSpeed * 5)) / 0.6));
-            this.scrollInterval = setInterval(() => {
-                if (container.scrollTop + container.clientHeight >= container.scrollHeight) {
-                    this.isAutoScrolling = false;
-                    this.stopAutoScroll();
-                    return;
+
+            const delay = Math.max(20, (75 - (this.scrollSpeed * 5)) / 0.6);
+            const pixelsPerSecond = 1000 / delay;
+            let lastTime = performance.now();
+            let subpixelOffset = 0;
+
+            const step = (currentTime) => {
+                if (!this.isAutoScrolling) return;
+                const dt = (currentTime - lastTime) / 1000;
+                lastTime = currentTime;
+
+                if (dt > 0 && dt < 0.5) {
+                    subpixelOffset += pixelsPerSecond * dt;
+                    const wholePixels = Math.floor(subpixelOffset);
+                    if (wholePixels >= 1) {
+                        container.scrollTop += wholePixels;
+                        subpixelOffset -= wholePixels;
+                    }
+
+                    if (container.scrollTop + container.clientHeight >= container.scrollHeight - 1) {
+                        this.isAutoScrolling = false;
+                        this.stopAutoScroll();
+                        return;
+                    }
                 }
-                container.scrollTop += 1;
-            }, delay);
+                this.animationFrameId = requestAnimationFrame(step);
+            };
+
+            this.animationFrameId = requestAnimationFrame(step);
         },
         stopAutoScroll() {
+            if (this.animationFrameId) {
+                cancelAnimationFrame(this.animationFrameId);
+                this.animationFrameId = null;
+            }
             if (this.scrollInterval) {
                 clearInterval(this.scrollInterval);
                 this.scrollInterval = null;

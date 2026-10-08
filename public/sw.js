@@ -3,7 +3,7 @@
  * Focus: Mobile performance, offline resilience, and future extensible sync/push capabilities.
  */
 
-const CACHE_VERSION = 'cifraly-v1.0.6';
+const CACHE_VERSION = 'cifraly-v1.0.7';
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const RUNTIME_CACHE = `${CACHE_VERSION}-runtime`;
 const STAGE_CACHE = `${CACHE_VERSION}-stage`;
@@ -24,11 +24,9 @@ const PRECACHE_ASSETS = [
     '/favicon.ico'
 ];
 
-// Dynamic and mutation patterns that MUST NOT be cached (mutations, livewire, auth, dynamic admin panel)
+// Dynamic and mutation patterns that MUST NOT be cached (mutations, livewire RPC updates, auth, telescope)
 const EXCLUDED_PATTERNS = [
-    /\/livewire(\/|$)/,
-    /\/app(\/|$)/,
-    /\/auth(\/|$)/,
+    /\/livewire\/(update|upload-file|preview-file)(\/|$)/,
     /\/api(\/|$)/,
     /\/login(\/|$)/,
     /\/join(\/|$)/,
@@ -38,13 +36,14 @@ const EXCLUDED_PATTERNS = [
 ];
 
 // -------------------------------------------------------------
-// 1. Install Event - Precache shell with cache reload
+// 1. Install Event - Precache shell with cache reload & dynamic Vite manifest
 // -------------------------------------------------------------
 self.addEventListener('install', (event) => {
     event.waitUntil(
         caches.open(STATIC_CACHE)
-            .then((cache) => {
-                return Promise.all(
+            .then(async (cache) => {
+                // 1. Precache fixed core assets
+                await Promise.all(
                     PRECACHE_ASSETS.map((url) => {
                         return fetch(new Request(url, { cache: 'reload' }))
                             .then((response) => {
@@ -55,6 +54,33 @@ self.addEventListener('install', (event) => {
                             .catch((err) => console.warn('[SW] Precache failed for:', url, err));
                     })
                 );
+
+                // 2. Discover and precache current Vite build assets dynamically (CSS, JS, Fonts)
+                try {
+                    const manifestRes = await fetch(new Request('/build/manifest.json', { cache: 'reload' }));
+                    if (manifestRes && manifestRes.ok) {
+                        const manifest = await manifestRes.clone().json();
+                        await cache.put('/build/manifest.json', manifestRes);
+
+                        const assetUrls = Object.values(manifest)
+                            .map((item) => (item.file ? `/build/${item.file}` : null))
+                            .filter(Boolean);
+
+                        await Promise.all(
+                            assetUrls.map((url) =>
+                                fetch(new Request(url, { cache: 'reload' }))
+                                    .then((res) => {
+                                        if (res && res.ok) {
+                                            return cache.put(url, res);
+                                        }
+                                    })
+                                    .catch((err) => console.warn('[SW] Build asset precache failed:', url, err))
+                            )
+                        );
+                    }
+                } catch (err) {
+                    console.warn('[SW] Failed to load /build/manifest.json for precache:', err);
+                }
             })
             .then(() => self.skipWaiting())
     );
@@ -127,17 +153,26 @@ self.addEventListener('fetch', (event) => {
     // If network fails (device offline), gracefully responds with the precached offline.html.
     if (request.mode === 'navigate') {
         event.respondWith(
-            fetch(request).catch(async () => {
-                const cachedResponse = await caches.match(request);
-                if (cachedResponse) {
-                    return cachedResponse;
-                }
-                const fallback = await caches.match(OFFLINE_FALLBACK_URL);
-                return fallback || new Response('Cifraly está offline. Verifique sua conexão.', {
-                    status: 503,
-                    headers: { 'Content-Type': 'text/html; charset=utf-8' }
-                });
-            })
+            fetch(request)
+                .then((response) => {
+                    // Armazena páginas HTML navegadas com sucesso para consulta offline
+                    if (response && response.status === 200 && response.type === 'basic') {
+                        const copy = response.clone();
+                        caches.open(RUNTIME_CACHE).then((cache) => cache.put(request, copy));
+                    }
+                    return response;
+                })
+                .catch(async () => {
+                    const cachedResponse = await caches.match(request);
+                    if (cachedResponse) {
+                        return cachedResponse;
+                    }
+                    const fallback = await caches.match(OFFLINE_FALLBACK_URL);
+                    return fallback || new Response('Cifraly está offline. Verifique sua conexão.', {
+                        status: 503,
+                        headers: { 'Content-Type': 'text/html; charset=utf-8' }
+                    });
+                })
         );
         return;
     }

@@ -29,6 +29,7 @@
             {{-- 1. Início (Home) --}}
             <a
                 href="{{ $dashboardUrl }}"
+                wire:navigate.hover
                 style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; text-decoration: none; color: {{ $isDashboardActive ? '#00d2ff' : '#71788e' }}; transition: color 0.15s ease;"
             >
                 <svg width="22" height="22" style="width: 22px; height: 22px; min-width: 22px; min-height: 22px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="{{ $isDashboardActive ? '2.4' : '2' }}">
@@ -40,6 +41,7 @@
             {{-- 2. Cifras / Músicas --}}
             <a
                 href="{{ $songsUrl }}"
+                wire:navigate.hover
                 style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; text-decoration: none; color: {{ $isSongsActive ? '#00d2ff' : '#71788e' }}; transition: color 0.15s ease;"
             >
                 <svg width="22" height="22" style="width: 22px; height: 22px; min-width: 22px; min-height: 22px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="{{ $isSongsActive ? '2.4' : '2' }}">
@@ -51,6 +53,7 @@
             {{-- 3. Eventos / Agenda --}}
             <a
                 href="{{ $eventsUrl }}"
+                wire:navigate.hover
                 style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; text-decoration: none; color: {{ $isEventsActive ? '#00d2ff' : '#71788e' }}; transition: color 0.15s ease;"
             >
                 <svg width="22" height="22" style="width: 22px; height: 22px; min-width: 22px; min-height: 22px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="{{ $isEventsActive ? '2.4' : '2' }}">
@@ -62,6 +65,7 @@
             {{-- 4. Perfil --}}
             <a
                 href="{{ $profileUrl }}"
+                wire:navigate.hover
                 style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; text-decoration: none; color: {{ $isProfileActive ? '#00d2ff' : '#71788e' }}; transition: color 0.15s ease;"
             >
                 <svg width="22" height="22" style="width: 22px; height: 22px; min-width: 22px; min-height: 22px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="{{ $isProfileActive ? '2.4' : '2' }}">

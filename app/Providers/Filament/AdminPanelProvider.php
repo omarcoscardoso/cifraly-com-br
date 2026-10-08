@@ -53,6 +53,10 @@ class AdminPanelProvider extends PanelProvider
             ->tenant(Organization::class, slugAttribute: 'slug')
             ->tenantRegistration(RegisterOrganization::class)
             ->tenantProfile(EditOrganizationProfile::class)
+            ->spa()
+            ->spaUrlExceptions([
+                '*/stage*',
+            ])
             ->renderHook(
                 PanelsRenderHook::AUTH_LOGIN_FORM_BEFORE,
                 fn () => view('filament.auth.google-button'),

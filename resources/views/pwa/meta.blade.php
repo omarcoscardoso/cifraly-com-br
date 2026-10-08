@@ -5,14 +5,17 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Cifraly">
 <meta name="application-name" content="Cifraly">
-<meta name="theme-color" content="#0f172a">
-<meta name="msapplication-TileColor" content="#0f172a">
-<meta name="msapplication-navbutton-color" content="#0f172a">
+<meta name="theme-color" content="#08080a">
+<meta name="msapplication-TileColor" content="#08080a">
+<meta name="msapplication-navbutton-color" content="#08080a">
 
-<!-- Google Fonts: Plus Jakarta Sans, Space Grotesk & JetBrains Mono -->
+<!-- Google Fonts: Plus Jakarta Sans, Space Grotesk & JetBrains Mono (Non-blocking async fallback) -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&family=Space+Grotesk:wght@600;700;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&family=Space+Grotesk:wght@600;700;900&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+<noscript>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&family=Space+Grotesk:wght@600;700;900&display=swap" rel="stylesheet">
+</noscript>
 
 <!-- Icons -->
 <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=1.0.6">

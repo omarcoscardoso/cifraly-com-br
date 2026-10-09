@@ -265,33 +265,10 @@
                 @endif
             </div>
 
-            <!-- Capo Badge & Metadados (visível também em telas pequenas) -->
-            @php
-                $capoFret = $this->getActiveCapoFret();
-            @endphp
-            @if ($capoFret || $song->time_signature)
-                <div class="flex items-center gap-1.5 sm:gap-2 text-[11px] sm:text-xs font-mono shrink-0">
-                    @if ($capoFret)
-                        <button
-                            type="button"
-                            wire:click="toggleCapo"
-                            class="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1 rounded-xl border transition-all tap-scale cursor-pointer whitespace-nowrap {{ $useCapo ? 'bg-indigo-500/15 hover:bg-indigo-500/25 border-indigo-500/40 text-indigo-200 shadow-sm shadow-indigo-500/10' : 'bg-[#181b24] hover:bg-[#202430] border-slate-700/60 text-slate-400' }}"
-                            title="{{ $useCapo ? "Capo ativo na {$capoFret}ª casa. Toque para ver cifras sem capo." : "Capo desativado. Toque para restaurar shape com capo na {$capoFret}ª casa." }}"
-                        >
-                            <span class="text-xs">🎸</span>
-                            <span class="font-bold hidden sm:inline {{ $useCapo ? 'text-indigo-300' : 'text-slate-400' }}">Capo:</span>
-                            <span class="font-black {{ $useCapo ? 'text-white' : 'text-slate-400 line-through' }}">{{ $capoFret }}ª</span>
-                            <span class="relative inline-flex h-3.5 w-6 sm:h-4 sm:w-7 shrink-0 items-center rounded-full transition-colors {{ $useCapo ? 'bg-indigo-500' : 'bg-slate-700' }}">
-                                <span class="inline-block h-2.5 w-2.5 sm:h-3 sm:w-3 transform rounded-full bg-white transition-transform {{ $useCapo ? 'translate-x-3 sm:translate-x-3.5' : 'translate-x-0.5' }}"></span>
-                            </span>
-                        </button>
-                    @endif
-
-                    @if ($song->time_signature)
-                        <div class="hidden md:flex items-center gap-1.5 bg-[#08080a] border border-[#1e222c] px-2.5 py-1 rounded-xl text-[#71788e]">
-                            <span class="text-slate-300 font-bold">{{ $song->time_signature }}</span>
-                        </div>
-                    @endif
+            <!-- Metadados de Compasso -->
+            @if ($song->time_signature)
+                <div class="hidden md:flex items-center gap-1.5 bg-[#08080a] border border-[#1e222c] px-2.5 py-1 rounded-xl text-[#71788e] shrink-0 font-mono text-xs">
+                    <span class="text-slate-300 font-bold">{{ $song->time_signature }}</span>
                 </div>
             @endif
 
@@ -337,11 +314,11 @@
 
         <!-- Right: Wake Lock (Metrônomo fica no stack flutuante) -->
         <div class="flex items-center gap-2 shrink-0">
-            <!-- Wake Lock Active Badge -->
+            <!-- Wake Lock Active Badge (oculto em telas pequenas e tablets) -->
             <div 
                 x-show="wakeLockActive" 
                 x-cloak
-                class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/25 text-emerald-400 text-[11px] font-mono font-bold select-none"
+                class="hidden lg:flex items-center gap-1.5 px-2.5 py-1.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/25 text-emerald-400 text-[11px] font-mono font-bold select-none"
                 title="Tela Ativa: Seu dispositivo permanecerá ligado durante o louvor"
             >
                 <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_6px_#34d399]"></span>
@@ -353,8 +330,11 @@
     <!-- Performance Action Toolbar (Título da Música, Artista e Informações) -->
     <section class="bg-[#12141a]/95 border-b border-[#1e222c] px-3 sm:px-6 py-1.5 sm:py-2 flex items-center justify-center min-w-0 shrink-0 backdrop-blur-md z-20">
         <div class="w-full text-center px-1 min-w-0 flex items-center justify-center">
+            @php
+                $capoFret = $this->getActiveCapoFret();
+            @endphp
             <div 
-                class="relative inline-block max-w-full"
+                class="relative inline-flex flex-col items-center max-w-full"
                 x-data="{ 
                     openMenu: false,
                     searchQuery: '',
@@ -371,35 +351,70 @@
                 @click.outside="openMenu = false" 
                 @keydown.escape.window="openMenu = false"
             >
-                <!-- Trigger: Song Title as a Clickable Button/Link -->
-                <button
-                    type="button"
-                    @click="openMenu = !openMenu"
-                    class="group inline-flex flex-col items-center max-w-full px-2.5 py-1 rounded-2xl hover:bg-[#181b24] transition tap-scale cursor-pointer focus:outline-none"
-                    :class="openMenu ? 'bg-[#181b24] ring-1 ring-[#00d2ff]/40 shadow-lg' : ''"
-                    title="Informações, links e repertório de músicas"
-                    aria-label="Abrir menu da música"
-                    :aria-expanded="openMenu"
-                >
-                    <div class="flex items-center justify-center gap-1.5 max-w-full">
-                        @if ($song->original_key)
-                            <span class="hidden sm:inline-block text-[10px] uppercase font-mono font-extrabold px-2 py-0.5 rounded-full bg-[#08080a] border border-[#1e222c] text-[#71788e] shrink-0">
-                                Tom Original: {{ $song->original_key }}
-                            </span>
-                        @endif
+                <!-- Line 1: Song Title Trigger & Capo on the Same Line -->
+                <div class="flex items-center justify-center gap-1.5 sm:gap-2 max-w-full">
+                    @if ($song->original_key)
+                        <span class="hidden sm:inline-block text-[10px] uppercase font-mono font-extrabold px-2 py-0.5 rounded-full bg-[#08080a] border border-[#1e222c] text-[#71788e] shrink-0">
+                            Tom Original: {{ $song->original_key }}
+                        </span>
+                    @endif
+
+                    <button
+                        type="button"
+                        @click="openMenu = !openMenu"
+                        class="group inline-flex items-center gap-1 max-w-full px-2.5 py-0.5 rounded-2xl hover:bg-[#181b24] transition tap-scale cursor-pointer focus:outline-none"
+                        :class="openMenu ? 'bg-[#181b24] ring-1 ring-[#00d2ff]/40 shadow-lg' : ''"
+                        title="Informações, links e repertório de músicas"
+                        aria-label="Abrir menu da música"
+                        :aria-expanded="openMenu"
+                    >
                         <h1 class="text-sm sm:text-base font-black text-white group-hover:text-[#00d2ff] truncate tracking-tight flex items-center gap-1">
                             <span class="truncate">{{ $song->title }}</span>
                             <svg class="w-3.5 h-3.5 text-slate-400 group-hover:text-[#00d2ff] transition-transform duration-150 shrink-0" :class="openMenu ? 'rotate-180 text-[#00d2ff]' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" />
                             </svg>
                         </h1>
-                    </div>
+                    </button>
+
+                    @if ($capoFret)
+                        <button
+                            type="button"
+                            wire:click="toggleCapo"
+                            class="inline-flex items-center gap-1 sm:gap-1.5 px-2 py-0.5 rounded-xl border text-[11px] sm:text-xs font-mono transition-all tap-scale cursor-pointer shrink-0 whitespace-nowrap {{ $useCapo ? 'bg-indigo-500/15 hover:bg-indigo-500/25 border-indigo-500/40 text-indigo-200 shadow-sm shadow-indigo-500/10' : 'bg-[#181b24] hover:bg-[#202430] border-slate-700/60 text-slate-400' }}"
+                            title="{{ $useCapo ? "Capo ativo na {$capoFret}ª casa. Toque para ver cifras sem capo." : "Capo desativado. Toque para restaurar shape com capo na {$capoFret}ª casa." }}"
+                        >
+                            <span class="text-xs">🎸</span>
+                            <span class="font-bold hidden sm:inline {{ $useCapo ? 'text-indigo-300' : 'text-slate-400' }}">Capo:</span>
+                            <span class="font-black {{ $useCapo ? 'text-white' : 'text-slate-400 line-through' }}">{{ $capoFret }}ª casa</span>
+                        </button>
+                    @endif
+                </div>
+
+                <!-- Line 2: Artist & Capo Toggle below Title -->
+                <div class="flex items-center justify-center gap-2 mt-0.5 max-w-full">
                     @if ($song->artist)
-                        <p class="text-xs text-[#71788e] group-hover:text-slate-300 truncate font-medium max-w-full">
+                        <p class="text-xs text-[#71788e] truncate font-medium">
                             {{ $song->artist }}
                         </p>
                     @endif
-                </button>
+
+                    @if ($capoFret)
+                        @if ($song->artist)
+                            <span class="text-slate-600 text-xs select-none">•</span>
+                        @endif
+                        <button
+                            type="button"
+                            wire:click="toggleCapo"
+                            class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full border text-[10px] sm:text-[11px] font-mono transition-all tap-scale cursor-pointer shrink-0 {{ $useCapo ? 'bg-indigo-500/15 hover:bg-indigo-500/25 border-indigo-500/40 text-indigo-300' : 'bg-[#181b24] hover:bg-[#202430] border-slate-700/60 text-slate-400' }}"
+                            title="{{ $useCapo ? "Capo ativo na {$capoFret}ª casa. Toque para desativar." : "Capo desativado. Toque para ativar." }}"
+                        >
+                            <span class="font-bold">{{ $useCapo ? 'Capo ativo' : 'Sem capo' }}</span>
+                            <span class="relative inline-flex h-3 w-5 sm:h-3.5 sm:w-6 shrink-0 items-center rounded-full transition-colors {{ $useCapo ? 'bg-indigo-500' : 'bg-slate-700' }}">
+                                <span class="inline-block h-2 w-2 sm:h-2.5 sm:w-2.5 transform rounded-full bg-white transition-transform {{ $useCapo ? 'translate-x-2.5 sm:translate-x-3' : 'translate-x-0.5' }}"></span>
+                            </span>
+                        </button>
+                    @endif
+                </div>
 
                 <!-- Dropdown Menu -->
                 <div

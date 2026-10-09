@@ -1049,85 +1049,202 @@
             type="button"
             x-show="isPlaying"
             x-cloak
-            data-no-drag="true"
+            x-transition:enter="transition ease-out duration-200 transform"
+            x-transition:enter-start="opacity-0 scale-75 -translate-y-2"
+            x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+            x-transition:leave="transition ease-in duration-150 transform"
+            x-transition:leave-start="opacity-100 scale-100 translate-y-0"
+            x-transition:leave-end="opacity-0 scale-75 -translate-y-2"
             @click.stop="openModal()"
-            class="w-9 h-9 rounded-xl bg-[#12141a]/95 hover:bg-[#181b24] border border-[#1e222c] hover:border-[#00d2ff]/40 text-slate-300 hover:text-[#00d2ff] flex items-center justify-center shadow-lg backdrop-blur-md transition tap-scale cursor-pointer"
-            title="Configurações do Ambient Pad"
+            data-no-drag="true"
+            class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-[#12141a]/95 hover:bg-[#1c202d] border border-cyan-500/40 text-cyan-300 hover:text-white flex items-center justify-center shadow-lg shadow-cyan-500/10 tap-scale transition-all cursor-pointer backdrop-blur-md shrink-0"
+            title="Abrir configurações completas do Pad (Overlay)"
+            aria-label="Configurações do Ambient Pad"
         >
-            <svg class="w-4 h-4 animate-spin-slow" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg class="w-5 h-5 animate-[spin_10s_linear_infinite]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
             </svg>
         </button>
 
-        <!-- 2. Botão Principal: PAD -->
-        <button
-            type="button"
-            @click="handleMainButtonClick()"
-            class="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl flex flex-col items-center justify-center shadow-2xl transition tap-scale cursor-pointer relative overflow-hidden group select-none border"
-            :class="isPlaying
-                ? 'bg-gradient-to-br from-fuchsia-600 via-indigo-600 to-cyan-500 border-cyan-400 text-white shadow-cyan-500/30 ring-2 ring-cyan-400/50 animate-pulse'
-                : 'bg-[#12141a]/95 hover:bg-[#181b24] border-[#1e222c] hover:border-[#00d2ff]/40 text-slate-300 hover:text-white backdrop-blur-md shadow-black/80'"
-            title="Ligar/Desligar Ambient Pad"
-        >
-            <span class="text-[9px] font-black uppercase tracking-wider block leading-tight">PAD</span>
-            <span class="text-xs sm:text-sm font-black font-mono leading-none mt-0.5" x-text="currentKey">C</span>
-        </button>
+        <!-- 2. Botão Principal do PAD (Quadrado com Cantos Arredondados, Mobile-First, Arrastável) -->
+        <div class="relative">
+            <!-- Aura pulsante quando ativo -->
+            <template x-if="isPlaying">
+                <span class="absolute -inset-1.5 rounded-2xl bg-gradient-to-r from-fuchsia-500 via-indigo-500 to-cyan-400 opacity-70 blur-md animate-pulse pointer-events-none"></span>
+            </template>
 
-        <!-- 3. Botão Integrado: Metrônomo -->
-        <button
-            type="button"
-            @click="handleMetronomeButtonClick()"
-            class="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl flex flex-col items-center justify-center shadow-xl transition tap-scale cursor-pointer relative overflow-hidden select-none border"
-            :class="isMetronomePlaying 
-                ? 'bg-amber-500/20 border-amber-400 text-amber-300 shadow-amber-500/20' 
-                : 'bg-[#12141a]/95 hover:bg-[#181b24] border-[#1e222c] hover:border-amber-500/40 text-slate-300 hover:text-white backdrop-blur-md shadow-black/80'"
-            title="Metrônomo ALTAR"
-        >
-            <span class="text-[9px] font-black uppercase tracking-wider block leading-tight text-center">METRÔNOMO</span>
-            <div class="flex items-center gap-1 mt-0.5">
-                <span class="text-[11px] sm:text-xs font-black font-mono leading-none" x-text="bpm"></span>
+            <button
+                type="button"
+                @click="handleMainButtonClick()"
+                class="relative w-14 h-14 sm:w-16 sm:h-16 rounded-2xl flex flex-col items-center justify-center p-1.5 shadow-2xl transition-all duration-300 tap-scale cursor-pointer group shrink-0"
+                style="min-width: 3.5rem; min-height: 3.5rem;"
+                :class="isPlaying 
+                    ? 'bg-gradient-to-br from-fuchsia-600 via-indigo-600 to-cyan-500 text-white border border-white/40 shadow-indigo-500/50 scale-105 ring-2 ring-white/30' 
+                    : 'bg-[#12141a]/95 hover:bg-[#181b24] border border-[#2a2f3d] hover:border-indigo-500/50 text-slate-300 hover:text-white shadow-black/60 backdrop-blur-md'"
+                :title="isPlaying ? 'Pad Contínuo ATIVO em ' + currentKey + ' (Toque para Parar | Arraste para Mover)' : 'Ativar Pad Contínuo em ' + currentKey + ' (Arraste para Mover)'"
+                aria-label="Ambient Pad Synthesizer"
+            >
+                <!-- Topo: Descrição -->
                 <span 
-                    class="w-1.5 h-1.5 rounded-full"
-                    :class="isMetronomePlaying ? 'bg-amber-400 animate-ping' : 'bg-slate-600'"
-                ></span>
-            </div>
-        </button>
+                    class="text-[8px] sm:text-[9px] font-black uppercase tracking-wider leading-none pointer-events-none transition"
+                    :class="isPlaying ? 'text-cyan-200 font-bold' : 'text-[#71788e] group-hover:text-slate-300'"
+                >PAD</span>
 
-        <!-- 4. Botão Integrado: Play / Auto-Scroll -->
-        <button
-            type="button"
-            @click="handleScrollButtonClick()"
-            class="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl flex flex-col items-center justify-center shadow-xl transition tap-scale cursor-pointer relative overflow-hidden select-none border"
-            :class="isAutoScrolling 
-                ? 'bg-cyan-500/20 border-cyan-400 text-[#00d2ff] shadow-cyan-500/20' 
-                : 'bg-[#12141a]/95 hover:bg-[#181b24] border-[#1e222c] hover:border-[#00d2ff]/40 text-slate-300 hover:text-white backdrop-blur-md shadow-black/80'"
-            title="Alternar Rolagem Automática (Auto-Scroll)"
-        >
-            <span class="text-[9px] font-black uppercase tracking-wider block leading-tight">SCROLL</span>
-            <div class="mt-0.5">
-                <template x-if="isAutoScrolling">
-                    <svg class="w-4 h-4 text-[#00d2ff]" fill="currentColor" viewBox="0 0 24 24"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>
-                </template>
-                <template x-if="!isAutoScrolling">
-                    <svg class="w-4 h-4 text-slate-400 group-hover:text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-                </template>
-            </div>
-        </button>
+                <!-- Centro: Tom da Cifra em Destaque -->
+                <span 
+                    class="text-base sm:text-lg font-black font-mono leading-none tracking-tight transition-transform duration-200 mt-0.5 pointer-events-none"
+                    :class="isPlaying ? 'text-white drop-shadow-md scale-110' : 'text-slate-200 group-hover:text-white'"
+                    x-text="currentKey"
+                >C</span>
 
-        <!-- 5. Botão Integrado: Letra -->
-        <button
-            type="button"
-            @click="handleLyricsButtonClick()"
-            class="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl flex flex-col items-center justify-center shadow-xl transition tap-scale cursor-pointer relative overflow-hidden select-none border"
-            :class="showLyricsOnly 
-                ? 'bg-emerald-500/20 border-emerald-400 text-emerald-300 shadow-emerald-500/20' 
-                : 'bg-[#12141a]/95 hover:bg-[#181b24] border-[#1e222c] hover:border-emerald-500/40 text-slate-300 hover:text-white backdrop-blur-md shadow-black/80'"
-            title="Alternar entre Cifra Completa e Apenas Letra"
-        >
-            <span class="text-[9px] font-black uppercase tracking-wider block leading-tight">LETRA</span>
-            <span class="text-xs sm:text-sm font-black font-mono leading-none mt-0.5">L</span>
-        </button>
+                <!-- Rodapé: Led de Status -->
+                <div class="flex items-center gap-1 mt-0.5 pointer-events-none">
+                    <span 
+                        class="w-1.5 h-1.5 rounded-full transition-all duration-300"
+                        :class="isPlaying 
+                            ? 'bg-emerald-300 shadow-[0_0_8px_#34d399] scale-125' 
+                            : 'bg-slate-600'"
+                    ></span>
+                </div>
+            </button>
+        </div>
+
+        <!-- 3. Botão PLAY / AUTO-SCROLL (Mesmo Layout e Tamanho, Apenas Ícone Play/Pause) -->
+        <div class="relative">
+            <!-- Aura pulsante quando rolando -->
+            <template x-if="isAutoScrolling">
+                <span class="absolute -inset-1.5 rounded-2xl bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-400 opacity-70 blur-md animate-pulse pointer-events-none"></span>
+            </template>
+
+            <button
+                type="button"
+                @click="handleScrollButtonClick()"
+                class="relative w-14 h-14 sm:w-16 sm:h-16 rounded-2xl flex flex-col items-center justify-center p-1.5 shadow-2xl transition-all duration-300 tap-scale cursor-pointer group shrink-0"
+                style="min-width: 3.5rem; min-height: 3.5rem;"
+                :class="isAutoScrolling 
+                    ? 'bg-gradient-to-br from-emerald-600 via-teal-600 to-cyan-500 text-white border border-white/40 shadow-emerald-500/50 scale-105 ring-2 ring-white/30' 
+                    : 'bg-[#12141a]/95 hover:bg-[#181b24] border border-[#2a2f3d] hover:border-emerald-500/50 text-slate-300 hover:text-white shadow-black/60 backdrop-blur-md'"
+                :title="isAutoScrolling ? 'Rolagem Automática ATIVA (Toque para Pausar | Arraste para Mover)' : 'Iniciar Rolagem Automática (Arraste para Mover)'"
+                aria-label="Rolagem Automática"
+            >
+                <!-- Topo: Descrição -->
+                <span 
+                    class="text-[8px] sm:text-[9px] font-black uppercase tracking-wider leading-none pointer-events-none transition"
+                    :class="isAutoScrolling ? 'text-emerald-200 font-bold' : 'text-[#71788e] group-hover:text-slate-300'"
+                >SCROLL</span>
+
+                <!-- Centro: Ícone Play (triângulo) ou Pause (barras) -->
+                <div class="mt-0.5 pointer-events-none flex items-center justify-center">
+                    <template x-if="!isAutoScrolling">
+                        <svg class="w-6 h-6 sm:w-7 sm:h-7 fill-current ml-0.5 text-slate-200 group-hover:text-emerald-300 transition-colors" viewBox="0 0 24 24">
+                            <path d="M8 5v14l11-7z"/>
+                        </svg>
+                    </template>
+                    <template x-if="isAutoScrolling">
+                        <svg class="w-6 h-6 sm:w-7 sm:h-7 fill-current text-white" viewBox="0 0 24 24">
+                            <rect x="6" y="5" width="4" height="14" rx="1"/>
+                            <rect x="14" y="5" width="4" height="14" rx="1"/>
+                        </svg>
+                    </template>
+                </div>
+
+                <!-- Rodapé: Led de Status -->
+                <div class="flex items-center gap-1 mt-0.5 pointer-events-none">
+                    <span 
+                        class="w-1.5 h-1.5 rounded-full transition-all duration-300"
+                        :class="isAutoScrolling 
+                            ? 'bg-emerald-300 shadow-[0_0_8px_#34d399] scale-125 animate-pulse' 
+                            : 'bg-slate-600'"
+                    ></span>
+                </div>
+            </button>
+        </div>
+
+        <!-- 4. Botão LETRA (Mesmo Layout e Tamanho, Letra L Grande no Centro) -->
+        <div class="relative">
+            <!-- Aura pulsante quando modo letra ativo -->
+            <template x-if="showLyricsOnly">
+                <span class="absolute -inset-1.5 rounded-2xl bg-gradient-to-r from-cyan-500 via-sky-500 to-indigo-500 opacity-70 blur-md animate-pulse pointer-events-none"></span>
+            </template>
+
+            <button
+                type="button"
+                @click="handleLyricsButtonClick()"
+                class="relative w-14 h-14 sm:w-16 sm:h-16 rounded-2xl flex flex-col items-center justify-center p-1.5 shadow-2xl transition-all duration-300 tap-scale cursor-pointer group shrink-0"
+                style="min-width: 3.5rem; min-height: 3.5rem;"
+                :class="showLyricsOnly 
+                    ? 'bg-gradient-to-br from-cyan-600 via-sky-600 to-indigo-600 text-white border border-white/40 shadow-cyan-500/50 scale-105 ring-2 ring-white/30' 
+                    : 'bg-[#12141a]/95 hover:bg-[#181b24] border border-[#2a2f3d] hover:border-cyan-500/50 text-slate-300 hover:text-white shadow-black/60 backdrop-blur-md'"
+                :title="showLyricsOnly ? 'Modo Apenas Letra ATIVO (Toque para Cifra Completa | Arraste para Mover)' : 'Alternar para Apenas Letra (Arraste para Mover)'"
+                aria-label="Alternar Letra / Cifra"
+            >
+                <!-- Topo: Descrição -->
+                <span 
+                    class="text-[8px] sm:text-[9px] font-black uppercase tracking-wider leading-none pointer-events-none transition"
+                    :class="showLyricsOnly ? 'text-cyan-200 font-bold' : 'text-[#71788e] group-hover:text-slate-300'"
+                >LETRA</span>
+
+                <!-- Centro: Letra 'L' Marcante -->
+                <span 
+                    class="text-xl sm:text-2xl font-black font-mono leading-none tracking-tight transition-transform duration-200 mt-0.5 pointer-events-none"
+                    :class="showLyricsOnly ? 'text-white drop-shadow-md scale-110' : 'text-slate-200 group-hover:text-white'"
+                >L</span>
+
+                <!-- Rodapé: Led de Status -->
+                <div class="flex items-center gap-1 mt-0.5 pointer-events-none">
+                    <span 
+                        class="w-1.5 h-1.5 rounded-full transition-all duration-300"
+                        :class="showLyricsOnly 
+                            ? 'bg-cyan-300 shadow-[0_0_8px_#00d2ff] scale-125' 
+                            : 'bg-slate-600'"
+                    ></span>
+                </div>
+            </button>
+        </div>
+
+        <!-- 5. Botão METRÔNOMO (Mesmo Layout e Tamanho, BPM da Música no Centro) -->
+        <div class="relative">
+            <!-- Aura pulsante quando o metrônomo está tocando -->
+            <template x-if="isMetronomePlaying">
+                <span class="absolute -inset-1.5 rounded-2xl bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 opacity-70 blur-md animate-pulse pointer-events-none"></span>
+            </template>
+
+            <button
+                type="button"
+                @click="handleMetronomeButtonClick()"
+                class="relative w-14 h-14 sm:w-16 sm:h-16 rounded-2xl flex flex-col items-center justify-center p-1.5 shadow-2xl transition-all duration-300 tap-scale cursor-pointer group shrink-0"
+                style="min-width: 3.5rem; min-height: 3.5rem;"
+                :class="isMetronomePlaying 
+                    ? 'bg-gradient-to-br from-amber-600 via-orange-600 to-rose-600 text-white border border-white/40 shadow-orange-500/50 scale-105 ring-2 ring-white/30' 
+                    : 'bg-[#12141a]/95 hover:bg-[#181b24] border border-[#2a2f3d] hover:border-amber-500/50 text-slate-300 hover:text-white shadow-black/60 backdrop-blur-md'"
+                :title="'Abrir Metrônomo em ' + bpm + ' BPM (Arraste para Mover)'"
+                aria-label="Abrir Metrônomo"
+            >
+                <!-- Topo: Descrição -->
+                <span 
+                    class="text-[7px] sm:text-[8px] font-black uppercase tracking-tight leading-none pointer-events-none transition"
+                    :class="isMetronomePlaying ? 'text-amber-100 font-bold' : 'text-[#71788e] group-hover:text-slate-300'"
+                >METRÔNOMO</span>
+
+                <!-- Centro: BPM da Música -->
+                <span 
+                    class="text-base sm:text-lg font-black font-mono leading-none tracking-tight transition-transform duration-200 mt-0.5 pointer-events-none"
+                    :class="isMetronomePlaying ? 'text-white drop-shadow-md scale-110' : 'text-slate-200 group-hover:text-white'"
+                    x-text="bpm"
+                >120</span>
+
+                <!-- Rodapé: Led de Status -->
+                <div class="flex items-center gap-1 mt-0.5 pointer-events-none">
+                    <span 
+                        class="w-1.5 h-1.5 rounded-full transition-all duration-300"
+                        :class="isMetronomePlaying 
+                            ? 'bg-amber-300 shadow-[0_0_8px_#fbbf24] scale-125 animate-pulse' 
+                            : 'bg-slate-600'"
+                    ></span>
+                </div>
+            </button>
+        </div>
     </div>
     @endif
 

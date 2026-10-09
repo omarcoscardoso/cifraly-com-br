@@ -420,41 +420,21 @@
                             <button
                                 type="button"
                                 wire:click="toggleCapo"
-                                class="inline-flex items-center gap-1 sm:gap-1.5 px-2 py-0.5 rounded-xl border text-[11px] sm:text-xs font-mono transition-all tap-scale cursor-pointer shrink-0 whitespace-nowrap {{ $useCapo ? 'bg-indigo-500/15 hover:bg-indigo-500/25 border-indigo-500/40 text-indigo-200 shadow-sm shadow-indigo-500/10' : 'bg-[#181b24] hover:bg-[#202430] border-slate-700/60 text-slate-400' }}"
+                                class="inline-flex items-center px-2 py-0.5 rounded-xl border text-[11px] sm:text-xs font-mono transition-all tap-scale cursor-pointer shrink-0 whitespace-nowrap {{ $useCapo ? 'bg-indigo-500/15 hover:bg-indigo-500/25 border-indigo-500/40 text-indigo-200 shadow-sm shadow-indigo-500/10' : 'bg-[#181b24] hover:bg-[#202430] border-slate-700/60 text-slate-400' }}"
                                 title="{{ $useCapo ? "Capo ativo na {$capoFret}ª casa. Toque para ver cifras sem capo." : "Capo desativado. Toque para restaurar shape com capo na {$capoFret}ª casa." }}"
                             >
-                                <span class="text-xs">🎸</span>
-                                <span class="font-bold hidden sm:inline {{ $useCapo ? 'text-indigo-300' : 'text-slate-400' }}">Capo:</span>
-                                <span class="font-black {{ $useCapo ? 'text-white' : 'text-slate-400 line-through' }}">{{ $capoFret }}ª casa</span>
+                                <span class="font-bold {{ $useCapo ? 'text-indigo-300' : 'text-slate-400' }}">Capo:</span>
+                                <span class="font-black ml-1 {{ $useCapo ? 'text-white' : 'text-slate-400 line-through' }}">{{ $capoFret }}ª casa</span>
                             </button>
                         @endif
                     </div>
 
-                    <!-- Line 2: Artist & Capo Toggle below Title -->
-                    <div class="flex items-center justify-center gap-2 mt-0.5 max-w-full">
-                        @if ($currentSong->artist)
-                            <p class="text-xs text-[#71788e] truncate font-medium">
-                                {{ $currentSong->artist }}
-                            </p>
-                        @endif
-
-                        @if ($capoFret)
-                            @if ($currentSong->artist)
-                                <span class="text-slate-600 text-xs select-none">•</span>
-                            @endif
-                            <button
-                                type="button"
-                                wire:click="toggleCapo"
-                                class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full border text-[10px] sm:text-[11px] font-mono transition-all tap-scale cursor-pointer shrink-0 {{ $useCapo ? 'bg-indigo-500/15 hover:bg-indigo-500/25 border-indigo-500/40 text-indigo-300' : 'bg-[#181b24] hover:bg-[#202430] border-slate-700/60 text-slate-400' }}"
-                                title="{{ $useCapo ? "Capo ativo na {$capoFret}ª casa. Toque para desativar." : "Capo desativado. Toque para ativar." }}"
-                            >
-                                <span class="font-bold">{{ $useCapo ? 'Capo ativo' : 'Sem capo' }}</span>
-                                <span class="relative inline-flex h-3 w-5 sm:h-3.5 sm:w-6 shrink-0 items-center rounded-full transition-colors {{ $useCapo ? 'bg-indigo-500' : 'bg-slate-700' }}">
-                                    <span class="inline-block h-2 w-2 sm:h-2.5 sm:w-2.5 transform rounded-full bg-white transition-transform {{ $useCapo ? 'translate-x-2.5 sm:translate-x-3' : 'translate-x-0.5' }}"></span>
-                                </span>
-                            </button>
-                        @endif
-                    </div>
+                    <!-- Line 2: Artist below Title -->
+                    @if ($currentSong->artist)
+                        <p class="text-xs text-[#71788e] truncate font-medium mt-0.5">
+                            {{ $currentSong->artist }}
+                        </p>
+                    @endif
 
                     <!-- Dropdown Menu -->
                     <div

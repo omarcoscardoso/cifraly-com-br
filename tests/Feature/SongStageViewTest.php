@@ -343,7 +343,8 @@ class SongStageViewTest extends TestCase
         $response->assertSuccessful();
         $response->assertSeeHtml('Capo:');
         $response->assertSeeHtml('4ª casa');
-        $response->assertSeeHtml('Capo ativo');
+        $response->assertDontSee('🎸');
+        $response->assertDontSee('Sem capo');
         $response->assertSeeHtml('hidden lg:flex items-center gap-1.5 px-2.5 py-1.5 rounded-2xl bg-emerald-500/10');
     }
 }

@@ -101,6 +101,9 @@
                         clearTimeout(this.timerId);
                         this.flashBeat = false;
                     }
+                    window.dispatchEvent(new CustomEvent('cifraly:metronome-status', {
+                        detail: { isPlaying: this.isPlaying, bpm: this.bpm }
+                    }));
                 },
 
                 scheduler() {

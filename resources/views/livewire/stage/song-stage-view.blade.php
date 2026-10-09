@@ -329,6 +329,8 @@
 
     <!-- Performance Action Toolbar (Título da Música, Artista e Informações) -->
     <section 
+        class="bg-[#12141a]/95 border-b border-[#1e222c] px-3 sm:px-6 py-1.5 sm:py-2 flex items-center justify-center min-w-0 shrink-0 backdrop-blur-md relative z-20"
+        :style="openMenu ? 'z-index: 60;' : ''"
         x-data="{ 
             openMenu: false,
             searchQuery: '',
@@ -342,8 +344,6 @@
                 searchQuery = '';
             }
         })"
-        class="bg-[#12141a]/95 border-b border-[#1e222c] px-3 sm:px-6 py-1.5 sm:py-2 flex items-center justify-center min-w-0 shrink-0 backdrop-blur-md relative"
-        :class="openMenu ? 'z-[70]' : 'z-20'"
     >
         <div class="w-full text-center px-1 min-w-0 flex items-center justify-center">
             @php
@@ -409,7 +409,7 @@
                     x-transition:leave="transition ease-in duration-100 transform"
                     x-transition:leave-start="opacity-100 translate-y-0 scale-100"
                     x-transition:leave-end="opacity-0 -translate-y-2 scale-95"
-                    class="absolute left-1/2 -translate-x-1/2 top-full mt-2 w-80 sm:w-96 max-w-[calc(100vw-1.5rem)] max-h-[85vh] flex flex-col rounded-2xl bg-[#12141a]/95 border border-[#1e222c] shadow-2xl shadow-black/90 backdrop-blur-xl p-3.5 z-[70] text-left select-none"
+                    class="absolute left-1/2 -translate-x-1/2 top-full mt-2 w-80 sm:w-96 max-w-[calc(100vw-1.5rem)] max-h-[85vh] flex flex-col rounded-2xl bg-[#12141a]/95 border border-[#1e222c] shadow-2xl shadow-black/90 backdrop-blur-xl p-3.5 z-50 text-left select-none"
                 >
                     <!-- Header Info: Título e Compositor -->
                     <div class="mb-2.5 pb-2 border-b border-[#1e222c] shrink-0">

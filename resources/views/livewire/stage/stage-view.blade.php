@@ -429,9 +429,9 @@
                         @endif
                     </div>
 
-                    <!-- Line 2: Artist below Title -->
+                    <!-- Line 2: Artist below Title (oculto em mobile) -->
                     @if ($currentSong->artist)
-                        <p class="text-xs text-[#71788e] truncate font-medium mt-0.5">
+                        <p class="hidden sm:block text-xs text-[#71788e] truncate font-medium mt-0.5">
                             {{ $currentSong->artist }}
                         </p>
                     @endif

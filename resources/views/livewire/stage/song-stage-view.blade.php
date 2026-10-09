@@ -342,7 +342,7 @@
                 searchQuery = '';
             }
         })"
-        class="bg-[#12141a]/95 border-b border-[#1e222c] px-3 sm:px-6 py-1.5 sm:py-2 flex items-center justify-center min-w-0 shrink-0 backdrop-blur-md relative transition-[z-index]"
+        class="bg-[#12141a]/95 border-b border-[#1e222c] px-3 sm:px-6 py-1.5 sm:py-2 flex items-center justify-center min-w-0 shrink-0 backdrop-blur-md relative"
         :class="openMenu ? 'z-[70]' : 'z-20'"
     >
         <div class="w-full text-center px-1 min-w-0 flex items-center justify-center">
@@ -364,7 +364,7 @@
 
                     <button
                         type="button"
-                        @click="openMenu = !openMenu"
+                        @click.stop="openMenu = !openMenu"
                         class="group inline-flex items-center gap-1 max-w-full px-2.5 py-0.5 rounded-2xl hover:bg-[#181b24] transition tap-scale cursor-pointer focus:outline-none"
                         :class="openMenu ? 'bg-[#181b24] ring-1 ring-[#00d2ff]/40 shadow-lg' : ''"
                         title="Informações, links e repertório de músicas"

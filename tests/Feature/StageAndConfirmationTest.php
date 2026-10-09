@@ -745,7 +745,7 @@ class StageAndConfirmationTest extends TestCase
         $response->assertSeeHtml('Capo:');
         $response->assertSeeHtml('2ª casa');
         $response->assertDontSee('🎸');
-        $response->assertDontSee('Sem capo');
+        $response->assertSeeHtml('@click.stop="openMenu = !openMenu"');
         $response->assertSeeHtml('hidden lg:flex items-center gap-1.5 px-2.5 py-1.5 rounded-2xl bg-emerald-500/10');
     }
 }

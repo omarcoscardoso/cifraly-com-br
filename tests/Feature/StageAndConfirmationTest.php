@@ -703,4 +703,49 @@ class StageAndConfirmationTest extends TestCase
             ->assertSet('useCapo', true)
             ->assertSet('currentKey', 'D');
     }
+
+    public function test_stage_view_renders_hamburger_only_on_small_screens_and_capo_on_title_line(): void
+    {
+        $event = Event::factory()->create([
+            'organization_id' => $this->organization->id,
+            'title' => 'Culto Teste Responsivo',
+        ]);
+
+        $song = Song::factory()->create([
+            'organization_id' => $this->organization->id,
+            'title' => 'Música Palco Teste',
+            'artist' => 'Artista Palco',
+            'original_key' => 'E',
+            'capo_fret' => 2,
+        ]);
+
+        $version = SongVersion::factory()->create([
+            'song_id' => $song->id,
+            'base_key' => 'E',
+            'capo_fret' => 2,
+            'chordpro_content' => '[E]Louve ao [B]Senhor',
+            'is_default' => true,
+        ]);
+
+        EventSong::factory()->create([
+            'organization_id' => $this->organization->id,
+            'event_id' => $event->id,
+            'song_id' => $song->id,
+            'song_version_id' => $version->id,
+            'target_key' => 'E',
+            'order_index' => 1,
+        ]);
+
+        $response = $this->actingAs($this->user)
+            ->get("/app/{$this->organization->slug}/events/{$event->id}/stage");
+
+        $response->assertSuccessful();
+        $response->assertSeeHtml('w-10 h-10 md:w-auto px-0 md:px-3 py-2 rounded-2xl');
+        $response->assertSeeHtml('hidden md:inline-block');
+        $response->assertSeeHtml('Capo:');
+        $response->assertSeeHtml('2ª casa');
+        $response->assertDontSee('🎸');
+        $response->assertSeeHtml('@click.stop="openMenu = !openMenu"');
+        $response->assertSeeHtml('hidden lg:flex items-center gap-1.5 px-2.5 py-1.5 rounded-2xl bg-emerald-500/10');
+    }
 }

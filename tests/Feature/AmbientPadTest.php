@@ -51,66 +51,53 @@ class AmbientPadTest extends TestCase
         Filament::setTenant($this->organization, isQuiet: true);
     }
 
-    public function test_tone_js_bundle_exists_and_is_precached_in_service_worker(): void
+    public function test_pad_audio_samples_exist_and_are_cached_in_service_worker(): void
     {
-        $tonePath = public_path('js/tone.js');
-        $this->assertFileExists($tonePath);
-        $this->assertGreaterThan(100000, filesize($tonePath));
+        $cMajorPad = public_path('pads/soft_over/soft_over_C.ogg');
+        $aMinorPad = public_path('pads/soft_over/soft_over_Am.ogg');
+        $this->assertFileExists($cMajorPad);
+        $this->assertFileExists($aMinorPad);
+        $this->assertGreaterThan(1000000, filesize($cMajorPad));
+        $this->assertFileDoesNotExist(public_path('js/tone.js'));
 
         $swContent = (string) file_get_contents(public_path('sw.js'));
-        $this->assertStringContainsString('/js/tone.js', $swContent);
+        $this->assertStringContainsString('PADS_CACHE', $swContent);
+        $this->assertStringContainsString('/pads/soft_over/soft_over_C.ogg', $swContent);
+        $this->assertStringContainsString('PRELOAD_PADS', $swContent);
+        $this->assertStringNotContainsString('/js/tone.js', $swContent);
     }
 
     public function test_ambient_pad_component_contains_exact_audio_chain_and_crossfade_engine(): void
     {
         $view = view('components.altar-ambient-pad')->render();
 
-        // 1. Engine e classe Tone.js
+        // 1. Engine e classe nativa
         $this->assertStringContainsString('class AmbientPadEngine', $view);
         $this->assertStringContainsString('altarAmbientPad', $view);
+        $this->assertStringContainsString('PAD_FILES', $view);
 
-        // 2. Synth PolySynth fattriangle (desktop: 4 osciladores; mobile limitado via oscCount)
-        $this->assertStringContainsString('Tone.PolySynth', $view);
-        $this->assertStringContainsString("'fattriangle'", $view);
-        $this->assertStringContainsString('count: this.oscCount(4)', $view);
-        $this->assertStringContainsString('spread: 50', $view);
+        // 2. Dual-deck streaming via HTMLAudioElement e Web Audio API
+        $this->assertStringContainsString('this.deckA = { audio: new Audio()', $view);
+        $this->assertStringContainsString('this.deckB = { audio: new Audio()', $view);
+        $this->assertStringContainsString('createMediaElementSource', $view);
+        $this->assertStringContainsString('createGain', $view);
 
-        // 3. Envelope
-        $this->assertStringContainsString('attack: 2.5', $view);
-        $this->assertStringContainsString('decay: 2.0', $view);
-        $this->assertStringContainsString('sustain: 0.9', $view);
-        $this->assertStringContainsString('release: 6.0', $view);
+        // 3. Lowpass Filter e Brilho
+        $this->assertStringContainsString('createBiquadFilter', $view);
+        $this->assertStringContainsString("type = 'lowpass'", $view);
+        $this->assertStringContainsString('setBrightness', $view);
 
-        // 4. Lowpass Filter
-        $this->assertStringContainsString('Tone.Filter', $view);
-        $this->assertStringContainsString('frequency: 1200', $view);
-        $this->assertStringContainsString('rolloff: this.isLowPower ? -12 : -24', $view);
-        $this->assertStringContainsString('Q: 0.5', $view);
+        // 4. Analisador de Áudio & Visualizador
+        $this->assertStringContainsString('createAnalyser', $view);
+        $this->assertStringContainsString('getAnalyserData', $view);
+        $this->assertStringContainsString('visualizerCanvas', $view);
 
-        // 5. Modulation & Movement (AutoFilter & Chorus)
-        $this->assertStringContainsString('Tone.AutoFilter', $view);
-        $this->assertStringContainsString('Tone.Chorus', $view);
-
-        // 6. Espacialidade (PingPongDelay & Reverb otimizado)
-        $this->assertStringContainsString('Tone.PingPongDelay', $view);
-        $this->assertStringContainsString("'4n'", $view);
-        $this->assertStringContainsString('wet: 0.4', $view);
-        $this->assertStringContainsString('Tone.Freeverb', $view);
-        $this->assertStringContainsString('Tone.Reverb', $view);
-        $this->assertStringContainsString('decay: 5', $view);
-        $this->assertStringContainsString('wet: 0.7', $view);
-
-        // 7. Volume Master + Limiter
-        $this->assertStringContainsString('Tone.Volume(-12)', $view);
-        $this->assertStringContainsString('Tone.Limiter(-1)', $view);
-        $this->assertStringContainsString('Tone.Destination', $view);
-
-        // 8. Crossfade simultâneo
+        // 5. Volume Master e Crossfade simultâneo
+        $this->assertStringContainsString('masterGain', $view);
         $this->assertStringContainsString('crossfadeToKey', $view);
-        $this->assertStringContainsString('triggerRelease(oldNotes)', $view);
-        $this->assertStringContainsString('triggerAttack(newNotes)', $view);
+        $this->assertStringContainsString('linearRampToValueAtTime', $view);
 
-        // 9. Floating Action Button UI (Square rounded, multicolor/gradient, mobile)
+        // 6. Floating Action Button UI (Square rounded, multicolor/gradient, mobile)
         $this->assertStringContainsString('togglePad', $view);
         $this->assertStringContainsString('fixed bottom-28 sm:bottom-24 right-4 sm:right-6', $view);
         $this->assertStringContainsString('w-14 h-14 sm:w-16 sm:h-16', $view);
@@ -118,22 +105,18 @@ class AmbientPadTest extends TestCase
         $this->assertStringContainsString('bg-gradient-to-br from-fuchsia-600 via-indigo-600 to-cyan-500', $view);
         $this->assertStringContainsString('animate-pulse', $view);
 
-        // 10. Draggable FAB & Botão de Engrenagem (Settings)
+        // 7. Draggable FAB & Botão de Engrenagem (Settings)
         $this->assertStringContainsString('onPointerDown', $view);
         $this->assertStringContainsString('fabContainerStyle', $view);
         $this->assertStringContainsString('openModal()', $view);
         $this->assertStringContainsString('Configurações do Ambient Pad', $view);
 
-        // 11. Modal Overlay de Configuração Completa & Sintetizador
+        // 8. Modal Overlay & Controles de Tom / PWA Offline
         $this->assertStringContainsString('isModalOpen', $view);
-        $this->assertStringContainsString('visualizerCanvas', $view);
         $this->assertStringContainsString('availableNotes', $view);
         $this->assertStringContainsString('setChordType', $view);
-        $this->assertStringContainsString('setTimbre', $view);
-        $this->assertStringContainsString('setInversion', $view);
-        $this->assertStringContainsString('setOctave', $view);
-        $this->assertStringContainsString('setAmbience', $view);
-        $this->assertStringContainsString('setMovement', $view);
+        $this->assertStringContainsString('preloadAllPads', $view);
+        $this->assertStringContainsString('checkOfflinePadsCount', $view);
     }
 
     public function test_song_stage_view_renders_ambient_pad_and_key_detector(): void
@@ -144,7 +127,7 @@ class AmbientPadTest extends TestCase
         ]));
 
         $response->assertSuccessful();
-        $response->assertSee('/js/tone.js', false);
+        $response->assertDontSee('/js/tone.js', false);
         $response->assertSee('id="stage-current-key"', false);
         $response->assertSee('data-key="D"', false);
         $response->assertSee('altarAmbientPad()', false);
@@ -169,7 +152,7 @@ class AmbientPadTest extends TestCase
         $response = $this->get("/app/{$this->organization->slug}/events/{$event->id}/stage");
 
         $response->assertSuccessful();
-        $response->assertSee('/js/tone.js', false);
+        $response->assertDontSee('/js/tone.js', false);
         $response->assertSee('id="stage-current-key"', false);
         $response->assertSee('data-key="G"', false);
         $response->assertSee('altarAmbientPad()', false);
@@ -200,14 +183,11 @@ class AmbientPadTest extends TestCase
         $view = view('components.altar-ambient-pad')->render();
 
         $this->assertStringContainsString('detectLowPowerDevice', $view);
-        $this->assertStringContainsString('lookAhead = 0.25', $view);
-        $this->assertStringContainsString('Tone.Freeverb', $view);
+        $this->assertStringContainsString('this.isLowPower ? 64 : 128', $view);
+        $this->assertStringNotContainsString('Tone.PolySynth', $view);
         $this->assertStringNotContainsString('Tone.setContext', $view);
-        $this->assertStringContainsString('this.synth.maxPolyphony = this.isLowPower ? 8 : 12', $view);
         $this->assertStringContainsString('canvas.width = 320', $view);
-        $this->assertStringContainsString('setupAudioRecovery', $view);
         $this->assertStringContainsString('altar-pad-toggle-group', $view);
-        $this->assertStringContainsString('altar-pad-timbre-group', $view);
     }
 
     public function test_ambient_pad_fab_stack_includes_metronome_button_with_text_only_labels(): void

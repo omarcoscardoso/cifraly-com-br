@@ -215,7 +215,6 @@
 <body class="h-full overflow-hidden font-sans text-slate-100 antialiased bg-[#08080a] select-none">
     {{ $slot }}
 
-    <script src="/js/tone.js"></script>
     <x-altar-metronome />
     <x-altar-ambient-pad />
 

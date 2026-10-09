@@ -3,7 +3,6 @@
 ])
 
 @once
-<script src="{{ asset('js/tone.js') }}"></script>
 @vite(['resources/css/app.css'])
 @endonce
 
@@ -125,40 +124,6 @@
         font-weight: 900 !important;
         box-shadow: 0 2px 10px rgba(0, 210, 255, 0.35) !important;
     }
-    .altar-pad-timbre-group {
-        display: flex !important;
-        background: #08080a !important;
-        padding: 4px !important;
-        border-radius: 0.75rem !important;
-        border: 1px solid #1e222c !important;
-        gap: 4px !important;
-        width: 100% !important;
-        box-sizing: border-box !important;
-    }
-    .altar-pad-timbre-btn {
-        flex: 1 1 0% !important;
-        padding: 8px 6px !important;
-        font-size: 0.75rem !important;
-        font-weight: 800 !important;
-        border-radius: 0.5rem !important;
-        transition: all 0.15s ease !important;
-        border: none !important;
-        cursor: pointer !important;
-        background: transparent !important;
-        color: #94a3b8 !important;
-        text-align: center !important;
-        user-select: none !important;
-        display: inline-flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-        line-height: 1 !important;
-    }
-    .altar-pad-timbre-btn.active {
-        background: #00d2ff !important;
-        color: #000000 !important;
-        font-weight: 900 !important;
-        box-shadow: 0 2px 10px rgba(0, 210, 255, 0.35) !important;
-    }
     .altar-pad-sub-header {
         display: flex !important;
         align-items: center !important;
@@ -235,11 +200,6 @@
             gap: 1rem !important;
         }
     }
-    @media (min-width: 1024px) {
-        .altar-pad-grid-settings {
-            grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
-        }
-    }
     .altar-pad-card {
         background: rgba(18, 20, 26, 0.9) !important;
         border: 1px solid #1e222c !important;
@@ -253,56 +213,109 @@
 
 <script>
     /**
-     * Ambient Pad Synthesizer Audio Engine (Powered by Tone.js)
-     * Cadeia Estrita: PolySynth (fattriangle) -> Lowpass 1200Hz -> AutoFilter -> Chorus -> PingPongDelay -> Reverb 12s -> Volume -12dB -> Analyser -> Destination
+     * Mapeamento de Cifras para Arquivos de Áudio OGG (Soft Over)
+     */
+    const PAD_FILES = {
+        major: {
+            'C': '/pads/soft_over/soft_over_C.ogg',
+            'C#': '/pads/soft_over/soft_over_Db Csus.ogg',
+            'Db': '/pads/soft_over/soft_over_Db Csus.ogg',
+            'D': '/pads/soft_over/soft_over_D.ogg',
+            'D#': '/pads/soft_over/soft_over_Eb Dsus.ogg',
+            'Eb': '/pads/soft_over/soft_over_Eb Dsus.ogg',
+            'E': '/pads/soft_over/soft_over_E.ogg',
+            'F': '/pads/soft_over/soft_over_F.ogg',
+            'F#': '/pads/soft_over/soft_over_Gb Fsus.ogg',
+            'Gb': '/pads/soft_over/soft_over_Gb Fsus.ogg',
+            'G': '/pads/soft_over/soft_over_G.ogg',
+            'G#': '/pads/soft_over/soft_over_Ab Gsus.ogg',
+            'Ab': '/pads/soft_over/soft_over_Ab Gsus.ogg',
+            'A': '/pads/soft_over/soft_over_A.ogg',
+            'A#': '/pads/soft_over/soft_over_Bb Asus.ogg',
+            'Bb': '/pads/soft_over/soft_over_Bb Asus.ogg',
+            'B': '/pads/soft_over/soft_over_B.ogg'
+        },
+        minor: {
+            'C': '/pads/soft_over/soft_over_Cm.ogg',
+            'Cm': '/pads/soft_over/soft_over_Cm.ogg',
+            'C#': '/pads/soft_over/soft_over_Bbm Csus.ogg',
+            'C#m': '/pads/soft_over/soft_over_Bbm Csus.ogg',
+            'Db': '/pads/soft_over/soft_over_Bbm Csus.ogg',
+            'Dbm': '/pads/soft_over/soft_over_Bbm Csus.ogg',
+            'D': '/pads/soft_over/soft_over_Dm.ogg',
+            'Dm': '/pads/soft_over/soft_over_Dm.ogg',
+            'D#': '/pads/soft_over/soft_over_Ebm Dsus.ogg',
+            'D#m': '/pads/soft_over/soft_over_Ebm Dsus.ogg',
+            'Eb': '/pads/soft_over/soft_over_Ebm Dsus.ogg',
+            'Ebm': '/pads/soft_over/soft_over_Ebm Dsus.ogg',
+            'E': '/pads/soft_over/soft_over_Em.ogg',
+            'Em': '/pads/soft_over/soft_over_Em.ogg',
+            'F': '/pads/soft_over/soft_over_Fm.ogg',
+            'Fm': '/pads/soft_over/soft_over_Fm.ogg',
+            'F#': '/pads/soft_over/soft_over_Gbm Fsus.ogg',
+            'F#m': '/pads/soft_over/soft_over_Gbm Fsus.ogg',
+            'Gb': '/pads/soft_over/soft_over_Gbm Fsus.ogg',
+            'Gbm': '/pads/soft_over/soft_over_Gbm Fsus.ogg',
+            'G': '/pads/soft_over/soft_over_Gm.ogg',
+            'Gm': '/pads/soft_over/soft_over_Gm.ogg',
+            'G#': '/pads/soft_over/soft_over_Abm Gsus.ogg',
+            'G#m': '/pads/soft_over/soft_over_Abm Gsus.ogg',
+            'Ab': '/pads/soft_over/soft_over_Abm Gsus.ogg',
+            'Abm': '/pads/soft_over/soft_over_Abm Gsus.ogg',
+            'A': '/pads/soft_over/soft_over_Am.ogg',
+            'Am': '/pads/soft_over/soft_over_Am.ogg',
+            'A#': '/pads/soft_over/soft_over_Bbm Asus.ogg',
+            'A#m': '/pads/soft_over/soft_over_Bbm Asus.ogg',
+            'Bb': '/pads/soft_over/soft_over_Bbm Asus.ogg',
+            'Bbm': '/pads/soft_over/soft_over_Bbm Asus.ogg',
+            'B': '/pads/soft_over/soft_over_Bm.ogg',
+            'Bm': '/pads/soft_over/soft_over_Bm.ogg'
+        }
+    };
+
+    /**
+     * Resolve a URL do arquivo de áudio de acordo com a nota e tipo
+     */
+    function getPadAudioUrl(key, chordType = 'major') {
+        if (!key) return PAD_FILES.major['C'];
+        const clean = key.trim().replace('♭', 'b').replace('♯', '#');
+        const match = clean.match(/^([A-G][#b]?)(.*)$/i);
+        if (!match) return PAD_FILES.major['C'];
+
+        const root = match[1].toUpperCase();
+        const ext = (match[2] || '').toLowerCase();
+        const isMinor = chordType === 'minor' || (ext.includes('m') && !ext.includes('maj'));
+        const map = isMinor ? PAD_FILES.minor : PAD_FILES.major;
+
+        return map[root] || PAD_FILES.major['C'];
+    }
+
+    /**
+     * Ambient Pad Engine baseado em Arquivos de Áudio Nativos (OGG) com Web Audio API
+     * Sistema Dual-Deck para Crossfade transparente entre tons e sem engasgos de memória.
      */
     class AmbientPadEngine {
         constructor() {
-            this.synth = null;
-            this.filter = null;
-            this.autoFilter = null;
-            this.chorus = null;
-            this.delay = null;
-            this.reverb = null;
-            this.volume = null;
+            this.ctx = null;
+            this.masterGain = null;
+            this.filterNode = null;
             this.analyser = null;
+            this.analyserData = null;
             this.isInitialized = false;
             this.isPlaying = false;
-            this.activeNotes = [];
             this.currentKey = 'C';
+            this.chordType = 'major';
+            this.crossfadeDuration = 3.5;
+            this.volume = 0.8;
+            this.filterFreq = 14000;
 
-            // Parâmetros de síntese e sonoridade
-            this.chordType = 'major'; // 'major' | 'minor'
-            this.timbre = 'lush'; // 'lush' (fattriangle) | 'analog' (fatsawtooth) | 'ethereal' (fatsine)
-            this.inversion = 0; // 0: Root, 1: 1st Inv, 2: 2nd Inv
-            this.octave = 3; // 2..5
-            this.ambienceLevel = 0.7; // 0..1
-            this.movementLevel = 0.4; // 0..1
+            this.deckA = { audio: new Audio(), source: null, gain: null, fadeTimeout: null };
+            this.deckB = { audio: new Audio(), source: null, gain: null, fadeTimeout: null };
+            this.activeDeck = 'A';
 
-            this.noteSemitones = {
-                'C': 0, 'B#': 0,
-                'C#': 1, 'Db': 1,
-                'D': 2,
-                'D#': 3, 'Eb': 3,
-                'E': 4, 'Fb': 4,
-                'F': 5, 'E#': 5,
-                'F#': 6, 'Gb': 6,
-                'G': 7,
-                'G#': 8, 'Ab': 8,
-                'A': 9,
-                'A#': 10, 'Bb': 10,
-                'B': 11, 'Cb': 11
-            };
-
-            this.chromaticScale = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
-
-            // Celulares e tablets têm CPU de áudio limitada: usamos um perfil mais leve
             this.isLowPower = AmbientPadEngine.detectLowPowerDevice();
         }
 
-        /**
-         * Detecta dispositivos móveis/tablets (incluindo iPadOS que se identifica como Macintosh).
-         */
         static detectLowPowerDevice() {
             const ua = navigator.userAgent || '';
             const isMobileUa = /Android|iPhone|iPad|iPod|Mobile|Silk|Kindle/i.test(ua);
@@ -313,368 +326,195 @@
             return isMobileUa || isIpadOs || (isCoarsePointer && fewCores);
         }
 
-        /**
-         * Limita a quantidade de osciladores por voz em dispositivos móveis
-         * (cada "fat" oscillator multiplica o custo de CPU por voz).
-         */
-        oscCount(desktopCount) {
-            return this.isLowPower ? Math.min(desktopCount, 2) : desktopCount;
-        }
-
-        /**
-         * Ajusta o lookAhead do AudioContext existente do Tone.js para buffer amplo (0.25s),
-         * prevenindo buffer underrun sem recriar o AudioContext (o que causaria InvalidAccessError
-         * pois Tone.Destination pertence ao contexto nativo original do Tone.js).
-         */
-        configureAudioContext() {
-            if (window.AltarAmbientPadContextConfigured) return;
-            window.AltarAmbientPadContextConfigured = true;
-
-            try {
-                if (typeof Tone !== 'undefined' && Tone.context) {
-                    Tone.context.lookAhead = 0.25;
-                }
-            } catch (e) {
-                console.warn('[AmbientPad] Não foi possível ajustar lookAhead:', e);
-            }
-        }
-
-        setupAudioRecovery() {
-            if (this.hasAudioRecovery) return;
-            this.hasAudioRecovery = true;
-
-            const resumeIfPlaying = async () => {
-                try {
-                    if (this.isPlaying && typeof Tone !== 'undefined' && Tone.context && Tone.context.state === 'suspended') {
-                        await Tone.context.resume();
-                    }
-                } catch (e) {}
-            };
-
-            document.addEventListener('fullscreenchange', resumeIfPlaying);
-            document.addEventListener('webkitfullscreenchange', resumeIfPlaying);
-            document.addEventListener('visibilitychange', () => {
-                if (!document.hidden) resumeIfPlaying();
-            });
-            window.addEventListener('focus', resumeIfPlaying);
-        }
-
-        async init() {
+        init() {
             if (this.isInitialized) return;
 
-            // Fallback para carregamento dinâmico do Tone.js se necessário
-            if (typeof Tone === 'undefined') {
-                await new Promise((resolve) => {
-                    const s = document.createElement('script');
-                    s.src = '/js/tone.js';
-                    s.onload = () => resolve();
-                    s.onerror = () => {
-                        console.error('[AmbientPad] Não foi possível carregar /js/tone.js');
-                        resolve();
-                    };
-                    document.head.appendChild(s);
-                });
-            }
-
-            if (typeof Tone === 'undefined') {
-                console.warn('[AmbientPad] Tone.js não encontrado.');
+            const AudioCtxClass = window.AudioContext || window.webkitAudioContext;
+            if (!AudioCtxClass) {
+                console.warn('[AmbientPad] Web Audio API não suportada neste navegador.');
                 return;
             }
 
-            // Inicia o contexto de áudio em resposta ao gesto do usuário com buffer otimizado
-            this.configureAudioContext();
-            this.setupAudioRecovery();
-            try {
-                if (Tone.context.state !== 'running') {
-                    await Tone.start();
-                }
-            } catch (e) {
-                console.warn('[AmbientPad] Tone.start falhou ou já iniciado:', e);
-            }
+            this.ctx = new AudioCtxClass();
 
-            // 1. Synth: PolySynth com ondas fattriangle (count 4, spread 50)
-            // Envelope: Attack 2.5s, Decay 2s, Sustain 0.9, Release 6s
-            this.synth = new Tone.PolySynth(Tone.Synth, {
-                oscillator: {
-                    type: 'fattriangle',
-                    count: this.oscCount(4),
-                    spread: 50
-                },
-                envelope: {
-                    attack: 2.5,
-                    decay: 2.0,
-                    sustain: 0.9,
-                    release: 6.0
-                }
-            });
+            this.masterGain = this.ctx.createGain();
+            this.masterGain.gain.setValueAtTime(this.volume, this.ctx.currentTime);
 
-            // Limita polifonia para evitar sobrecarga do Web Audio thread em crossfade
-            this.synth.maxPolyphony = this.isLowPower ? 8 : 12;
+            this.filterNode = this.ctx.createBiquadFilter();
+            this.filterNode.type = 'lowpass';
+            this.filterNode.frequency.setValueAtTime(this.filterFreq, this.ctx.currentTime);
+            this.filterNode.Q.setValueAtTime(0.7, this.ctx.currentTime);
 
-            // 2. Filtro: Lowpass em 1200Hz, rolloff -24, Q 0.5 (corta agudos sem conflitar com voz)
-            this.filter = new Tone.Filter({
-                frequency: 1200,
-                type: 'lowpass',
-                rolloff: this.isLowPower ? -12 : -24,
-                Q: 0.5
-            });
+            this.analyser = this.ctx.createAnalyser();
+            this.analyser.fftSize = this.isLowPower ? 64 : 128;
+            this.analyserData = new Float32Array(this.analyser.fftSize);
 
-            // 3. Modulação: AutoFilter tipo sine (0.1Hz) ligado a Chorus para movimento estéreo
-            this.autoFilter = new Tone.AutoFilter({
-                frequency: 0.1,
-                type: 'sine',
-                depth: 0.5,
-                baseFrequency: 350,
-                octaves: 2.2,
-                wet: this.movementLevel
-            });
+            // Deck A setup
+            this.deckA.audio.loop = true;
+            this.deckA.audio.preload = 'auto';
+            this.deckA.audio.crossOrigin = 'anonymous';
+            this.deckA.source = this.ctx.createMediaElementSource(this.deckA.audio);
+            this.deckA.gain = this.ctx.createGain();
+            this.deckA.gain.gain.setValueAtTime(0, this.ctx.currentTime);
+            this.deckA.source.connect(this.deckA.gain);
+            this.deckA.gain.connect(this.filterNode);
 
-            this.chorus = new Tone.Chorus({
-                frequency: 0.8,
-                delayTime: 3.5,
-                depth: 0.7,
-                spread: 180,
-                wet: 0.5
-            });
+            // Deck B setup
+            this.deckB.audio.loop = true;
+            this.deckB.audio.preload = 'auto';
+            this.deckB.audio.crossOrigin = 'anonymous';
+            this.deckB.source = this.ctx.createMediaElementSource(this.deckB.audio);
+            this.deckB.gain = this.ctx.createGain();
+            this.deckB.gain.gain.setValueAtTime(0, this.ctx.currentTime);
+            this.deckB.source.connect(this.deckB.gain);
+            this.deckB.gain.connect(this.filterNode);
 
-            // 4. Espacialidade: PingPongDelay em cadeia com Reverb
-            this.delay = new Tone.PingPongDelay({
-                delayTime: '4n',
-                feedback: this.isLowPower ? 0.2 : 0.25,
-                wet: 0.4
-            });
-
-            // Reverb: Em dispositivos móveis / tablets (isLowPower), usamos Tone.Freeverb (Schroeder/Moorer algorítmico).
-            // O Freeverb utiliza filtros biquad nativos e linhas de atraso com custo de CPU < 1%,
-            // eliminando completamente travamentos, chiados e picotamentos de ConvolverNode.
-            if (this.isLowPower && typeof Tone.Freeverb !== 'undefined') {
-                this.reverb = new Tone.Freeverb({
-                    roomSize: 0.88,
-                    dampening: 2500,
-                    wet: 0.7
-                });
-            } else {
-                this.reverb = new Tone.Reverb({
-                    decay: 5,
-                    preDelay: 0.05,
-                    wet: 0.7
-                });
-            }
-
-            // 5. Volume Master: Roteado para Tone.Destination com volume inicial -12dB
-            this.volume = new Tone.Volume(-12);
-
-            // Limiter de saída: impede clipping digital (chiado/estalos) na soma das vozes
-            this.limiter = new Tone.Limiter(-1);
-
-            // Analisador de forma de onda para o visualizador gráfico
-            this.analyser = new Tone.Analyser('waveform', this.isLowPower ? 64 : 128);
-
-            // Cadeia estrita: synth -> filter -> autoFilter -> chorus -> delay -> reverb -> volume -> limiter -> analyser -> Tone.Destination
-            this.synth.chain(
-                this.filter,
-                this.autoFilter,
-                this.chorus,
-                this.delay,
-                this.reverb,
-                this.volume,
-                this.limiter,
-                this.analyser,
-                Tone.Destination
-            );
-
-            // Inicia osciladores LFO dos efeitos com verificação de estado
-            try {
-                if (this.autoFilter && this.autoFilter.state !== 'started') {
-                    this.autoFilter.start();
-                }
-            } catch (e) {}
-
-            try {
-                if (this.chorus && this.chorus.state !== 'started') {
-                    this.chorus.start();
-                }
-            } catch (e) {}
-
-            // Aguardamos reverb.ready se existir (apenas Tone.Reverb convolutivo no desktop)
-            try {
-                if (this.reverb && this.reverb.ready) {
-                    await Promise.race([
-                        this.reverb.ready,
-                        new Promise((resolve) => setTimeout(resolve, 600))
-                    ]);
-                }
-            } catch (err) {
-                console.warn('[AmbientPad] Reverb pronto com aviso:', err);
-            }
+            // Roteamento para Destination
+            this.filterNode.connect(this.masterGain);
+            this.masterGain.connect(this.analyser);
+            this.analyser.connect(this.ctx.destination);
 
             this.isInitialized = true;
         }
 
-        applyTimbre(type) {
-            this.timbre = type;
-            if (!this.synth) return;
-
-            switch (type) {
-                case 'analog':
-                    this.synth.set({
-                        volume: -2,
-                        oscillator: { type: 'fatsawtooth', count: this.oscCount(3), spread: 30 },
-                        envelope: { attack: 2.5, decay: 2.0, sustain: 0.9, release: 6.0 }
-                    });
-                    break;
-                case 'ethereal':
-                    // Ethereal ultra-orgânico: 2 osciladores senoidais com spread suave e envelope macio para evitar estalos de fase e distorção
-                    this.synth.set({
-                        volume: -6,
-                        oscillator: { type: 'fatsine', count: this.oscCount(2), spread: 15 },
-                        envelope: { attack: 3.2, decay: 2.5, sustain: 0.85, release: 6.5 }
-                    });
-                    break;
-                case 'lush':
-                default:
-                    this.synth.set({
-                        volume: 0,
-                        oscillator: { type: 'fattriangle', count: this.oscCount(4), spread: 50 },
-                        envelope: { attack: 2.5, decay: 2.0, sustain: 0.9, release: 6.0 }
-                    });
-                    break;
+        async ensureRunningContext() {
+            this.init();
+            if (this.ctx && this.ctx.state === 'suspended') {
+                await this.ctx.resume();
             }
         }
 
-        setAmbience(level) {
-            this.ambienceLevel = parseFloat(level);
-            if (this.reverb && this.delay) {
-                this.reverb.wet.rampTo(this.ambienceLevel, 0.1);
-                this.delay.wet.rampTo(this.ambienceLevel * 0.6, 0.1);
-            }
-        }
-
-        setMovement(level) {
-            this.movementLevel = parseFloat(level);
-            if (this.autoFilter && this.chorus) {
-                this.autoFilter.wet.rampTo(this.movementLevel, 0.1);
-                this.autoFilter.frequency.value = 0.05 + (this.movementLevel * 0.45);
-                this.chorus.depth = 0.3 + (this.movementLevel * 0.7);
-            }
-        }
-
-        setVolume(db) {
-            if (this.volume) {
-                this.volume.volume.rampTo(parseFloat(db), 0.05);
-            }
-        }
-
-        getChordNotes(key, octave = this.octave, type = this.chordType, inversion = this.inversion) {
-            if (!key) return ['C2', 'C3', 'E3', 'G3'];
-
-            const match = key.trim().match(/^([A-G][#b♭♯]?)(.*)$/i);
-            if (!match) return ['C2', 'C3', 'E3', 'G3'];
-
-            const root = match[1].toUpperCase().replace('♭', 'b').replace('♯', '#');
-            const ext = (match[2] || '').toLowerCase();
-            const isMinor = type === 'minor' || (ext.includes('m') && !ext.includes('maj'));
-
-            const rootIndex = this.noteSemitones[root] ?? 0;
-            const intervals = isMinor ? [0, 3, 7] : [0, 4, 7]; // Raiz, Terça (menor/maior), Quinta
-
-            let chord = intervals.map((interval) => {
-                let noteIndex = rootIndex + interval;
-                let currentOctave = octave;
-                if (noteIndex >= 12) {
-                    noteIndex -= 12;
-                    currentOctave++;
-                }
-                return `${this.chromaticScale[noteIndex]}${currentOctave}`;
-            });
-
-            // Aplicação de inversões harmônicas
-            if (inversion === 1) {
-                let first = chord.shift();
-                let matchNote = first.match(/^([A-G][#b]?)([0-9])$/);
-                if (matchNote) chord.push(`${matchNote[1]}${parseInt(matchNote[2], 10) + 1}`);
-            } else if (inversion === 2) {
-                let first = chord.shift();
-                let second = chord.shift();
-                let m1 = first.match(/^([A-G][#b]?)([0-9])$/);
-                let m2 = second.match(/^([A-G][#b]?)([0-9])$/);
-                if (m1) chord.push(`${m1[1]}${parseInt(m1[2], 10) + 1}`);
-                if (m2) chord.push(`${m2[1]}${parseInt(m2[2], 10) + 1}`);
-            }
-
-            // Nota fundamental no sub-baixo (1 oitava abaixo) para o clássico preenchimento aveludado worship
-            const bassOctave = Math.max(1, octave - 1);
-            return [`${root}${bassOctave}`, ...chord];
-        }
-
-        async play(key) {
-            await this.init();
-            if (!this.synth) return;
-
+        async play(key, chordType = this.chordType) {
+            await this.ensureRunningContext();
             this.currentKey = key;
-            const notes = this.getChordNotes(key);
+            this.chordType = chordType;
+            const url = getPadAudioUrl(key, chordType);
 
-            // Liberação com release suave de 6s
-            if (this.activeNotes.length > 0) {
-                try {
-                    this.synth.triggerRelease(this.activeNotes);
-                } catch (e) {}
-            }
+            const currentDeck = this.activeDeck === 'A' ? this.deckA : this.deckB;
 
-            this.activeNotes = notes;
-            try {
-                if (typeof Tone !== 'undefined' && Tone.context && Tone.context.state !== 'running') {
-                    await Tone.start();
-                }
-                this.synth.triggerAttack(this.activeNotes);
-                this.isPlaying = true;
-            } catch (err) {
-                console.error('[AmbientPad] Erro ao tocar pad:', err);
-                throw err;
-            }
-        }
-
-        crossfadeToKey(newKey) {
-            if (!this.isPlaying || !this.synth) {
-                this.currentKey = newKey;
+            if (this.isPlaying && currentDeck.audio.src.includes(encodeURI(url))) {
                 return;
             }
 
-            const cleanKey = newKey.trim();
-            const oldNotes = [...this.activeNotes];
-            const newNotes = this.getChordNotes(cleanKey);
+            const now = this.ctx ? this.ctx.currentTime : 0;
 
-            this.currentKey = cleanKey;
-            this.activeNotes = newNotes;
+            if (!this.isPlaying) {
+                currentDeck.audio.src = url;
+                currentDeck.audio.currentTime = 0;
+                currentDeck.gain.gain.cancelScheduledValues(now);
+                currentDeck.gain.gain.setValueAtTime(0, now);
+                currentDeck.gain.gain.linearRampToValueAtTime(1, now + 1.5);
 
-            try {
-                // Crossfade simultâneo: solta o acorde antigo (release 6s) e ataca o novo (attack 2.5s)
-                if (oldNotes.length > 0) {
-                    this.synth.triggerRelease(oldNotes);
+                try {
+                    await currentDeck.audio.play();
+                    this.isPlaying = true;
+                } catch (err) {
+                    console.error('[AmbientPad] Erro ao reproduzir pad:', err);
                 }
-                this.synth.triggerAttack(newNotes);
-            } catch (err) {
-                console.error('[AmbientPad] Erro no crossfade de tom:', err);
+            } else {
+                this.crossfadeToKey(key, chordType);
             }
         }
 
+        crossfadeToKey(newKey, chordType = this.chordType) {
+            if (!this.isPlaying) {
+                this.play(newKey, chordType);
+                return;
+            }
+
+            this.ensureRunningContext();
+            this.currentKey = newKey;
+            this.chordType = chordType;
+            const url = getPadAudioUrl(newKey, chordType);
+
+            const incomingDeck = this.activeDeck === 'A' ? this.deckB : this.deckA;
+            const outgoingDeck = this.activeDeck === 'A' ? this.deckA : this.deckB;
+
+            if (incomingDeck.fadeTimeout) {
+                clearTimeout(incomingDeck.fadeTimeout);
+                incomingDeck.fadeTimeout = null;
+            }
+            if (outgoingDeck.fadeTimeout) {
+                clearTimeout(outgoingDeck.fadeTimeout);
+                outgoingDeck.fadeTimeout = null;
+            }
+
+            const now = this.ctx ? this.ctx.currentTime : 0;
+            const duration = this.crossfadeDuration;
+
+            incomingDeck.audio.src = url;
+            incomingDeck.audio.currentTime = 0;
+            incomingDeck.gain.gain.cancelScheduledValues(now);
+            incomingDeck.gain.gain.setValueAtTime(0, now);
+            incomingDeck.gain.gain.linearRampToValueAtTime(1, now + duration);
+
+            incomingDeck.audio.play().catch(e => console.warn('[AmbientPad] Autoplay error:', e));
+
+            outgoingDeck.gain.gain.cancelScheduledValues(now);
+            outgoingDeck.gain.gain.setValueAtTime(outgoingDeck.gain.gain.value, now);
+            outgoingDeck.gain.gain.linearRampToValueAtTime(0, now + duration);
+
+            outgoingDeck.fadeTimeout = setTimeout(() => {
+                outgoingDeck.audio.pause();
+                outgoingDeck.audio.currentTime = 0;
+                outgoingDeck.fadeTimeout = null;
+            }, (duration * 1000) + 100);
+
+            this.activeDeck = this.activeDeck === 'A' ? 'B' : 'A';
+        }
+
         stop() {
-            if (!this.synth || !this.isPlaying) return;
+            if (!this.isPlaying) return;
+            this.ensureRunningContext();
+            const now = this.ctx ? this.ctx.currentTime : 0;
+            const fadeOut = 2.0;
 
-            try {
-                if (this.activeNotes.length > 0) {
-                    this.synth.triggerRelease(this.activeNotes);
-                }
-            } catch (e) {}
+            const currentDeck = this.activeDeck === 'A' ? this.deckA : this.deckB;
+            currentDeck.gain.gain.cancelScheduledValues(now);
+            currentDeck.gain.gain.setValueAtTime(currentDeck.gain.gain.value, now);
+            currentDeck.gain.gain.linearRampToValueAtTime(0, now + fadeOut);
 
-            this.activeNotes = [];
+            const otherDeck = this.activeDeck === 'A' ? this.deckB : this.deckA;
+            otherDeck.gain.gain.cancelScheduledValues(now);
+            otherDeck.gain.gain.setValueAtTime(0, now);
+
+            setTimeout(() => {
+                currentDeck.audio.pause();
+                currentDeck.audio.currentTime = 0;
+                otherDeck.audio.pause();
+                otherDeck.audio.currentTime = 0;
+            }, (fadeOut * 1000) + 100);
+
             this.isPlaying = false;
+        }
+
+        setVolume(val) {
+            this.volume = Math.max(0, Math.min(1, parseFloat(val)));
+            if (this.masterGain && this.ctx) {
+                this.masterGain.gain.setValueAtTime(this.volume, this.ctx.currentTime);
+            }
+        }
+
+        setFilter(freq) {
+            this.filterFreq = Math.max(400, Math.min(20000, parseFloat(freq)));
+            if (this.filterNode && this.ctx) {
+                this.filterNode.frequency.setValueAtTime(this.filterFreq, this.ctx.currentTime);
+            }
+        }
+
+        setCrossfadeDuration(seconds) {
+            this.crossfadeDuration = Math.max(1, Math.min(8, parseFloat(seconds)));
+        }
+
+        getAnalyserData() {
+            if (!this.analyser) return new Float32Array(0);
+            this.analyser.getFloatTimeDomainData(this.analyserData);
+            return this.analyserData;
         }
     }
 
     /**
-     * Instância singleton fora do Proxy do Alpine para prevenir InvalidStateError
-     * na API nativa Web Audio C++ dos navegadores
+     * Instância singleton fora do Proxy do Alpine
      */
     function getAmbientPadEngine() {
         if (!window.AltarAmbientPadEngineInstance) {
@@ -694,19 +534,21 @@
                 visualizerRafId: null,
 
                 // Configurações e Controles
-                chordType: 'major',
-                timbre: 'lush',
-                inversion: 0,
-                octave: 3,
-                ambienceLevel: 0.7,
-                movementLevel: 0.4,
-                volumeDb: -12,
+                chordType: 'major', // 'major' | 'minor'
+                volume: 0.8,
+                brightness: 0.75, // Mapeado para Filtro Lowpass (800Hz - 20000Hz)
+                transitionDuration: 3.5, // 1s .. 8s
+
+                // Status de Cache PWA Offline
+                isPreloadingPads: false,
+                preloadedCount: 0,
+                totalPads: 24,
 
                 // Controles Integrados do Modo Palco (Letra e Auto-Scroll)
                 showLyricsOnly: localStorage.getItem('cifraly_stage_lyrics_only') === 'true',
                 isAutoScrolling: false,
 
-                // Metrônomo integrado ao stack flutuante (BPM lido do DOM do palco)
+                // Metrônomo integrado ao stack flutuante
                 bpm: 120,
                 timeSignature: '4/4',
                 isMetronomePlaying: false,
@@ -732,13 +574,11 @@
                 availableNotes: ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'],
 
                 init() {
-                    // Carrega posição prévia salva do botão arrastável com validação estrita de viewport
                     const savedX = localStorage.getItem('cifraly_pad_fab_x');
                     const savedY = localStorage.getItem('cifraly_pad_fab_y');
                     if (savedX !== null && savedY !== null) {
                         const px = parseFloat(savedX);
                         const py = parseFloat(savedY);
-                        // Garante que não está colado no topo nem fora da tela (considerando os 4 botões empilhados)
                         const maxSafeY = window.innerHeight - 300;
                         if (!isNaN(px) && !isNaN(py) && px >= 16 && px <= window.innerWidth - 74 && py >= 60 && py <= window.innerHeight - 74) {
                             this.fabX = px;
@@ -766,17 +606,15 @@
 
                     this.detectKeyFromDom();
 
-                    // Observa alterações no tom da cifra em tempo real no DOM
                     this.$nextTick(() => {
                         this.setupKeyObserver();
+                        this.checkOfflinePadsCount();
                     });
 
-                    // Listener para evento customizado de abertura externa (ex: Barra Inferior Mobile)
                     window.addEventListener('cifraly:open-pad', () => {
                         this.openModal();
                     });
 
-                    // Listener para sincronização de estado do modo palco (Letra e Auto-Scroll)
                     window.addEventListener('cifraly:stage-status', (e) => {
                         if (e.detail) {
                             if (typeof e.detail.showLyricsOnly !== 'undefined') {
@@ -788,12 +626,20 @@
                         }
                     });
 
-                    // Sincroniza o LED do botão Metrônomo com o estado real do metrônomo
                     window.addEventListener('cifraly:metronome-status', (e) => {
                         this.isMetronomePlaying = Boolean(e.detail?.isPlaying);
                     });
 
-                    // Notifica o estado inicial se já houver engine ativa
+                    // Mensagens vindas do Service Worker PWA
+                    if ('serviceWorker' in navigator) {
+                        navigator.serviceWorker.addEventListener('message', (event) => {
+                            if (event.data?.type === 'PADS_PRELOADED') {
+                                this.isPreloadingPads = false;
+                                this.preloadedCount = event.data.count || 24;
+                            }
+                        });
+                    }
+
                     const engine = getAmbientPadEngine();
                     if (engine && engine.isPlaying) {
                         this.isPlaying = true;
@@ -801,7 +647,6 @@
                     }
                     this.dispatchStatus();
 
-                    // Para o pad ao navegar para fora do modo palco
                     document.addEventListener('livewire:navigating', () => {
                         this.stopPad();
                     });
@@ -866,7 +711,6 @@
                     if (cleanKey && cleanKey !== this.currentKey) {
                         this.currentKey = cleanKey;
 
-                        // Detecta automaticamente se o tom da cifra é menor (ex: Am) ou maior
                         const ext = cleanKey.replace(/^[A-G][#b♭♯]?/i, '').toLowerCase();
                         if (ext.includes('m') && !ext.includes('maj')) {
                             this.chordType = 'minor';
@@ -876,15 +720,14 @@
                             getAmbientPadEngine().chordType = 'major';
                         }
 
-                        // Se o Pad já estiver tocando, dispara o crossfade suave em tempo real
                         if (this.isPlaying) {
-                            getAmbientPadEngine().crossfadeToKey(this.currentKey);
+                            getAmbientPadEngine().crossfadeToKey(this.currentKey, this.chordType);
                         }
                         this.dispatchStatus();
                     }
                 },
 
-                // --- Drag and Drop Logic (Mobile + Desktop) ---
+                // --- Drag and Drop Logic ---
                 onPointerDown(e) {
                     if (e.target.closest('button[data-no-drag]') || this.isModalOpen) return;
 
@@ -934,13 +777,11 @@
                 },
 
                 handleMainButtonClick() {
-                    // Se foi arrasto, não dispara o toggle de play/stop
                     if (this.hasMoved) return;
                     this.togglePad();
                 },
 
                 handleScrollButtonClick() {
-                    // Se foi arrasto, não dispara o toggle de scroll
                     if (this.hasMoved) return;
                     this.isAutoScrolling = !this.isAutoScrolling;
                     window.dispatchEvent(new CustomEvent('cifraly:toggle-scroll', {
@@ -949,7 +790,6 @@
                 },
 
                 handleLyricsButtonClick() {
-                    // Se foi arrasto, não dispara o toggle de letra
                     if (this.hasMoved) return;
                     this.showLyricsOnly = !this.showLyricsOnly;
                     localStorage.setItem('cifraly_stage_lyrics_only', this.showLyricsOnly);
@@ -959,7 +799,6 @@
                 },
 
                 handleMetronomeButtonClick() {
-                    // Se foi arrasto, não abre o metrônomo
                     if (this.hasMoved) return;
                     const keyEl = document.getElementById('stage-current-key');
                     if (keyEl) {
@@ -992,7 +831,7 @@
                     this.detectKeyFromDom();
                     try {
                         const engine = getAmbientPadEngine();
-                        await engine.play(this.currentKey);
+                        await engine.play(this.currentKey, this.chordType);
                         this.isPlaying = true;
                         this.dispatchStatus();
                     } catch (err) {
@@ -1013,6 +852,7 @@
                 openModal() {
                     this.isModalOpen = true;
                     this.activeTab = 'tones';
+                    this.checkOfflinePadsCount();
                     this.$nextTick(() => {
                         this.initVisualizer();
                     });
@@ -1027,7 +867,6 @@
                 },
 
                 selectPadKey(note) {
-                    // Se o tom já for o atual e o pad estiver tocando, encerra o Pad (Toggle)
                     if (this.getCleanRootKey() === note && this.isPlaying) {
                         this.stopPad();
                         return;
@@ -1038,7 +877,7 @@
                     if (!this.isPlaying) {
                         this.startPad();
                     } else {
-                        getAmbientPadEngine().crossfadeToKey(this.currentKey);
+                        getAmbientPadEngine().crossfadeToKey(this.currentKey, this.chordType);
                         this.dispatchStatus();
                     }
                 },
@@ -1050,49 +889,25 @@
                     const engine = getAmbientPadEngine();
                     engine.chordType = type;
                     if (this.isPlaying) {
-                        engine.crossfadeToKey(this.currentKey);
+                        engine.crossfadeToKey(this.currentKey, type);
                     }
-                },
-
-                setTimbre(timbre) {
-                    this.timbre = timbre;
-                    getAmbientPadEngine().applyTimbre(timbre);
-                    if (this.isPlaying) {
-                        getAmbientPadEngine().crossfadeToKey(this.currentKey);
-                    }
-                },
-
-                setInversion(inv) {
-                    this.inversion = parseInt(inv, 10);
-                    const engine = getAmbientPadEngine();
-                    engine.inversion = this.inversion;
-                    if (this.isPlaying) {
-                        engine.crossfadeToKey(this.currentKey);
-                    }
-                },
-
-                setOctave(oct) {
-                    this.octave = parseInt(oct, 10);
-                    const engine = getAmbientPadEngine();
-                    engine.octave = this.octave;
-                    if (this.isPlaying) {
-                        engine.crossfadeToKey(this.currentKey);
-                    }
-                },
-
-                setAmbience(val) {
-                    this.ambienceLevel = parseFloat(val);
-                    getAmbientPadEngine().setAmbience(this.ambienceLevel);
-                },
-
-                setMovement(val) {
-                    this.movementLevel = parseFloat(val);
-                    getAmbientPadEngine().setMovement(this.movementLevel);
                 },
 
                 setVolume(val) {
-                    this.volumeDb = parseFloat(val);
-                    getAmbientPadEngine().setVolume(this.volumeDb);
+                    this.volume = parseFloat(val);
+                    getAmbientPadEngine().setVolume(this.volume);
+                },
+
+                setBrightness(val) {
+                    this.brightness = parseFloat(val);
+                    // Mapeia 0..1 para 800Hz .. 20000Hz (escala logarítmica suave)
+                    const freq = 800 * Math.pow(25, this.brightness);
+                    getAmbientPadEngine().setFilter(freq);
+                },
+
+                setTransition(seconds) {
+                    this.transitionDuration = parseFloat(seconds);
+                    getAmbientPadEngine().setCrossfadeDuration(this.transitionDuration);
                 },
 
                 getCleanRootKey() {
@@ -1100,7 +915,54 @@
                     return match ? match[1].toUpperCase().replace('♭', 'b').replace('♯', '#') : 'C';
                 },
 
-                // --- Visualizador Neon em Canvas (Leve e Otimizado para 0% Engasgos) ---
+                // --- PWA Offline Cache Management ---
+                async checkOfflinePadsCount() {
+                    if (!('caches' in window)) return;
+                    try {
+                        const keys = await caches.keys();
+                        const padCacheKey = keys.find(k => k.includes('pads'));
+                        if (!padCacheKey) {
+                            this.preloadedCount = 0;
+                            return;
+                        }
+                        const cache = await caches.open(padCacheKey);
+                        const requests = await cache.keys();
+                        this.preloadedCount = requests.filter(r => r.url.endsWith('.ogg')).length;
+                    } catch (e) {}
+                },
+
+                async preloadAllPads() {
+                    this.isPreloadingPads = true;
+                    if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+                        navigator.serviceWorker.controller.postMessage({ type: 'PRELOAD_PADS' });
+                    } else if ('caches' in window) {
+                        try {
+                            const cache = await caches.open('cifraly-v1.0.8-pads');
+                            const urls = Object.values(PAD_FILES.major).concat(Object.values(PAD_FILES.minor));
+                            const uniqueUrls = [...new Set(urls)];
+                            let count = 0;
+                            for (const url of uniqueUrls) {
+                                const match = await cache.match(url);
+                                if (!match) {
+                                    try {
+                                        const res = await fetch(url);
+                                        if (res && res.status === 200) {
+                                            await cache.put(url, res);
+                                        }
+                                    } catch (err) {}
+                                }
+                                count++;
+                                this.preloadedCount = count;
+                            }
+                        } finally {
+                            this.isPreloadingPads = false;
+                        }
+                    } else {
+                        this.isPreloadingPads = false;
+                    }
+                },
+
+                // --- Visualizador Neon em Canvas ---
                 initVisualizer() {
                     const canvas = this.$refs.visualizerCanvas;
                     if (!canvas) return;
@@ -1111,7 +973,6 @@
                     }
 
                     const ctx = canvas.getContext('2d');
-                    // Buffer interno fixo ultra-leve (320x120) esticado via CSS para zero consumo de CPU/GPU
                     canvas.width = 320;
                     canvas.height = 120;
 
@@ -1123,7 +984,6 @@
                             return;
                         }
 
-                        // Limita taxa de quadros a ~25fps para não competir com a thread de áudio
                         if (timestamp - lastFrameTime < 40) {
                             this.visualizerRafId = requestAnimationFrame(render);
                             return;
@@ -1132,17 +992,17 @@
 
                         const engine = getAmbientPadEngine();
                         if (engine && engine.analyser && this.isPlaying) {
-                            const buffer = engine.analyser.getValue();
+                            const buffer = engine.getAnalyserData();
                             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
                             ctx.lineWidth = 2;
-                            ctx.strokeStyle = 'rgba(0, 210, 255, 0.45)';
+                            ctx.strokeStyle = 'rgba(0, 210, 255, 0.55)';
                             ctx.beginPath();
-                            const sliceWidth = canvas.width / buffer.length;
+                            const sliceWidth = canvas.width / (buffer.length || 1);
                             let x = 0;
 
                             for (let i = 0; i < buffer.length; i++) {
-                                const v = buffer[i] * (canvas.height * 0.38);
+                                const v = buffer[i] * (canvas.height * 0.42);
                                 const y = (canvas.height / 2) + v;
                                 if (i === 0) ctx.moveTo(x, y);
                                 else ctx.lineTo(x, y);
@@ -1171,9 +1031,9 @@
     }
 </script>
 
-<!-- Ambient Pad Synthesizer: Root Wrapper -->
+<!-- Ambient Pad: Root Wrapper -->
 <div x-data="altarAmbientPad()" class="select-none pointer-events-auto">
-    <!-- Draggable Floating Action Buttons (FAB) Stack (PAD + Play/Scroll + Letra) -->
+    <!-- Draggable Floating Action Buttons (FAB) Stack (PAD + Play/Scroll + Letra + Metrônomo) -->
     @if ($showFab)
     <div
         x-ref="fabWrapper"
@@ -1388,41 +1248,28 @@
     </div>
     @endif
 
-    <!-- MODAL OVERLAY COMPLETO EM TELA CHEIA (FULL-SCREEN AMBIENT PAD) - Separado do fabWrapper -->
+    <!-- Modal em Tela Cheia de Configurações do Pad e Seleção Harmônica -->
     <div
         x-show="isModalOpen"
         x-cloak
-        x-transition:enter="transition ease-out duration-300"
-        x-transition:enter-start="opacity-0 scale-95"
-        x-transition:enter-end="opacity-100 scale-100"
-        x-transition:leave="transition ease-in duration-200"
-        x-transition:leave-start="opacity-100 scale-100"
-        x-transition:leave-end="opacity-0 scale-95"
-        class="altar-pad-overlay fixed inset-0 z-[100000] flex flex-col bg-[#08080a]/95 backdrop-blur-2xl text-slate-100 overflow-y-auto overscroll-contain select-none p-4 sm:p-8"
-        style="position: fixed !important; top: 0 !important; left: 0 !important; right: 0 !important; bottom: 0 !important; width: 100vw !important; height: 100vh !important; z-index: 100000 !important; background: rgba(8, 8, 10, 0.96) !important; backdrop-filter: blur(24px) !important; -webkit-backdrop-filter: blur(24px) !important; overflow-y: auto !important; -webkit-overflow-scrolling: touch !important; padding: 16px !important; box-sizing: border-box !important;"
-        @pointerdown.stop
-        @pointermove.stop
-        @pointerup.stop
-        @keydown.escape.window="closeModal()"
+        class="altar-pad-overlay"
+        style="display: none;"
     >
-        <!-- Background Neon Wave Visualizer Canvas -->
+        <!-- Canvas do Visualizador Neon de Fundo -->
         <canvas x-ref="visualizerCanvas" class="absolute inset-0 w-full h-full pointer-events-none opacity-25 z-0" style="position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; opacity: 0.25; z-index: 0;"></canvas>
 
-        <div class="altar-pad-container relative z-10 max-w-4xl w-full mx-auto flex flex-col flex-1 gap-5" style="position: relative; z-index: 10; max-width: 56rem; width: 100%; margin: 0 auto; display: flex; flex-direction: column; flex: 1 1 0%; gap: 1.25rem;">
-            <!-- Modal Header -->
-            <div class="altar-pad-header flex items-center justify-between border-b border-[#1e222c] pb-4 shrink-0" style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #1e222c; padding-bottom: 1rem; flex-shrink: 0;">
+        <div class="altar-pad-container">
+            <!-- Cabeçalho do Modal -->
+            <div class="altar-pad-header">
                 <div style="display: flex; align-items: center; gap: 0.75rem;">
-                    <div style="width: 2.5rem; height: 2.5rem; border-radius: 1rem; background: rgba(0, 210, 255, 0.15); border: 1px solid rgba(0, 210, 255, 0.4); display: flex; align-items: center; justify-content: center; color: #00d2ff; box-shadow: 0 10px 15px -3px rgba(0, 210, 255, 0.2); flex-shrink: 0;">
+                    <div style="width: 2.25rem; height: 2.25rem; border-radius: 0.75rem; background: rgba(0, 210, 255, 0.15); border: 1px solid rgba(0, 210, 255, 0.3); display: flex; align-items: center; justify-content: center; color: #00d2ff;">
                         <svg style="width: 1.25rem; height: 1.25rem;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
                         </svg>
                     </div>
                     <div>
-                        <h2 style="font-size: 1.125rem; font-weight: 900; letter-spacing: 0.05em; color: #ffffff; margin: 0; display: flex; align-items: center; gap: 0.5rem;">
-                            <span>AMBIENT PAD</span>
-                            <span style="font-size: 10px; font-family: monospace; padding: 2px 8px; border-radius: 9999px; background: rgba(0, 210, 255, 0.2); color: #00d2ff; font-weight: 700; border: 1px solid rgba(0, 210, 255, 0.3); text-transform: uppercase;">Synth</span>
-                        </h2>
-                        <p style="font-size: 0.75rem; color: #71788e; margin: 2px 0 0 0;">Atmosfera de louvor</p>
+                        <h2 style="font-size: 1.125rem; font-weight: 900; color: #ffffff; margin: 0; line-height: 1.2;">Ambient Pad</h2>
+                        <p style="font-size: 0.75rem; color: #71788e; margin: 0;">Áudio estéreo de alta fidelidade (Soft Over)</p>
                     </div>
                 </div>
 
@@ -1430,19 +1277,17 @@
                 <button
                     type="button"
                     @click="closeModal()"
-                    class="tap-scale"
-                    style="padding: 0.5rem 1rem; border-radius: 1rem; background: #12141a; border: 1px solid #1e222c; color: #cbd5e1; display: flex; align-items: center; gap: 0.375rem; cursor: pointer; font-size: 0.75rem; font-weight: 700; text-transform: uppercase;"
-                    title="Fechar configurações (Esc)"
+                    style="width: 2.25rem; height: 2.25rem; border-radius: 0.75rem; background: #12141a; border: 1px solid #1e222c; color: #94a3b8; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.15s ease;"
+                    title="Fechar"
                 >
                     <svg style="width: 1.25rem; height: 1.25rem;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12" />
                     </svg>
-                    <span>Fechar</span>
                 </button>
             </div>
 
-            <!-- Navegação por Abas (Tabs) Mobile-First: Tons vs Configurações -->
-            <div class="altar-pad-tabs-nav flex items-center p-1 rounded-2xl bg-[#12141a] border border-[#1e222c] shrink-0" style="display: flex; align-items: center; padding: 4px; border-radius: 1rem; background: #12141a; border: 1px solid #1e222c; flex-shrink: 0;">
+            <!-- Navegação por Abas (Tons vs Configurações) -->
+            <div class="altar-pad-tabs-nav">
                 <button
                     type="button"
                     @click="activeTab = 'tones'"
@@ -1470,9 +1315,9 @@
             <!-- ABA 1: TONS (BOTÕES GRANDES, MOBILE-FIRST) -->
             <div x-show="activeTab === 'tones'" x-cloak class="altar-pad-tab-content">
                 <!-- Sub-header com Tom Selecionado e Alternador Maior/Menor -->
-                <div class="altar-pad-sub-header flex items-center justify-between p-3 rounded-2xl bg-[#12141a]/90 border border-[#1e222c] shrink-0" style="display: flex; align-items: center; justify-content: space-between; padding: 0.75rem; border-radius: 1rem; background: rgba(18, 20, 26, 0.9); border: 1px solid #1e222c; flex-shrink: 0;">
+                <div class="altar-pad-sub-header">
                     <div style="display: flex; align-items: center; gap: 0.5rem;">
-                        <span style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 800; color: #71788e;">Tom:</span>
+                        <span style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 800; color: #71788e;">Tom Ativo:</span>
                         <span style="font-size: 1.125rem; font-weight: 900; font-family: monospace; color: #00d2ff; background: rgba(0, 210, 255, 0.1); padding: 2px 10px; border-radius: 0.75rem; border: 1px solid rgba(0, 210, 255, 0.3);" x-text="currentKey"></span>
                     </div>
 
@@ -1497,13 +1342,13 @@
                     </div>
                 </div>
 
-                <!-- Dica mobile discreta -->
+                <!-- Dica mobile -->
                 <p style="font-size: 11px; color: #71788e; text-align: center; margin: 0; flex-shrink: 0;">
                     Toque em um tom para tocar • Toque no mesmo tom novamente para encerrar
                 </p>
 
-                <!-- Grade de 12 Tons com Botões Grandes (3 colunas no celular, 4 no tablet, 6 no desktop) -->
-                <div class="altar-pad-grid-tones grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2.5 sm:gap-3 flex-1">
+                <!-- Grade de 12 Tons com Botões Grandes -->
+                <div class="altar-pad-grid-tones">
                     <template x-for="note in availableNotes" :key="note">
                         <button
                             type="button"
@@ -1516,13 +1361,12 @@
                                     ? 'background: #181b24 !important; border: 2px solid rgba(0, 210, 255, 0.7) !important; color: #00d2ff !important;' 
                                     : 'background: rgba(18, 20, 26, 0.95); border: 1.5px solid #1e222c; color: #f1f5f9;')"
                         >
-                            <!-- Nome da Nota Grande e Destacado -->
+                            <!-- Nome da Nota Grande -->
                             <span style="font-size: 1.75rem; font-weight: 900; font-family: monospace; line-height: 1; letter-spacing: -0.02em;" x-text="note"></span>
                             
                             <!-- Barra de Acento / Indicador -->
                             <div style="width: 100%; display: flex; align-items: center; justify-content: center; margin-top: 8px;">
                                 <template x-if="getCleanRootKey() === note && isPlaying">
-                                    <!-- Barras de onda sonoras animadas no botão ativo -->
                                     <span style="display: flex; align-items: center; gap: 4px; color: #00d2ff;">
                                         <span class="w-1 h-2 bg-current rounded-full animate-pulse" style="width: 3px; height: 8px; background: currentColor; border-radius: 9999px;"></span>
                                         <span class="w-1 h-3.5 bg-current rounded-full animate-pulse" style="width: 3px; height: 14px; background: currentColor; border-radius: 9999px;"></span>
@@ -1530,7 +1374,6 @@
                                     </span>
                                 </template>
                                 <template x-if="!(getCleanRootKey() === note && isPlaying)">
-                                    <!-- Barra de acento de cor do tom -->
                                     <span 
                                         style="width: 36px; height: 4px; border-radius: 9999px; opacity: 0.75;"
                                         :style="'background-color: ' + noteColors[note] + ';'"
@@ -1542,136 +1385,122 @@
                 </div>
             </div>
 
-            <!-- ABA 2: CONFIGURAÇÕES DO SINTETIZADOR E EFEITOS -->
+            <!-- ABA 2: CONFIGURAÇÕES DE ÁUDIO E OFFLINE -->
             <div x-show="activeTab === 'settings'" x-cloak class="altar-pad-tab-content">
                 <div style="display: flex; align-items: center; justify-content: space-between; flex-shrink: 0;">
-                    <span style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 800; color: #71788e;">Ajustes do Sintetizador</span>
-                    <span style="font-size: 0.75rem; color: #71788e;">Personalize timbre, textura e ambiência</span>
+                    <span style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 800; color: #71788e;">Configurações do Ambient Pad</span>
+                    <span style="font-size: 0.75rem; color: #71788e;">Áudio OGG Estéreo &amp; PWA Offline</span>
                 </div>
 
-                <!-- Controles de Síntese e Efeitos -->
-                <div class="altar-pad-grid-settings grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-4">
-                    <!-- 1. Timbre / Textura -->
-                    <div class="altar-pad-card p-3.5 sm:p-4 rounded-2xl bg-[#12141a]/90 border border-[#1e222c] flex flex-col gap-2" style="background: rgba(18, 20, 26, 0.9); border: 1px solid #1e222c; border-radius: 1rem; padding: 1rem; display: flex; flex-direction: column; gap: 0.5rem;">
-                        <label style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 800; color: #71788e;">Timbre &amp; Ondas</label>
-                        <div class="altar-pad-timbre-group">
-                            <button 
-                                type="button"
-                                @click="setTimbre('lush')"
-                                class="altar-pad-timbre-btn"
-                                :class="{ 'active': timbre === 'lush' }"
-                                title="Worship aveludado profundo (Fattriangle)"
-                            >
-                                Lush
-                            </button>
-                            <button 
-                                type="button"
-                                @click="setTimbre('analog')"
-                                class="altar-pad-timbre-btn"
-                                :class="{ 'active': timbre === 'analog' }"
-                                title="Quente analógico (Fatsawtooth)"
-                            >
-                                Analog
-                            </button>
-                            <button 
-                                type="button"
-                                @click="setTimbre('ethereal')"
-                                class="altar-pad-timbre-btn"
-                                :class="{ 'active': timbre === 'ethereal' }"
-                                title="Suave celestial orgânico (Fatsine)"
-                            >
-                                Ethereal
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- 2. Voicing / Inversão Harmônica -->
-                    <div class="altar-pad-card p-3.5 sm:p-4 rounded-2xl bg-[#12141a]/90 border border-[#1e222c] flex flex-col gap-1.5" style="background: rgba(18, 20, 26, 0.9); border: 1px solid #1e222c; border-radius: 1rem; padding: 1rem; display: flex; flex-direction: column; gap: 0.5rem;">
+                <div class="altar-pad-grid-settings">
+                    <!-- 1. Volume Master -->
+                    <div class="altar-pad-card">
                         <div style="display: flex; align-items: center; justify-content: space-between; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 800; color: #71788e;">
-                            <span>Voicing / Inversão</span>
-                            <span style="color: #00d2ff; font-family: monospace;" x-text="inversion === 0 ? 'Fundamental (Root)' : (inversion === 1 ? '1ª Inversão' : '2ª Inversão')"></span>
-                        </div>
-                        <input 
-                            type="range" 
-                            min="0" 
-                            max="2" 
-                            step="1" 
-                            :value="inversion"
-                            @input="setInversion($event.target.value)"
-                            style="width: 100%; height: 6px; border-radius: 0.5rem; background: #08080a; appearance: none; cursor: pointer; accent-color: #00d2ff; margin-top: 4px;"
-                        />
-                        <div style="display: flex; justify-content: space-between; font-size: 10px; color: #71788e; font-family: monospace; padding: 0 2px;">
-                            <span>Root</span>
-                            <span>1st Inv</span>
-                            <span>2nd Inv</span>
-                        </div>
-                    </div>
-
-                    <!-- 3. Oitava Base (Octave Shift) -->
-                    <div class="altar-pad-card p-3.5 sm:p-4 rounded-2xl bg-[#12141a]/90 border border-[#1e222c] flex flex-col gap-1.5" style="background: rgba(18, 20, 26, 0.9); border: 1px solid #1e222c; border-radius: 1rem; padding: 1rem; display: flex; flex-direction: column; gap: 0.5rem;">
-                        <div style="display: flex; align-items: center; justify-content: space-between; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 800; color: #71788e;">
-                            <span>Oitava (Octave)</span>
-                            <span style="color: #00d2ff; font-family: monospace;" x-text="'Oitava ' + octave"></span>
-                        </div>
-                        <input 
-                            type="range" 
-                            min="2" 
-                            max="5" 
-                            step="1" 
-                            :value="octave"
-                            @input="setOctave($event.target.value)"
-                            style="width: 100%; height: 6px; border-radius: 0.5rem; background: #08080a; appearance: none; cursor: pointer; accent-color: #00d2ff; margin-top: 4px;"
-                        />
-                        <div style="display: flex; justify-content: space-between; font-size: 10px; color: #71788e; font-family: monospace; padding: 0 2px;">
-                            <span>2 (Grave)</span>
-                            <span>3 (Padrão)</span>
-                            <span>4 (Médio)</span>
-                            <span>5 (Agudo)</span>
-                        </div>
-                    </div>
-
-                    <!-- 4. Ambience (Reverb & Echo Space) -->
-                    <div class="altar-pad-card p-3.5 sm:p-4 rounded-2xl bg-[#12141a]/90 border border-[#1e222c] flex flex-col gap-1.5" style="background: rgba(18, 20, 26, 0.9); border: 1px solid #1e222c; border-radius: 1rem; padding: 1rem; display: flex; flex-direction: column; gap: 0.5rem;">
-                        <div style="display: flex; align-items: center; justify-content: space-between; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 800; color: #71788e;">
-                            <span>Ambience (Reverb &amp; Delay)</span>
-                            <span style="color: #00d2ff; font-family: monospace;" x-text="Math.round(ambienceLevel * 100) + '%'"></span>
+                            <span>Volume Master</span>
+                            <span style="color: #00d2ff; font-family: monospace;" x-text="Math.round(volume * 100) + '%'"></span>
                         </div>
                         <input 
                             type="range" 
                             min="0" 
                             max="1" 
                             step="0.01" 
-                            :value="ambienceLevel"
-                            @input="setAmbience($event.target.value)"
-                            style="width: 100%; height: 6px; border-radius: 0.5rem; background: #08080a; appearance: none; cursor: pointer; accent-color: #00d2ff; margin-top: 4px;"
+                            :value="volume"
+                            @input="setVolume($event.target.value)"
+                            style="width: 100%; height: 6px; border-radius: 0.5rem; background: #08080a; appearance: none; cursor: pointer; accent-color: #00d2ff; margin-top: 8px;"
                         />
-                        <div style="display: flex; justify-content: space-between; font-size: 10px; color: #71788e; font-family: monospace; padding: 0 2px;">
-                            <span>Seco (Dry)</span>
+                        <div style="display: flex; justify-content: space-between; font-size: 10px; color: #71788e; font-family: monospace; margin-top: 4px;">
+                            <span>Mudo</span>
                             <span>50%</span>
-                            <span>Espacial (Wet)</span>
+                            <span>100%</span>
                         </div>
                     </div>
 
-                    <!-- 5. Movement (LFO Sweep & Chorus) -->
-                    <div class="altar-pad-card p-3.5 sm:p-4 rounded-2xl bg-[#12141a]/90 border border-[#1e222c] flex flex-col gap-1.5" style="background: rgba(18, 20, 26, 0.9); border: 1px solid #1e222c; border-radius: 1rem; padding: 1rem; display: flex; flex-direction: column; gap: 0.5rem;">
+                    <!-- 2. Transição / Crossfade -->
+                    <div class="altar-pad-card">
                         <div style="display: flex; align-items: center; justify-content: space-between; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 800; color: #71788e;">
-                            <span>Movement (LFO &amp; Modulação)</span>
-                            <span style="color: #00d2ff; font-family: monospace;" x-text="Math.round(movementLevel * 100) + '%'"></span>
+                            <span>Transição (Crossfade)</span>
+                            <span style="color: #00d2ff; font-family: monospace;" x-text="transitionDuration + 's'"></span>
+                        </div>
+                        <input 
+                            type="range" 
+                            min="1" 
+                            max="6" 
+                            step="0.5" 
+                            :value="transitionDuration"
+                            @input="setTransition($event.target.value)"
+                            style="width: 100%; height: 6px; border-radius: 0.5rem; background: #08080a; appearance: none; cursor: pointer; accent-color: #00d2ff; margin-top: 8px;"
+                        />
+                        <div style="display: flex; justify-content: space-between; font-size: 10px; color: #71788e; font-family: monospace; margin-top: 4px;">
+                            <span>1s (Rápida)</span>
+                            <span>3.5s (Padrão)</span>
+                            <span>6s (Ultra Suave)</span>
+                        </div>
+                    </div>
+
+                    <!-- 3. Brilho do Pad (Filtro Lowpass) -->
+                    <div class="altar-pad-card">
+                        <div style="display: flex; align-items: center; justify-content: space-between; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 800; color: #71788e;">
+                            <span>Brilho &amp; Timbre (Filtro)</span>
+                            <span style="color: #00d2ff; font-family: monospace;" x-text="Math.round(brightness * 100) + '%'"></span>
                         </div>
                         <input 
                             type="range" 
                             min="0" 
                             max="1" 
                             step="0.01" 
-                            :value="movementLevel"
-                            @input="setMovement($event.target.value)"
-                            style="width: 100%; height: 6px; border-radius: 0.5rem; background: #08080a; appearance: none; cursor: pointer; accent-color: #00d2ff; margin-top: 4px;"
+                            :value="brightness"
+                            @input="setBrightness($event.target.value)"
+                            style="width: 100%; height: 6px; border-radius: 0.5rem; background: #08080a; appearance: none; cursor: pointer; accent-color: #00d2ff; margin-top: 8px;"
                         />
-                        <div style="display: flex; justify-content: space-between; font-size: 10px; color: #71788e; font-family: monospace; padding: 0 2px;">
-                            <span>Estático</span>
-                            <span>Orgânico</span>
-                            <span>Ondulante</span>
+                        <div style="display: flex; justify-content: space-between; font-size: 10px; color: #71788e; font-family: monospace; margin-top: 4px;">
+                            <span>Aveludado / Dark</span>
+                            <span>Equilibrado</span>
+                            <span>Aberto / Brilhante</span>
                         </div>
+                    </div>
+
+                    <!-- 4. PWA Offline Cache Status & Download -->
+                    <div class="altar-pad-card">
+                        <div style="display: flex; align-items: center; justify-content: space-between; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 800; color: #71788e;">
+                            <span>Uso Offline (PWA)</span>
+                            <span 
+                                style="font-family: monospace;" 
+                                :style="preloadedCount >= totalPads ? 'color: #34d399;' : 'color: #f59e0b;'" 
+                                x-text="preloadedCount >= totalPads ? '100% Offline' : (preloadedCount + '/' + totalPads + ' baixados')"
+                            ></span>
+                        </div>
+                        <p style="font-size: 10px; color: #94a3b8; margin: 4px 0 8px 0; line-height: 1.4;">
+                            Baixe os 24 arquivos de áudio no cache do Service Worker para tocar sem conexão durante o culto.
+                        </p>
+                        <button
+                            type="button"
+                            @click="preloadAllPads()"
+                            :disabled="isPreloadingPads || preloadedCount >= totalPads"
+                            class="tap-scale"
+                            style="padding: 8px 12px; border-radius: 0.75rem; font-size: 11px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.05em; border: 1px solid #1e222c; cursor: pointer; transition: all 0.15s ease; display: flex; align-items: center; justify-content: center; gap: 6px;"
+                            :style="preloadedCount >= totalPads 
+                                ? 'background: rgba(16, 185, 129, 0.15); border-color: rgba(16, 185, 129, 0.3); color: #34d399; cursor: default;' 
+                                : 'background: #181b24; color: #00d2ff; border-color: rgba(0, 210, 255, 0.4);'"
+                        >
+                            <template x-if="isPreloadingPads">
+                                <span style="display: flex; align-items: center; gap: 6px;">
+                                    <svg class="animate-spin" style="width: 14px; height: 14px;" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>
+                                    <span>Baixando no Cache PWA...</span>
+                                </span>
+                            </template>
+                            <template x-if="!isPreloadingPads && preloadedCount < totalPads">
+                                <span style="display: flex; align-items: center; gap: 6px;">
+                                    <svg style="width: 14px; height: 14px;" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                                    <span>Baixar todos para Offline</span>
+                                </span>
+                            </template>
+                            <template x-if="preloadedCount >= totalPads">
+                                <span style="display: flex; align-items: center; gap: 6px;">
+                                    <svg style="width: 14px; height: 14px;" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                    <span>Pronto para tocar offline</span>
+                                </span>
+                            </template>
+                        </button>
                     </div>
                 </div>
             </div>

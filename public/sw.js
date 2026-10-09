@@ -7,6 +7,7 @@ const CACHE_VERSION = 'cifraly-v1.0.8';
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const RUNTIME_CACHE = `${CACHE_VERSION}-runtime`;
 const STAGE_CACHE = `${CACHE_VERSION}-stage`;
+const PADS_CACHE = `${CACHE_VERSION}-pads`;
 const OFFLINE_FALLBACK_URL = '/offline.html';
 
 // Critical core assets to precache on install
@@ -21,8 +22,35 @@ const PRECACHE_ASSETS = [
     '/icons/icon-maskable-512x512.png',
     '/apple-touch-icon.png',
     '/favicon.svg',
-    '/favicon.ico',
-    '/js/tone.js'
+    '/favicon.ico'
+];
+
+// URLs dos arquivos de áudio dos pads para cache offline PWA
+const PAD_URLS = [
+    '/pads/soft_over/soft_over_A.ogg',
+    '/pads/soft_over/soft_over_Ab%20Gsus.ogg',
+    '/pads/soft_over/soft_over_Abm%20Gsus.ogg',
+    '/pads/soft_over/soft_over_Am.ogg',
+    '/pads/soft_over/soft_over_B.ogg',
+    '/pads/soft_over/soft_over_Bb%20Asus.ogg',
+    '/pads/soft_over/soft_over_Bbm%20Asus.ogg',
+    '/pads/soft_over/soft_over_Bbm%20Csus.ogg',
+    '/pads/soft_over/soft_over_Bm.ogg',
+    '/pads/soft_over/soft_over_C.ogg',
+    '/pads/soft_over/soft_over_Cm.ogg',
+    '/pads/soft_over/soft_over_D.ogg',
+    '/pads/soft_over/soft_over_Db%20Csus.ogg',
+    '/pads/soft_over/soft_over_Dm.ogg',
+    '/pads/soft_over/soft_over_E.ogg',
+    '/pads/soft_over/soft_over_Eb%20Dsus.ogg',
+    '/pads/soft_over/soft_over_Ebm%20Dsus.ogg',
+    '/pads/soft_over/soft_over_Em.ogg',
+    '/pads/soft_over/soft_over_F.ogg',
+    '/pads/soft_over/soft_over_Fm.ogg',
+    '/pads/soft_over/soft_over_G.ogg',
+    '/pads/soft_over/soft_over_Gb%20Fsus.ogg',
+    '/pads/soft_over/soft_over_Gbm%20Fsus.ogg',
+    '/pads/soft_over/soft_over_Gm.ogg'
 ];
 
 // Dynamic and mutation patterns that MUST NOT be cached (mutations, livewire RPC updates, auth, telescope)
@@ -94,7 +122,7 @@ self.addEventListener('activate', (event) => {
     event.waitUntil(
         caches.keys().then((keys) => {
             return Promise.all(
-                keys.filter((key) => key !== STATIC_CACHE && key !== RUNTIME_CACHE && key !== STAGE_CACHE)
+                keys.filter((key) => key !== STATIC_CACHE && key !== RUNTIME_CACHE && key !== STAGE_CACHE && key !== PADS_CACHE)
                     .map((key) => caches.delete(key))
             );
         }).then(() => self.clients.claim())
@@ -184,7 +212,33 @@ self.addEventListener('fetch', (event) => {
     }
 
 
-    // B. Static Assets (CSS, JS, Fonts, Images, SVG): Stale-While-Revalidate
+    // C. Pad Audio Files (.ogg): Cache-First Strategy with dedicated PADS_CACHE
+    const isPadAudio = url.pathname.startsWith('/pads/') || /\.ogg$/i.test(url.pathname);
+    if (isPadAudio) {
+        event.respondWith(
+            caches.open(PADS_CACHE).then(async (cache) => {
+                const cached = await cache.match(request, { ignoreSearch: true });
+                if (cached) {
+                    return cached;
+                }
+                try {
+                    const response = await fetch(request);
+                    if (response && response.status === 200) {
+                        cache.put(request, response.clone());
+                    }
+                    return response;
+                } catch (err) {
+                    return cached || new Response('Áudio do pad indisponível offline.', {
+                        status: 503,
+                        headers: { 'Content-Type': 'text/plain; charset=utf-8' }
+                    });
+                }
+            })
+        );
+        return;
+    }
+
+    // D. Static Assets (CSS, JS, Fonts, Images, SVG): Stale-While-Revalidate
     const isStaticAsset = 
         url.pathname.startsWith('/build/') ||
         url.pathname.startsWith('/css/') ||
@@ -332,5 +386,29 @@ self.addEventListener('notificationclick', (event) => {
 self.addEventListener('message', (event) => {
     if (event.data && event.data.type === 'SKIP_WAITING') {
         self.skipWaiting();
+    } else if (event.data && event.data.type === 'PRELOAD_PADS') {
+        event.waitUntil(
+            caches.open(PADS_CACHE).then(async (cache) => {
+                let cachedCount = 0;
+                for (const url of PAD_URLS) {
+                    const match = await cache.match(url, { ignoreSearch: true });
+                    if (!match) {
+                        try {
+                            const res = await fetch(url);
+                            if (res && res.status === 200) {
+                                await cache.put(url, res);
+                                cachedCount++;
+                            }
+                        } catch (e) {
+                            console.warn('[SW] Falha ao precachear pad:', url, e);
+                        }
+                    } else {
+                        cachedCount++;
+                    }
+                }
+                const clients = await self.clients.matchAll();
+                clients.forEach((c) => c.postMessage({ type: 'PADS_PRELOADED', count: cachedCount, total: PAD_URLS.length }));
+            })
+        );
     }
 });

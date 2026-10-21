@@ -4,6 +4,7 @@ steps:
     id: 'build-image'
     args:
       - 'build'
+      - '--pull'
       - '-t'
       - '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY_NAME}/${_SERVICE_NAME}:$BUILD_ID'
       - '-t'

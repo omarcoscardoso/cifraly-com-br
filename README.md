@@ -73,7 +73,7 @@ O **Cifraly** foi desenvolvido para solucionar os desafios de liderança, ensaio
 
 ## 🛠️ Stack Tecnológica
 
-- **Backend**: PHP 8.4 / Laravel 12+
+- **Backend**: PHP 8.5 / Laravel 13+
 - **Painel Administrativo**: Filament PHP (TALL Stack)
 - **Frontend Reativo**: Livewire 3 & Alpine.js
 - **Estilização**: Tailwind CSS & Heroicons
@@ -175,7 +175,7 @@ O projeto está totalmente configurado para deploy contínuo no **Google Cloud R
 
 1. **Dockerfile Multi-stage Otimizado**:
    - Compilação dos assets com Vite / Tailwind CSS em Node 22 Alpine.
-   - Imagem final enxuta em PHP 8.4-FPM Alpine com Nginx integrado e Opcache ativado.
+   - Imagem final enxuta em PHP 8.5-FPM Alpine (`>= 8.5.12`) com Nginx integrado, Opcache ativado e *hardening* contra `CVE-2026-109618` / `CVE-2026-109619`.
    - Tratamento dinâmico da variável `$PORT` injetada pelo Cloud Run via template Nginx (`.docker/cloudrun/nginx.conf.template`).
    - Entrypoint com geração de caches de produção (`config:cache`, `route:cache`, `view:cache`).
 

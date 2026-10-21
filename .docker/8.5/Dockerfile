@@ -84,6 +84,7 @@ RUN if [ -n "$PHP_EXTENSIONS" ]; then \
 fi
 
 RUN setcap "cap_net_bind_service=+ep" /usr/bin/php8.5
+RUN php -r "if (version_compare(PHP_VERSION, '8.5.12', '<')) { fwrite(STDERR, 'Error: PHP version ' . PHP_VERSION . ' is vulnerable to CVE-2026-109618 / CVE-2026-109619. Require >= 8.5.12.' . PHP_EOL); exit(1); }"
 
 RUN userdel -r ubuntu
 RUN groupadd --force -g $WWWGROUP sail

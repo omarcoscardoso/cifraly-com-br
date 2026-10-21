@@ -17,7 +17,10 @@ RUN npm run build
 # -----------------------------------------------------------
 # Stage 2: Production PHP-FPM + Nginx Image
 # -----------------------------------------------------------
-FROM php:8.4-fpm-alpine
+FROM php:8.5-fpm-alpine
+
+# Enforce minimum patched PHP version (CVE-2026-109618 & CVE-2026-109619 - PHP >= 8.5.12)
+RUN php -r "if (version_compare(PHP_VERSION, '8.5.12', '<')) { fwrite(STDERR, 'Error: PHP version ' . PHP_VERSION . ' is vulnerable to CVE-2026-109618 / CVE-2026-109619. Require >= 8.5.12.' . PHP_EOL); exit(1); }"
 
 # Set working directory
 WORKDIR /var/www/html
@@ -58,6 +61,18 @@ RUN echo "opcache.enable=1" >> /usr/local/etc/php/conf.d/docker-php-ext-opcache.
     && echo "opcache.max_accelerated_files=20000" >> /usr/local/etc/php/conf.d/docker-php-ext-opcache.ini \
     && echo "opcache.revalidate_freq=0" >> /usr/local/etc/php/conf.d/docker-php-ext-opcache.ini \
     && echo "opcache.validate_timestamps=0" >> /usr/local/etc/php/conf.d/docker-php-ext-opcache.ini
+
+# Security hardening & defense-in-depth mitigations (CVE-2026-109618 / CVE-2026-109619)
+RUN { \
+        echo "expose_php=Off"; \
+        echo "session.upload_progress.enabled=0"; \
+        echo "fatal_error_backtraces=0"; \
+    } > /usr/local/etc/php/conf.d/99-security.ini \
+    && { \
+        echo "[www]"; \
+        echo "php_admin_flag[session.upload_progress.enabled] = off"; \
+        echo "pm.max_requests = 500"; \
+    } > /usr/local/etc/php-fpm.d/zz-security.conf
 
 # Copy application files
 COPY . /var/www/html

@@ -20,6 +20,14 @@ server {
     add_header Permissions-Policy "camera=(), microphone=(), geolocation=()" always;
     add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
 
+    # Defense-in-depth mitigation against PHP session upload progress exploits (CVE-2026-109618 / CVE-2026-109619)
+    if ($query_string ~* "PHP_SESSION_UPLOAD_PROGRESS") {
+        return 403;
+    }
+    if ($http_cookie ~* "PHP_SESSION_UPLOAD_PROGRESS") {
+        return 403;
+    }
+
     # Gzip Compression
     gzip on;
     gzip_vary on;
